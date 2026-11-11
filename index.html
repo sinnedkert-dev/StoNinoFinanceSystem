@@ -18,9 +18,9 @@ button{border:none;padding:13px;border-radius:10px;color:#fff;cursor:pointer;fon
 .hidden{display:none}
 .balance{font-size:36px;font-weight:900;color:#1b5e20;line-height:1;margin:6px 0}
 .mini{display:flex;gap:10px;margin-top:12px}
-.mini div{flex:1;background:#f1f8e9;border-radius:12px;padding:12px 6px;text-align:center}
-.mini small{color:#666;font-size:11px;letter-spacing:.5px}
-.mini b{display:block;margin-top:4px;font-size:16px}
+.mini div{flex:1;background:#f1f8e9;border-radius:12px;padding:12px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:64px}
+.mini small{color:#666;font-size:11px;letter-spacing:.5px;line-height:1.2}
+.mini b{display:block;margin-top:6px;font-size:17px;line-height:1.2;color:#222;white-space:nowrap}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .thumb{width:90px;height:90px;object-fit:cover;border-radius:10px;margin-top:8px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -39,11 +39,12 @@ h3{margin:0 0 10px;font-size:17px}
 <div id="loginPage" class="card login-card">
 <div class="header-top" style="margin:-16px -16px 16px"><h2>STO. NIÑO CHAPEL</h2><p>VB BAGO - BUD NA</p></div>
 <h3 style="text-align:center;font-size:20px">Login</h3>
-<input id="loginEmail" type="email" placeholder="Email">
+<input id="loginEmail" type="email" placeholder="Email" value="treasurer@stonino.com">
 <input id="loginPass" type="password" placeholder="Password">
-<button id="loginBtn" class="blue" style="width:100%">LOGIN</button>
-<p id="loginError" style="color:red;text-align:center;min-height:18px"></p>
-<button id="enterPublic" class="orange" style="width:100%">PUBLIC VIEW - Tingin Lang</button>
+<button id="loginBtn" class="blue" style="width:100%" onclick="doLogin()">LOGIN</button>
+<p id="loginError" style="color:#c62828;text-align:center;min-height:22px;font-weight:700;font-size:13px"></p>
+<button id="enterPublic" class="orange" style="width:100%" onclick="enterPublic()">PUBLIC VIEW - Tingin Lang</button>
+<p id="debugMsg" style="text-align:center;font-size:11px;color:#888;margin-top:8px"></p>
 </div>
 
 <div id="mainApp" class="hidden">
@@ -133,6 +134,28 @@ window.enterPublic = function(){
   showPage('Public');
 };
 window.copyPublicLink = function(){ navigator.clipboard.writeText(window.location.href); alert('Na-copy na!'); };
+window.doLogin = async function(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginError');
+  const dbg=document.getElementById('debugMsg');
+  if(!email || !pass){ err.textContent='Lagyan mo ng Email at Password!'; return; }
+  err.textContent='Naglo-login... Hintay lang...';
+  dbg.textContent='Connecting sa Firebase...';
+  try{
+    await signInWithEmailAndPassword(auth, email, pass);
+    err.textContent='';
+    dbg.textContent='Login OK!';
+  }catch(e){
+    console.log(e);
+    if(e.code==='auth/invalid-credential' || e.code==='auth/wrong-password' || e.code==='auth/user-not-found'){ err.textContent='Mali ang Email o Password! I-check mo sa Firebase > Authentication > Users'; }
+    else if(e.code==='auth/invalid-email'){ err.textContent='Mali yung format ng Email!'; }
+    else if(e.code==='auth/too-many-requests'){ err.textContent='Masyadong maraming try! Hintay ka 1 minute tapos ulitin.'; }
+    else if(e.code==='auth/network-request-failed'){ err.textContent='Walang internet o blocked yung Firebase. I-refresh mo!'; }
+    else{ err.textContent='Error: '+e.code+' - '+e.message; }
+    dbg.textContent='Code: '+e.code;
+  }
+};
 onAuthStateChanged(auth, (user)=>{
   if(!user) return;
   currentUserEmail=user.email;
@@ -201,7 +224,4 @@ document.getElementById('addMemberBtn').addEventListener('click', async ()=>{ co
 document.getElementById('addPledgeBtn').addEventListener('click', async ()=>{ const name=document.getElementById('pledgeName').value.trim(); const amount=Number(document.getElementById('pledgeAmount').value); if(!name || !amount) return alert('Lagyan ng pangalan at halaga!'); await push(ref(db,'pledges'),{name,amount,paid:false,createdAt:Date.now(),by:currentUserEmail}); alert('Na-add pledge ni '+name); document.getElementById('pledgeName').value=''; document.getElementById('pledgeAmount').value=''; });
 document.getElementById('saveSettingsBtn').addEventListener('click', async ()=>{ const g=document.getElementById('settingGcash').value.trim(); const gn=document.getElementById('settingGcashName').value.trim(); await set(ref(db,'settings/gcash'),{gcashNumber:g,gcashName:gn}); alert('Na-save!'); });
 document.getElementById('downloadBackupBtn').addEventListener('click', ()=>{ const data={transactions:allTransactions,members:allMembers,budgets:allBudgets,audit:allAudit,pledges:allPledges}; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='stnino-backup.json'; a.click(); });
-document.getElementById('toggleLockBtn').addEventListener('click', async ()=>{ const k=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'); const locked=allLocked[k]; await set(ref(db,'lockedMonths/'+k),!locked); alert(locked?'Na-UNLOCK':'Na-LOCK'); });
-document.getElementById('wipeBtn').addEventListener('click', async ()=>{ if(currentRole!=='AUDITOR') return alert('AUDITOR lang pwede!'); if(!confirm('Sigurado ka?')) return; await remove(ref(db,'transactions')); await remove(ref(db,'members')); await remove(ref(db,'audit')); await remove(ref(db,'pledges')); await remove(ref(db,'lockedMonths')); alert('Nabura na lahat!'); });
-document.getElementById('receiptInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{ receiptBase64=ev.target.result; document.getElementById('receiptPreview').innerHTML=`<img src="${receiptBase64}" class="thumb">`; }; r.readAsDataURL(f); });
-function fillMonths(){ const sel=document.getElementById('reportMonth'); if(!sel || sel.options.length) return; let keys=[...new Set(arr(allTransactions).map(t=>new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0')) )]; keys.sort().reverse().forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=new Date(k+'-01').toLocaleString('en-PH',{month:'long',year:'numeric'}); sel.appendChild(o); }); sel.addEventListener('change', ()=>{ const k=sel.value; const list=arr(allTransactions).filter(t=> (new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0'))===k && t.status==='approved'); let html=''; list.forEach(t=>{ html+=`<div class="row"><span>${t.person} - ${t.category}</span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; }); document.getElementById('reportList'
+document.getElementById('toggleLockBtn').addEventListener('click', async ()=>{ const k=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'); const locked=allLocked[k]; await set(ref(db,'lockedMonths/'+k),!locked); alert(locke
