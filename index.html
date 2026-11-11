@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sto.Nino Chapel </title>
+<title>Sto.Nino Chapel V6 - Fixed</title>
 <style>
 *{box-sizing:border-box;font-family:Arial,sans-serif}
 body{margin:0;background:#f2f0eb;padding-bottom:90px}
@@ -32,8 +32,8 @@ button{width:100%;padding:14px;border:none;border-radius:10px;font-weight:bold;c
 </style>
 </head>
 <body>
-<div class="header"><h2>⛪ Sto.Niño Chapel<br>Finance Tracker Online</h2><p id="userEmail">Kaban ng Kapilya</p><p id="userRoleLabel"></p><p></p></div>
-<div id="loginPage"> nth-of-type(2) { display: none !important; }{ display: none !important; }age" class="card" style="max-width:400px;margin:40px auto">
+<div class="header"><h2>⛪ Sto.Niño Chapel<br>Finance Tracker Online</h2><p id="userEmail">Kaban ng Kapilya</p><p id="userRoleLabel"></p><p>V6 - FIXED SPACING</p></div>
+<div id="loginPage" class="card" style="max-width:400px;margin:40px auto">
 <h2 style="text-align:center;color:#7a1f1f">Login - V6</h2>
 <input id="loginEmail" type="email" placeholder="Email">
 <input id="loginPass" type="password" placeholder="Password">
@@ -49,7 +49,7 @@ button{width:100%;padding:14px;border:none;border-radius:10px;font-weight:bold;c
 <div class="row"><div class="mini"><span>LOCKED</span><b id="totalLocked">0</b></div><div class="mini"><span>STATUS</span><b>V6</b></div></div>
 <button class="btn-blue" style="margin-top:4px" onclick="window.print()">🖨️ PRINT REPORT</button>
 <button class="btn-gray" style="margin-top:8px" onclick="downloadBackup()">⬇️ DOWNLOAD BACKUP</button>
-  </div>
+                                                                                         </div>
   <div id="pageDashboard">
 <div class="card"><h3 style="margin:0 0 10px">🎯 Budget / Target</h3><div id="budgetList" style="line-height:1.7">Wala pang target</div>
 <div style="margin-top:12px"><select id="budgetCategory"><option>Pondo - Fiesta</option><option>Pondo - Simbahan</option><option>Pondo - Youth</option><option>Pondo - Charity</option></select><input id="budgetTarget" type="number" placeholder="Target Halaga - Hal. 10000"><button class="btn-gold" onclick="saveBudget()">SET TARGET</button></div></div>
@@ -94,8 +94,8 @@ button{width:100%;padding:14px;border:none;border-radius:10px;font-weight:bold;c
 <button id="navMembers" onclick="showPage('Members')">👥<br>Members</button>
 <button id="navApproval" onclick="showPage('Approval')">✅<br>Approve</button>
 <button id="navAudit" onclick="showPage('Audit')">📜<br>Audit</button>
-</div>
-<script type="module">
+  </div>   
+  <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -120,7 +120,7 @@ onAuthStateChanged(auth,(user)=>{ if(!user){ document.getElementById('loginPage'
 document.getElementById('userEmail').onclick = async ()=>{ if(confirm("Mag-logout ka na?")){ await signOut(auth); await addAudit("LOGOUT",currentUserEmail); location.reload(); } };
 document.getElementById('txReceipt').onchange = (e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ receiptBase64=r.result; const img=document.getElementById('receiptPreview'); img.src=receiptBase64; img.classList.remove('hidden'); }; r.readAsDataURL(f); };
 window.db=db; window.ref=ref; window.push=push; window.update=update; window.remove=remove; window.onValue=onValue; window.addAuditGlobal=addAudit;
-  window.loadData = ()=>{ onValue(ref(db,'transactions'), s=>{ allTransactions=s.val()||{}; renderAll(); }); onValue(ref(db,'members'), s=>{ allMembers=s.val()||{}; renderAll(); }); onValue(ref(db,'budgets'), s=>{ allBudgets=s.val()||{}; renderAll(); }); onValue(ref(db,'lockedMonths'), s=>{ allLocked=s.val()||{}; renderAll(); }); onValue(ref(db,'audit'), s=>{ allAudit=s.val()||{}; renderAll(); }); };
+    window.loadData = ()=>{ onValue(ref(db,'transactions'), s=>{ allTransactions=s.val()||{}; renderAll(); }); onValue(ref(db,'members'), s=>{ allMembers=s.val()||{}; renderAll(); }); onValue(ref(db,'budgets'), s=>{ allBudgets=s.val()||{}; renderAll(); }); onValue(ref(db,'lockedMonths'), s=>{ allLocked=s.val()||{}; renderAll(); }); onValue(ref(db,'audit'), s=>{ allAudit=s.val()||{}; renderAll(); }); };
 window.renderAll = ()=>{ const txs=Object.entries(allTransactions).map(([id,t])=>({id,...t})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)); const approved=txs.filter(t=>t.status==='approved'); const pending=txs.filter(t=>t.status==='pending'); const totalIn=approved.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount||0),0); const totalOut=approved.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount||0),0); setEl('totalBalance',formatMoney(totalIn-totalOut)); setEl('totalIn',formatMoney(totalIn)); setEl('totalOut',formatMoney(totalOut)); setEl('totalMembers',String(Object.keys(allMembers).length)); setEl('totalPending',String(pending.length)); setEl('totalTx',String(txs.length)); setEl('totalLocked',String(Object.keys(allLocked).length)); const next=getNextTxNumber(); setEl('nextTxNum',formatTxNum(next)); setEl('nextTxNum2',formatTxNum(next)); const mf=document.getElementById('monthFilter'); if(mf && mf.options.length<=1){ const keys=[...new Set(txs.map(t=>monthKey(t.timestamp)))].sort().reverse(); keys.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=monthLabel(k); mf.appendChild(o); }); } renderTx(); renderMembers(); renderBudgets(); renderAudit(); renderApproval(); };
 window.renderTx = ()=>{ const list=document.getElementById('allTx'); if(!list) return; const q=(document.getElementById('searchTx').value||'').toLowerCase(); const st=document.getElementById('filterStatus').value; const mf=document.getElementById('monthFilter').value; let txs=Object.entries(allTransactions).map(([id,t])=>({id,...t})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)); if(st!=='all') txs=txs.filter(t=>t.status===st); if(mf!=='all') txs=txs.filter(t=>monthKey(t.timestamp)===mf); if(q) txs=txs.filter(t=>(t.person||'').toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q)); const approved=txs.filter(t=>t.status==='approved'); const mIn=approved.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount||0),0); const mOut=approved.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount||0),0); setEl('monthIn',formatMoney(mIn)); setEl('monthOut',formatMoney(mOut)); setEl('monthNet',formatMoney(mIn-mOut)); if(!txs.length){ list.innerHTML='Wala pa'; return; } list.innerHTML=txs.map(t=>`<div class="tx"><div><span class="txnum">${getDisplayTxNum(t)}</span><br><b>${t.person||''} - ${t.type==='in'?'⬆️ IN':'⬇️ OUT'} ${formatMoney(t.amount)}</b><small>${t.category||''} • ${t.note||''}</small><small>${formatDateTime(t.timestamp)} • By: ${t.createdBy||''}</small>${t.receipt?`<br><img src="${t.receipt}" class="thumb" onclick="window.open(this.src)">`:''}</div><div><span class="badge ${t.status==='approved'?'badge-approved':'badge-pending'}">${t.status}</span>${currentRole==='AUDITOR'?`<br><button class="btn-red" style="width:auto;padding:8px 12px;margin-top:8px" onclick="deleteTx('${t.id}')">DELETE</button>`:''}</div></div>`).join(''); const recent=document.getElementById('recentTx'); if(recent) recent.innerHTML=approved.slice(0,3).map(t=>`<div class="tx"><div><b>${t.person||''} - ${formatMoney(t.amount)}</b><small>${formatDateTime(t.timestamp)}</small></div><div><span class="badge badge-approved">OK</span></div></div>`).join('')||'Wala pa'; };
 window.deleteTx = async (id)=>{ if(!confirm("Delete mo talaga?")) return; const t=allTransactions[id]; await remove(ref(db,'transactions/'+id)); await addAudit("DELETE",`Binura ${getDisplayTxNum(t)} - ${t.person} - ${formatMoney(t.amount)}`); };
