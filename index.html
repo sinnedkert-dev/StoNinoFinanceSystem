@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sto. Nino Chapel - V8 Bago</title>
+<style>
+body{margin:0;font-family:Arial;background:#fdf8ec;padding-bottom:90px}
+.top{background:#7f1d1d;color:#fff;padding:12px;text-align:center}
+.card{background:#fff;margin:12px;border-radius:16px;padding:14px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin-top:8px}
+button{border:none;padding:12px;border-radius:10px;font-weight:bold;width:100%;margin-top:8px;cursor:pointer}
+.green{background:#16a34a;color:#fff}
+.gold{background:#c9a227}
+.red{background:#dc2626;color:#fff}
+.dark{background:#1f2937;color:#fff}
+.blue{background:#2563eb;color:#fff}
+.hidden{display:none!important}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.mini{background:#fdf8ec;border:1px solid #fde68a;border-radius:12px;padding:10px;text-align:center}
+.tx{display:flex;justify-content:space-between;gap:10px;background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:8px}
+.badge{font-size:11px;padding:4px 10px;border-radius:999px;font-weight:bold}
+.badge-approved{background:#dcfce7;color:#166534}
+.badge-pending{background:#fef9c3;color:#854d0e}
+.thumb{width:90px;height:90px;object-fit:cover;border-radius:10px;margin-top:6px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.1)}
+.nav button{flex:1;background:none;padding:8px 2px;font-size:11px;color:#666;border-radius:0;margin:0}
+.nav button.active{color:#7f1d1d;background:#fef3c7}
+</style>
+</head>
+<body>
+<div class="top"><b>STO. NINO CHAPEL</b><br><small>V8 BAGO • BUO NA</small></div>
+<div id="loginPage" class="card">
+<h2 style="margin:0">Login</h2>
+<input id="loginEmail" placeholder="Email">
+<input id="loginPass" type="password" placeholder="Password">
+<button class="green" id="loginBtn">LOGIN</button>
+<p id="loginError" style="color:red"></p>
+<button class="blue" onclick="enterPublic()">PUBLIC VIEW - Tingin Lang</button>
+</div>
+<div id="mainApp" class="hidden">
+<div style="padding:12px;display:flex;justify-content:space-between">
+<div><b id="userEmail"></b><br><small id="userRoleLabel"></small><br><small id="notifBar" style="color:#dc2626;font-weight:bold"></small></div>
+<button class="gold" style="width:auto" onclick="downloadBackup()">BACKUP</button>
+</div>
+<div id="pageDashboard">
+<div class="card"><h3 style="margin:0">KABAN</h3><div id="totalBalance" style="font-size:32px;font-weight:900">P0.00</div>
+<div class="row"><div class="mini">CASH IN<br><b id="totalIn">P0</b></div><div class="mini">CASH OUT<br><b id="totalOut">P0</b></div></div>
+<div class="row"><div class="mini">PENDING<br><b id="totalPending">0</b></div><div class="mini">PLEDGE<br><b id="totalPledges">0</b></div><div class="mini">MEMBERS<br><b id="totalMembers">0</b></div></div>
+<div class="row"><button class="green" onclick="showPage('Cash')">+ ADD CASH</button><button class="gold" onclick="showPage('Report')">REPORT</button></div>
+<button class="blue" onclick="showPage('Public')">PUBLIC VIEW</button></div>
+<div class="card"><h3 style="margin:0 0 10px">Budget</h3><div id="budgetList">Wala pa</div>
+<select id="budgetCategory"><option>Pondo - Fiesta</option><option>Pondo - Simbahan</option><option>Pondo - Youth</option><option>Pondo - Charity</option></select>
+<input id="budgetTarget" type="number" placeholder="Target"><button class="gold" onclick="saveBudget()">SET TARGET</button></div>
+<div class="card"><h3 style="margin:0 0 10px">Recent</h3><div id="recentTx">Wala pa</div></div>
+</div>
+<div id="pageCash" class="hidden">
+<div class="card"><h3 style="margin:0">Add Cash - <span id="nextTxNum">SN-2026-0001</span></h3>
+<div class="row"><button class="green" id="typeInBtn" onclick="setTxType('in')">CASH IN</button><button class="red" id="typeOutBtn" onclick="setTxType('out')">CASH OUT</button></div>
+<input id="txAmount" type="number" placeholder="Halaga">
+<select id="txCategory"><option>Donation</option><option>Mass Offering</option><option>Pondo - Fiesta</option><option>Pondo - Simbahan</option><option>Pondo - Youth</option><option>Pondo - Charity</option><option>Gastos - Kuryente</option><option>Gastos - Pagkain</option><option>Gastos - Iba Pa</option></select>
+<input id="txPerson" placeholder="Pangalan"><textarea id="txNote" rows="2" placeholder="Note"></textarea>
+<label>Resibo</label><input type="file" id="receiptInput" accept="image/*"><img id="receiptPreview" class="thumb hidden">
+<div style="background:#fef9c3;padding:10px;border-radius:10px;margin-top:8px"><b>GCash:</b> <span id="gcashNumDisplay">0912-345-6789</span><br><button class="blue" style="padding:8px" onclick="copyGcash()">Copy GCash</button><button class="gold" style="padding:8px" onclick="showQR()">QR</button><div id="qrBox" class="hidden" style="text-align:center;background:#fff;padding:10px;border-radius:10px;margin-top:8px"><div style="font-size:60px">QR</div><b>Scan sa GCash</b><br><small id="qrText">0912-345-6789</small></div></div>
+<button class="green" id="saveTxBtn">SAVE - PENDING</button></div>
+<div class="card"><h3 style="margin:0 0 10px">Lahat ng Transactions</h3><div class="row"><input id="searchTx" placeholder="Search"><select id="filterStatus" onchange="renderAll()"><option value="all">Lahat</option><option value="approved">Approved</option><option value="pending">Pending</option></select></div><div id="allTx" style="margin-top:10px">Wala pa</div></div>
+</div>
+<div id="pageApproval" class="hidden"><div class="card"><h3 style="margin:0">Approval - AUDITOR LANG</h3><div id="pendingList">Wala pa</div></div></div>
+<div id="pagePledge" class="hidden"><div class="card"><h3 style="margin:0">Pledge Tracker</h3><input id="pledgeName" placeholder="Pangalan"><input id="pledgeAmount" type="number" placeholder="Pledge Halaga"><select id="pledgeFor"><option>Pondo - Fiesta</option><option>Pondo - Simbahan</option><option>Pondo - Youth</option><option>Pondo - Charity</option></select><input id="pledgeNote" placeholder="Note"><button class="green" id="addPledgeBtn">+ ADD PLEDGE</button></div><div class="card"><div class="row"><div class="mini">TOTAL<br><b id="pledgeTotal">P0</b></div><div class="mini">BAYAD<br><b id="pledgePaid">P0</b></div><div class="mini">HINDI PA<br><b id="pledgeUnpaid">P0</b></div></div><div id="pledgeList" style="margin-top:10px">Wala pa</div></div></div>
+<div id="pageReport" class="hidden"><div class="card"><h3 style="margin:0">Monthly Report</h3><div class="row"><select id="reportMonth"></select><button class="gold" onclick="generateReport()">GENERATE</button></div><div id="reportArea" style="margin-top:12px"></div><button class="dark hidden" id="printReportBtn" onclick="window.print()">PRINT / PDF</button></div></div>
+<div id="pagePublic" class="hidden"><div class="card"><h3 style="margin:0">PUBLIC VIEW</h3><p>Total lang, walang pangalan.</p><b>TOTAL PONDO:</b><br><span id="publicTotal" style="font-size:28px;font-weight:900;color:#166534">P0.00</span><br><br><b>FIESTA:</b><br><span id="publicFiesta"></span><div style="background:#eee;height:12px;border-radius:999px;overflow:hidden;margin-top:8px"><div id="publicFiestaBar" style="width:0%;background:#16a34a;height:12px"></div></div><br><b>NGAYONG BUWAN:</b><br><span id="publicMonth"></span><br><br><button class="blue" onclick="copyPublicLink()">Copy Link</button></div></div>
+<div id="pageMembers" class="hidden"><div class="card"><h3 style="margin:0">Members</h3><input id="memberName" placeholder="Pangalan"><input id="memberContact" placeholder="Contact"><button class="green" id="addMemberBtn">+ ADD MEMBER</button></div><div class="card"><div id="memberList">Wala pa</div></div></div>
+<div id="pageAudit" class="hidden"><div class="card"><h3 style="margin:0">Audit Log</h3><div id="auditList">Wala pa</div></div></div>
+<div id="pageSettings" class="hidden"><div class="card"><h3 style="margin:0">Settings</h3><input id="settingGcash" placeholder="GCash Number"><input id="settingGcashName" placeholder="GCash Name"><button class="gold" onclick="saveSettings()">SAVE GCash</button><hr><button class="dark" onclick="toggleMonthLock()">LOCK / UNLOCK BUWAN</button><hr><button class="red" onclick="wipeAllData()">BURA LAHAT - PARA 0 LAHAT</button></div><div class="card"><button class="red" id="logoutBtn">LOGOUT</button></div></div>
+<div id="pagePublicOnly" class="hidden"><div class="card"><button class="dark" onclick="exitPublic()">BALIK SA LOGIN</button></div></div>
+</div>
+<div class="nav hidden" id="bottomNav">
+<button onclick="showPage('Dashboard')" data-page="Dashboard">Dashboard</button>
+<button onclick="showPage('Cash')" data-page="Cash">Cash</button>
+<button o<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// TUNAY NA CONFIG MO - STONINOCHAPELFINANCE - HINDI PEKE
+const firebaseConfig = {
+apiKey: "AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",
+authDomain: "stoninochapelfinance.firebaseapp.com",
+databaseURL: "https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "stoninochapelfinance",
+storageBucket: "stoninochapelfinance.firebasestorage.app",
+messagingSenderId: "633724409478",
+appId: "1:633724409478:web:a01f4e934d836ce3c82307",
+measurementId: "G-7WCS0PJWY6"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUserEmail = "";
+let currentRole = "MEMBER";
+let allTransactions = {};
+let allMembers = {};
+let allBudgets = {};
+let allLocked = {};
+let allAudit = {};
+let allPledges = {};
+let allSettings = {};
+let receiptBase64 = "";
+let currentTxType = "in";
+let isPublicMode = false;
+
+function fmt(n){
+return "P" + Number(n||0).toLocaleString("en-PH",{minimumFractionDigits:2});
+}
+function mKey(ts){
+const d = new Date(ts||Date.now());
+return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+}
+function mLabel(k){
+const p = k.split('-');
+return new Date(p[0],p[1]-1,1).toLocaleString("en-PH",{month:'long',year:'numeric'});
+}
+function fDT(ts){
+if(!ts) return "";
+return new Date(ts).toLocaleString("en-PH",{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+}
+function txNum(t){
+if(t.receiptNum) return t.receiptNum;
+if(t.txNum) return t.txNum;
+return "SN-" + new Date(t.timestamp||Date.now()).getFullYear() + "-" + String(t.txNumber||0).padStart(4,'0');
+}
+function fmtNum(n){
+return "SN-" + new Date().getFullYear() + "-" + String(n).padStart(4,'0');
+}
+function nextNum(){
+const ns = Object.values(allTransactions).map(t=>Number(t.txNumber||0));
+if(!ns.length) return 1;
+return Math.max(...ns) + 1;
+}
+function setEl(id,v){
+const e = document.getElementById(id);
+if(e) e.textContent = v;
+}
+window.setTxType = function(t){
+currentTxType = t;
+document.getElementById('typeInBtn').style.opacity = t==='in' ? '1' : '0.6';
+document.getElementById('typeOutBtn').style.opacity = t==='out' ? '1' : '0.6';
+};
+window.showPage = function(p){
+if(isPublicMode && p!=='Public'){ alert("Naka-Public ka. Mag-login ka muna."); return; }
+const pages = ['Dashboard','Cash','Approval','Pledge','Report','Public','Members','Audit','Settings'];
+pages.forEach(x=>{
+const e = document.getElementById('page'+x);
+if(e) e.classList.toggle('hidden', x!==p);
+});
+document.querySelectorAll('#bottomNav button').forEach(b=>{
+b.classList.toggle('active', b.dataset.page===p);
+});
+if(p==='Report') fillMonths();
+if(p==='Public') renderPublic();
+};
+window.enterPublic = function(){
+isPublicMode = true;
+document.getElementById('loginPage').classList.add('hidden');
+document.getElementById('mainApp').classList.remove('hidden');
+document.getElementById('bottomNav').classList.add('hidden');
+const pages = ['Dashboard','Cash','Approval','Pledge','Report','Members','Audit','Settings'];
+pages.forEach(x=>{
+const e = document.getElementById('page'+x);
+if(e) e.classList.add('hidden');
+});
+document.getElementById('pagePublic').classList.remove('hidden');
+document.getElementById('pagePublicOnly').classList.remove('hidden');
+setEl('userEmail',"PUBLIC VIEWER");
+setEl('userRoleLabel',"Tingin lang");
+loadData();
+renderPublic();
+};
+window.exitPublic = function(){
+isPublicMode = false;
+document.getElementById('mainApp').classList.add('hidden');
+document.getElementById('loginPage').classList.remove('hidden');
+};
+window.copyPublicLink = function(){
+navigator.clipboard.writeText(window.location.href);
+alert("Na-copy na!");
+};
+window.copyGcash = function(){
+const n = allSettings.gcash || "0912-345-6789";
+navigator.clipboard.writeText(n);
+alert("Na-copy: " + n);
+};
+window.showQR = function(){
+document.getElementById('qrBox').classList.toggle('hidden');
+};
+window.saveSettings = async function(){
+const g = document.getElementById('settingGcash').value.trim();
+const gn = document.getElementById('settingGcashName').value.trim();
+if(!g) return alert("Lagyan mo GCash!");
+await set(ref(db,'settings'),{gcash:g, gcashName:gn||"Sto. Nino Chapel"});
+alert("Na-save!");
+};
+window.downloadBackup = function(){
+const data = {transactions:allTransactions, members:allMembers, budgets:allBudgets, audit:allAudit, pledges:allPledges, settings:allSettings};
+const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = 'stonino-backup-v8.json';
+a.click();
+};
+window.toggleMonthLock = async function(){
+const k = mKey(Date.now());
+await set(ref(db,'lockedMonths/'+k), !allLocked[k]);
+alert(allLocked[k] ? "Na-UNLOCK" : "Na-LOCK");
+};
+window.wipeAllData = async function(){
+if(currentRole!=='AUDITOR'){ alert("AUDITOR lang pwede!"); return; }
+const c = prompt("Type DELETE LAHAT para magpatuloy");
+if(c!=="DELETE LAHAT") return;
+await remove(ref(db,'transactions'));
+await remove(ref(db,'members'));
+await remove(ref(db,'budgets'));
+await remove(ref(db,'audit'));
+await remove(ref(db,'pledges'));
+await remove(ref(db,'lockedMonths'));
+alert("Nabura na lahat! 0 na lahat!");
+};
+document.getElementById('receiptInput')?.addEventListener('change', e=>{
+const f = e.target.files[0];
+if(!f) return;
+const r = new FileReader();
+r.onload = ev=>{
+receiptBase64 = ev.target.result;
+const p = document.getElementById('receiptPreview');
+p.src = receiptBase64;
+p.classList.remove('hidden');
+};
+r.readAsDataURL(f);
+});
+document.getElementById('loginBtn')?.addEventListener('click', async ()=>{
+const email = document.getElementById('loginEmail').value.trim();
+const pass = document.getElementById('loginPass').value;
+if(!email || !pass){
+document.getElementById('loginError').textContent = "Lagyan mo email at password!";
+return;
+}
+try{
+await signInWithEmailAndPassword(auth,email,pass);
+}catch(err){
+document.getElementById('loginError').textContent = "Mali email / password!";
+}
+});
+document.getElementById('logoutBtn')?.addEventListener('click', async ()=>{
+await signOut(auth);
+location.reload();
+});
+onAuthStateChanged(auth, user=>{
+if(!user){
+document.getElementById('loginPage').classList.remove('hidden');
+document.getElementById('mainApp').classList.add('hidden');
+document.getElementById('bottomNav').classList.add('hidden');
+return;
+}
+currentUserEmail = user.email;
+const em = user.email.toLowerCase();
+if(em.includes('treasurer')) currentRole = 'TREASURER';
+else if(em.includes('auditor') || em.includes('father') || em.includes('pari')) currentRole = 'AUDITOR';
+else if(em.includes('secretary')) currentRole = 'SECRETARY';
+else currentRole = 'MEMBER';
+isPublicMode = false;
+document.getElementById('loginPage').classList.add('hidden');
+document.getElementById('mainApp').classList.remove('hidden');
+document.getElementById('bottomNav').classList.remove('hidden');
+setEl('userEmail', user.email);
+setEl('userRoleLabel', "Role: " + currentRole + " - V8 BAGO");
+loadData();
+showPage('Dashboard');
+});
+function loadData(){
+onValue(ref(db,'transactions'), s=>{ allTransactions = s.val()||{}; renderAll(); });
+onValue(ref(db,'members'), s=>{ allMembers = s.val()||{}; renderAll(); });
+onValue(ref(db,'budgets'), s=>{ allBudgets = s.val()||{}; renderAll(); });
+onValue(ref(db,'lockedMonths'), s=>{ allLocked = s.val()||{}; renderAll(); });
+onValue(ref(db,'audit'), s=>{ allAudit = s.val()||{}; renderAll(); });
+onValue(ref(db,'pledges'), s=>{ allPledges = s.val()||{}; renderAll(); });
+onValue(ref(db,'settings'), s=>{
+allSettings = s.val()||{};
+if(allSettings.gcash){
+setEl('gcashNumDisplay', allSettings.gcash);
+setEl('qrText', allSettings.gcash + " - " + (allSettings.gcashName||"Sto. Nino Chapel"));
+document.getElementById('settingGcash').value = allSettings.gcash;
+document.getElementById('settingGcashName').value = allSettings.gcashName||"";
+}
+renderAll();
+});
+}
+async function addAudit(a,d){
+await push(ref(db,'audit'),{action:a, detail:d, by:currentUserEmail||"PUBLIC", role:currentRole, timestamp:Date.now()});
+}
+function renderAll(){
+const arr = Object.entries(allTransactions).map(([id,t])=>({id,...t}));
+const approved = arr.filter(t=>t.status==='approved');
+const pending = arr.filter(t=>t.status==='pending');
+const sumIn = approved.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount||0),0);
+const sumOut = approved.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount||0),0);
+setEl('totalBalance', fmt(sumIn-sumOut));
+setEl('totalIn', fmt(sumIn));
+setEl('totalOut', fmt(sumOut));
+setEl('totalMembers', Object.keys(allMembers).length);
+setEl('totalPending', pending.length);
+setEl('totalPledges', Object.keys(allPledges).length);
+setEl('nextTxNum', fmtNum(nextNum()));
+const dot = document.getElementById('navPendingDot');
+if(dot) dot.innerHTML = pending.length ? "("+pending.length+")" : "";
+const nb = document.getElementById('notifBar');
+if(nb){
+if(currentRole==='AUDITOR' && pending.length) nb.textContent = "NOTIF: May " + pending.length + " PENDING na i-approve!";
+else if(pending.length) nb.textContent = "May " + pending.length + " pending - hintay Auditor";
+else nb.textContent = "";
+}
+const search = (document.getElementById('searchTx')?.value||"").toLowerCase();
+const fStatus = document.getElementById('filterStatus')?.value||"all";
+let filtered = arr.filter(t=>{
+if(fStatus!=='all' && t.status!==fStatus) return false;
+if(search && !((t.person||"").toLowerCase().includes(search) || (t.note||"").toLowerCase().includes(search))) return false;
+return true;
+}).sort((a,b)=>b.timestamp-a.timestamp);
+let txHtml = "";
+filtered.forEach(t=>{
+let btns = "";
+if(t.status==='pending' && currentRole==='AUDITOR'){
+btns += "<button class='green' style='width:auto;padding:8px' onclick=\"approveTx('"+t.id+"')\">APPROVE</button>";
+btns += "<button class='red' style='width:auto;padding:8px' onclick=\"rejectTx('"+t.id+"')\">REJECT</button>";
+}
+if(currentRole==='AUDITOR'){
+btns += "<button class='red' style='width:auto;padding:8px' onclick=\"deleteTx('"+t.id+"')\">DELETE</button>";
+}
+let img = t.receipt ? "<br><img src='"+t.receipt+"' class='thumb'>" : "";
+txHtml += "<div class='tx'><div><b>"+txNum(t)+" - "+t.person+" - "+fmt(t.amount)+"</b><br><small>"+t.category+" - "+(t.note||"")+"<br>"+fDT(t.timestamp)+"</small>"+img+"<div style='margin-top:8px;display:flex;gap:6px'>"+btns+"</div></div><div><span class='badge "+(t.status==='approved'?'badge-approved':'badge-pending')+"'>"+t.status+"</span></div></div>";
+});
+document.getElementById('allTx').innerHTML = txHtml || "Wala pa";
+let pendHtml = "";
+pending.forEach(t=>{
+let b = "";
+if(currentRole==='AUDITOR'){
+b = "<button class='green' style='width:auto;padding:8px' onclick=\"approveTx('"+t.id+"')\">APPROVE</button><button class='red' style='width:auto;padding:8px' onclick=\"rejectTx('"+t.id+"')\">REJECT</button>";
+} else {
+b = "<span class='badge badge-pending'>Si AUDITOR lang</span>";
+}
+pendHtml += "<div class='tx'><div><b>"+txNum(t)+" - "+t.person+" - "+fmt(t.amount)+"</b><br><small>"+t.category+" - "+(t.note||"")+"</small></div><div>"+b+"</div></div>";
+});
+document.getElementById('pendingList').innerHTML = pendHtml || "Wala pang pending.";
+let bHtml = "";
+Object.entries(allBudgets).forEach(([cat,b])=>{
+const target = Number(b.target||0);
+const spent = approved.filter(t=>t.category===cat && t.type==='in').reduce((a,t)=>a+Number(t.amount||0),0);
+const pct = target ? Math.min(100, Math.round(spent/target*100)) : 0;
+bHtml += "<div style='margin-bottom:10px'><div style='display:flex;justify-content:space-between'><b>"+cat+"</b><b>"+fmt(spent)+" / "+fmt(target)+"</b></div><div style='background:#eee;height:10px;border-radius:999px;overflow:hidden;margin-top:6px'><div style='width:"+pct+"%;background:#16a34a;height:10px'></div></div><small>"+pct+"%</small></div>";
+});
+document.getElementById('budgetList').innerHTML = bHtml || "Wala pang target";
+let recHtml = "";
+approved.slice().sort((a,b)=>b.timestamp-a.timestamp).slice(0,5).forEach(t=>{
+recHtml += "<div style='padding:8px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between'><span>"+txNum(t)+" - "+t.person+"</span><b>"+(t.type==='in'?'+':'-')+fmt(t.amount)+"</b></div>";
+});
+document.getElementById('recentTx').innerHTML = recHtml || "Wala pa";
+let memHtml = "";
+Object.entries(allMembers).forEach(([id,m])=>{
+memHtml += "<div style='display:flex;justify-content:space-between;padding:10px;background:#f9fafb;border-radius:10px;margin-bottom:8px'><div><b>"+m.name+"</b><br><small>"+(m.contact||"")+"</small></div><button class='red' style='width:auto;padding:8px' onclick=\"deleteMember('"+id+"')\">DELETE</button></div>";
+});
+document.getElementById('memberList').innerHTML = memHtml || "Wala pa";
+let auditHtml = "";
+Object.entries(allAudit).map(([id,a])=>({id,...a})).sort((x,y)=>y.timestamp-x.timestamp).slice(0,100).forEach(a=>{
+auditHtml += "<div style='padding:10px;border-bottom:1px solid #eee'><b>"+a.action+" - "+a.detail+"</b><br><small>"+fDT(a.timestamp)+" - "+a.by+"</small></div>";
+});
+document.getElementById('auditList').innerHTML = auditHtml || "Wala pa";
+const pledges = Object.entries(allPledges).map(([id,p])=>({id,...p}));
+const pTotal = pledges.reduce((a,p)=>a+Number(p.amount||0),0);
+const pPaid = pledges.filter(p=>p.paid).reduce((a,p)=>a+Number(p.amount||0),0);
+setEl('pledgeTotal', fmt(pTotal));
+setEl('pledgePaid', fmt(pPaid));
+setEl('pledgeUnpaid', fmt(pTotal-pPaid));
+let pHtml = "";
+pledges.forEach(p=>{
+let b2 = "";
+if(!p.paid) b2 += "<button class='green' style='width:auto;padding:8px' onclick=\"markPledgePaid('"+p.id+"')\">BAYAD</button>";
+b2 += "<button class='red' style='width:auto;padding:8px' onclick=\"deletePledge('"+p.id+"')\">DELETE</button>";
+pHtml += "<div style='display:flex;justify-content:space-between;background:#f0f9ff;padding:12px;border-radius:12px;margin-bottom:8px'><div><b>"+p.name+" - "+fmt(p.amount)+"</b><br><small>"+p.for+" - "+(p.note||"")+"</small></div><div style='text-align:right'><span class='badge "+(p.paid?'badge-approved':'badge-pending')+"'>"+(p.paid?'BAYAD':'HINDI PA')+"</span><br><div style='margin-top:6px'>"+b2+"</div></div></div>";
+});
+document.getElementById('pledgeList').innerHTML = pHtml || "Wala pa";
+renderPublic();
+}
+window.renderAll = renderAll;
+window.approveTx = async function(id){
+if(currentRole!=='AUDITOR') return alert("AUDITOR lang!");
+await update(ref(db,'transactions/'+id),{status:'approved', approvedBy:currentUserEmail, approvedAt:Date.now()});
+};
+window.rejectTx = async function(id){
+if(currentRole!=='AUDITOR') return alert("AUDITOR lang!");
+await update(ref(db,'transactions/'+id),{status:'rejected'});
+};
+window.deleteTx = async function(id){
+if(currentRole!=='AUDITOR') return alert("AUDITOR lang!");
+if(!confirm("Burahin?")) return;
+await remove(ref(db,'transactions/'+id));
+};
+window.deleteMember = async function(id){
+if(!confirm("Burahin?")) return;
+await remove(ref(db,'members/'+id));
+};
+window.markPledgePaid = async function(id){
+await update(ref(db,'pledges/'+id),{paid:true, paidAt:Date.now()});
+};
+window.deletePledge = async function(id){
+if(!confirm("Burahin?")) return;
+await remove(ref(db,'pledges/'+id));
+};
+window.saveBudget = async function(){
+const cat = document.getElementById('budgetCategory').value;
+const target = Number(document.getElementById('budgetTarget').value);
+if(!target) return alert("Lagyan mo target!");
+await set(ref(db,'budgets/'+cat),{target, updatedAt:Date.now(), by:currentUserEmail});
+alert("Na-save!");
+document.getElementById('budgetTarget').value = "";
+};
+document.getElementById('saveTxBtn')?.addEventListener('click', async ()=>{
+const amount = Number(document.getElementById('txAmount').value);
+const person = document.getElementById('txPerson').value.trim();
+const category = document.getElementById('txCategory').value;
+const note = document.getElementById('txNote').value.trim();
+if(!amount || !person) return alert("Lagyan mo Halaga at Pangalan!");
+if(allLocked[mKey(Date.now())]) return alert("Naka-LOCK!");
+const num = nextNum();
+const r = push(ref(db,'transactions'));
+await set(r,{txNumber:num, txNum:fmtNum(num), receiptNum:fmtNum(num), amount, type:currentTxType, category, person, note, receipt:receiptBase64, status:'pending', timestamp:Date.now(), by:currentUserEmail});
+await addAudit("ADD TX", fmtNum(num)+" - "+person+" "+fmt(amount));
+alert("Na-save! "+fmtNum(num)+" - PENDING");
+document.getElementById('txAmount').value = "";
+document.getElementById('txPerson').value = "";
+document.getElementById('txNote').value = "";
+receiptBase64 = "";
+document.getElementById('receiptPreview').classList.add('hidden');
+});
+document.getElementById('addMemberBtn')?.addEventListener('click', async ()=>{
+const name = document.getElementById('memberName').value.trim();
+const contact = document.getElementById('memberContact').value.trim();
+if(!name) return alert("Lagyan mo pangalan!");
+const r = push(ref(db,'members'));
+await set(r,{name, contact, createdAt:Date.now(), by:currentUserEmail});
+alert("Na-add si "+name);
+document.getElementById('memberName').value = "";
+document.getElementById('memberContact').value = "";
+});
+document.getElementById('addPledgeBtn')?.addEventListener('click', async ()=>{
+const name = document.getElementById('pledgeName').value.trim();
+const amount = Number(document.getElementById('pledgeAmount').value);
+const forCat = document.getElementById('pledgeFor').value;
+const note = document.getElementById('pledgeNote').value.trim();
+if(!name || !amount) return alert("Lagyan mo pangalan at halaga!");
+const r = push(ref(db,'pledges'));
+await set(r,{name, amount, for:forCat, note, paid:false, createdAt:Date.now(), by:currentUserEmail});
+alert("Na-add pledge ni "+name);
+document.getElementById('pledgeName').value = "";
+document.getElementById('pledgeAmount').value = "";
+document.getElementById('pledgeNote').value = "";
+});
+document.getElementById('searchTx')?.addEventListener('input', renderAll);
+window.fillMonths = function(){
+const sel = document.getElementById('reportMonth');
+if(!sel || sel.options.length) return;
+let keys = [...new Set(Object.values(allTransactions).map(t=>mKey(t.timestamp)))];
+if(!keys.length) keys.push(mKey(Date.now()));
+keys.sort().reverse().forEach(k=>{
+const o = document.createElement('option');
+o.value = k;
+o.textContent = mLabel(k);
+sel.appendChild(o);
+});
+};
+window.generateReport = function(){
+const k = document.getElementById('reportMonth').value;
+const arr = Object.entries(allTransactions).map(([id,t])=>({id,...t})).filter(t=>mKey(t.timestamp)===k && t.status==='approved').sort((a,b)=>a.timestamp-b.timestamp);
+const inSum = arr.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount||0),0);
+const outSum = arr.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount||0),0);
+let rows = "";
+arr.forEach(t=>{
+rows += "<tr><td style='padding:8px;border-bottom:1px solid #eee'>"+txNum(t)+"</td><td style='padding:8px;border-bottom:1px solid #eee'>"+fDT(t.timestamp)+"</td><td style='padding:8px;border-bottom:1px solid #eee'>"+t.person+"<br><small>"+t.category+" - "+(t.note||"")+"</small></td><td style='padding:8px;border-bottom:1px solid #eee;text-align:right'>"+(t.type==='in'?fmt(t.amount):'-')+"</td><td style='padding:8px;border-bottom:1px solid #eee;text-align:right'>"+(t.type==='out'?fmt(t.amount):'-')+"</td></tr>";
+});
+if(!rows) rows = "<tr><td colspan='5' style='padding:12px;text-align:center'>Wala pang approved</td></tr>";
+document.getElementById('reportArea').innerHTML = "<div style='border:1px solid #ddd;border-radius:12px;padding:14px;background:#fff'><div style='text-align:center'><b style='font-size:18px'>STO. NINO CHAPEL</b><br><small>ISG Village - Quezon City</smalnclick="showPage('Approval')" data-page="Approval">Approve <span id="navPendingDot"></span></button>
+<button onclick="showPage('Pledge')" data-page="Pledge">Pledge</button>
+<button onclick="showPage('Report')" data-page="Report">Report</button>
+<button onclick="showPage('Members')" data-page="Members">Members</button>
+<button onclick="showPage('Audit')" data-page="Audit">Audit</button>
+<button onclick="showPage('Settings')" data-page="Settings">Settings</button>
+  </div>
+  
