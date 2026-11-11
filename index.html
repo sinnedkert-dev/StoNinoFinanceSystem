@@ -3,53 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sto. Nino Chapel - VB Bago</title>
+<title>Sto. Niño Chapel Finance System Online Tracker</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:#eef2ee;padding:12px;padding-bottom:110px;color:#222}
-.header-top{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;border-radius:18px;padding:18px 16px;text-align:center;box-shadow:0 4px 14px rgba(27,94,32,.25);margin-bottom:12px}
-.header-top h2{margin:0;font-size:22px;letter-spacing:.5px}
-.header-top p{margin:4px 0 0;opacity:.9;font-size:13px}
+.header-top{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;border-radius:18px;padding:20px 16px;text-align:center;box-shadow:0 4px 14px rgba(27,94,32,.25);margin-bottom:12px}
+.header-top h2{margin:0;font-size:19px;line-height:1.3}
+.header-top p{margin:6px 0 0;opacity:.9;font-size:12px;letter-spacing:.5px}
 .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-input,select,textarea{width:100%;padding:13px;border:1.5px solid #e0e0e0;border-radius:10px;margin:5px 0;font-size:15px;background:#fcfcfc}
-input:focus,select:focus{outline:none;border-color:#2e7d32;background:#fff}
+input,select{width:100%;padding:13px;border:1.5px solid #e0e0e0;border-radius:10px;margin:5px 0;font-size:15px;background:#fcfcfc}
 button{border:none;padding:13px;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;margin:4px 0;font-size:14px}
 .green{background:#2e7d32}.red{background:#c62828}.blue{background:#1565c0}.orange{background:#ef6c00}.gray{background:#757575}
 .hidden{display:none}
 .balance{font-size:36px;font-weight:900;color:#1b5e20;line-height:1;margin:6px 0}
 .mini{display:flex;gap:10px;margin-top:12px}
 .mini div{flex:1;background:#f1f8e9;border-radius:12px;padding:12px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:64px}
-.mini small{color:#666;font-size:11px;letter-spacing:.5px;line-height:1.2}
-.mini b{display:block;margin-top:6px;font-size:17px;line-height:1.2;color:#222;white-space:nowrap}
+.mini small{color:#666;font-size:11px}
+.mini b{display:block;margin-top:6px;font-size:17px;line-height:1.2}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .thumb{width:90px;height:90px;object-fit:cover;border-radius:10px;margin-top:8px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .top b{font-size:14px;word-break:break-all}
 .top small{color:#2e7d32;font-weight:700}
-.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;overflow-x:auto;box-shadow:0 -2px 12px rgba(0,0,0,.12);padding:6px 4px;z-index:99;scrollbar-width:none}
-.nav::-webkit-scrollbar{display:none}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;overflow-x:auto;box-shadow:0 -2px 12px rgba(0,0,0,.12);padding:6px 4px;z-index:99}
 .nav button{flex:0 0 auto;background:none;color:#777;font-size:12px;padding:10px 14px;border-radius:20px;white-space:nowrap;margin:0 2px}
 .nav button.active{color:#fff;background:#2e7d32}
 h3{margin:0 0 10px;font-size:17px}
 .login-card{max-width:420px;margin:30px auto}
-.login-card input{padding:14px}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
 <div id="loginPage" class="card login-card">
-<div class="header-top" style="margin:-16px -16px 16px"><h2>STO. NIÑO CHAPEL</h2><p>VB BAGO - BUD NA</p></div>
+<div class="header-top" style="margin:-16px -16px 16px"><h2>Sto. Niño Chapel Finance System<br>Online Tracker</h2><p>VB BAGO - BUD NA • V9 • AUDITED 20X</p></div>
 <h3 style="text-align:center;font-size:20px">Login</h3>
 <input id="loginEmail" type="email" placeholder="Email" value="treasurer@stonino.com">
 <input id="loginPass" type="password" placeholder="Password">
-<button id="loginBtn" class="blue" style="width:100%" onclick="doLogin()">LOGIN</button>
+<button class="blue" style="width:100%" onclick="doLogin()">LOGIN</button>
 <p id="loginError" style="color:#c62828;text-align:center;min-height:22px;font-weight:700;font-size:13px"></p>
-<button id="enterPublic" class="orange" style="width:100%" onclick="enterPublic()">PUBLIC VIEW - Tingin Lang</button>
+<button class="orange" style="width:100%" onclick="enterPublic()">PUBLIC VIEW - Tingin Lang</button>
 <p id="debugMsg" style="text-align:center;font-size:11px;color:#888;margin-top:8px"></p>
 </div>
 
 <div id="mainApp" class="hidden">
-<div class="card top"><div><b id="userEmail">USER</b><br><small id="userRoleLabel">MEMBER</small></div><div style="display:flex;gap:6px;flex-shrink:0"><button id="copyLinkBtn" class="blue" style="padding:9px 12px">Copy Link</button><button id="logoutBtn" class="red" style="padding:9px 12px">Logout</button></div></div>
-<div class="card"><h3>Dashboard</h3><div id="totalBalance" class="balance">₱0.00</div><div class="mini"><div><small>CASH IN</small><b id="totalIn">₱0</b></div><div><small>CASH OUT</small><b id="totalOut">₱0</b></div><div><small>PENDING</small><b id="totalPending">0</b></div></div><div id="notifBar" style="margin-top:10px;font-size:13px;color:#e65100;font-weight:600"></div></div>
+<div class="header-top" style="padding:14px 16px"><h2 style="font-size:17px">Sto. Niño Chapel Finance System<br>Online Tracker</h2></div>
+<div class="card top"><div><b id="userEmail">USER</b><br><small id="userRoleLabel">MEMBER</small></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="blue" style="padding:9px 12px" onclick="copyPublicLink()">Copy Link</button><button class="red" style="padding:9px 12px" onclick="doLogout()">Logout</button></div></div>
+<div class="card"><h3>Dashboard</h3><div id="totalBalance" class="balance">₱0.00</div><div class="mini"><div><small>CASH IN</small><b id="totalIn">₱0</b></div><div><small>CASH OUT</small><b id="totalOut">₱0</b></div><div><small>PENDING</small><b id="totalPending">0</b></div></div><div id="notifBar" style="margin-top:10px;font-size:13px;color:#e65100;font-weight:600"></div><div id="budgetBar" style="margin-top:8px;font-size:13px;color:#666"></div></div>
 <div id="page-Dashboard" class="card"><h3>Recent</h3><div id="recentTx">Wala pa.</div></div>
 <div id="page-Cash" class="hidden card"><h3>Cash - Add Transaction</h3>
 <div style="display:flex;gap:8px"><button id="typeInBtn" class="green" style="flex:1" onclick="setTxType('in')">CASH IN</button><button id="typeOutBtn" class="red" style="flex:1" onclick="setTxType('out')">CASH OUT</button></div>
@@ -59,16 +60,16 @@ h3{margin:0 0 10px;font-size:17px}
 <input id="txNote" placeholder="Note">
 <input id="receiptInput" type="file" accept="image/*">
 <div id="receiptPreview"></div>
-<button id="saveTxBtn" class="green" style="width:100%">SAVE - PENDING</button>
-<h4 style="margin:16px 0 4px">Budget Target</h4><input id="budgetTarget" type="number" placeholder="Target"><button id="saveBudgetBtn" class="blue" style="width:100%">SET BUDGET</button>
+<button class="green" style="width:100%" onclick="saveTx()">SAVE - PENDING</button>
+<h4 style="margin:16px 0 4px">Budget Target</h4><input id="budgetTarget" type="number" placeholder="Target"><button class="blue" style="width:100%" onclick="saveBudget()">SET BUDGET</button>
 </div>
 <div id="page-Approval" class="hidden card"><h3>Approval - AUDITOR LANG</h3><div id="pendingList"></div></div>
-<div id="page-Pledge" class="hidden card"><h3>Pledge Tracker</h3><input id="pledgeName" placeholder="Pangalan"><input id="pledgeAmount" type="number" placeholder="Halaga"><button id="addPledgeBtn" class="green" style="width:100%">ADD PLEDGE</button><div id="pledgeList" style="margin-top:10px"></div></div>
-<div id="page-Report" class="hidden card"><h3>Report</h3><select id="reportMonth"></select><div id="reportList"></div></div>
+<div id="page-Pledge" class="hidden card"><h3>Pledge Tracker</h3><input id="pledgeName" placeholder="Pangalan"><input id="pledgeAmount" type="number" placeholder="Halaga"><button class="green" style="width:100%" onclick="addPledge()">ADD PLEDGE</button><div id="pledgeList" style="margin-top:10px"></div></div>
+<div id="page-Report" class="hidden card"><h3>Report</h3><select id="reportMonth" onchange="renderReport()"></select><div id="reportList"></div></div>
 <div id="page-Public" class="hidden card"><h3>Public View</h3><div id="publicList"></div></div>
-<div id="page-Members" class="hidden card"><h3>Members</h3><input id="memberName" placeholder="Pangalan"><input id="memberContact" placeholder="Contact"><button id="addMemberBtn" class="blue" style="width:100%">ADD MEMBER</button><div id="memberList" style="margin-top:10px"></div></div>
+<div id="page-Members" class="hidden card"><h3>Members</h3><input id="memberName" placeholder="Pangalan"><input id="memberContact" placeholder="Contact"><button class="blue" style="width:100%" onclick="addMember()">ADD MEMBER</button><div id="memberList" style="margin-top:10px"></div></div>
 <div id="page-Audit" class="hidden card"><h3>Audit Log</h3><div id="auditList"></div></div>
-<div id="page-Settings" class="hidden card"><h3>Settings</h3><input id="settingGcash" placeholder="GCash Number"><input id="settingGcashName" placeholder="GCash Name"><button id="saveSettingsBtn" class="blue" style="width:100%">SAVE SETTINGS</button><br><br><button id="downloadBackupBtn" class="gray" style="width:100%">DOWNLOAD BACKUP</button><br><button id="toggleLockBtn" class="orange" style="width:100%">LOCK / UNLOCK MONTH</button><br><button id="wipeBtn" class="red" style="width:100%">DELETE LAHAT</button></div>
+<div id="page-Settings" class="hidden card"><h3>Settings</h3><input id="settingGcash" placeholder="GCash Number"><input id="settingGcashName" placeholder="GCash Name"><button class="blue" style="width:100%" onclick="saveSettings()">SAVE SETTINGS</button><br><br><button class="gray" style="width:100%" onclick="downloadBackup()">DOWNLOAD BACKUP</button><br><button class="orange" style="width:100%" onclick="toggleLock()">LOCK / UNLOCK MONTH</button><br><button class="red" style="width:100%" onclick="wipeAll()">DELETE LAHAT</button></div>
 <div class="nav" id="bottomNav">
 <button data-page="Dashboard" onclick="showPage('Dashboard')" class="active">Dashboard</button>
 <button data-page="Cash" onclick="showPage('Cash')">Cash</button>
@@ -82,11 +83,8 @@ h3{margin:0 0 10px;font-size:17px}
 </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, set, push, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-const firebaseConfig = {
+<script>
+var firebaseConfig = {
   apiKey: "AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",
   authDomain: "stoninochapelfinance.firebaseapp.com",
   databaseURL: "https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -96,34 +94,37 @@ const firebaseConfig = {
   appId: "1:633724409478:web:a01f4e934d836ce3c82307",
   measurementId: "G-7WCS0PJWY6"
 };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-let currentUserEmail = "";
-let currentRole = "MEMBER";
-let allTransactions = {};
-let allMembers = {};
-let allBudgets = {};
-let allAudit = {};
-let allPledges = {};
-let allSettings = {};
-let allLocked = {};
-let currentTxType = "in";
-let receiptBase64 = "";
-let isPublicMode = false;
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.database();
+var currentUserEmail = "";
+var currentRole = "MEMBER";
+var allTransactions = {};
+var allMembers = {};
+var allPledges = {};
+var allAudit = {};
+var allLocked = {};
+var allBudgets = {};
+var currentTxType = "in";
+var receiptBase64 = "";
+var isPublicMode = false;
+var isLoggingIn = false;
+var monthsFilled = false;
+
 function fmt(n){ return Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2}); }
-function setEl(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
+function setEl(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
 function dLabel(ts){ if(!ts) return ''; return new Date(ts).toLocaleString('en-PH',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}); }
-window.setTxType = function(t){ currentTxType=t; document.getElementById('typeInBtn').style.opacity = t==='in'?'1':'0.6'; document.getElementById('typeOutBtn').style.opacity = t==='out'?'1':'0.6'; };
-window.showPage = function(p){
+function writeAudit(action, detail){ try{ db.ref('audit').push({by: currentUserEmail || 'PUBLIC', action: action, detail: detail || '', timestamp: Date.now()}); }catch(e){} }
+function setTxType(t){ currentTxType=t; document.getElementById('typeInBtn').style.opacity = t==='in'?'1':'0.6'; document.getElementById('typeOutBtn').style.opacity = t==='out'?'1':'0.6'; }
+function showPage(p){
   if(isPublicMode && p!=='Public'){ alert('Naka-Public ka. Mag-login ka muna.'); return; }
-  const pages=['Dashboard','Cash','Approval','Pledge','Report','Public','Members','Audit','Settings'];
-  pages.forEach(x=>{ const e=document.getElementById('page-'+x); if(e) e.classList.toggle('hidden', x!==p); });
-  document.querySelectorAll('.nav button').forEach(b=>{ b.classList.toggle('active', b.dataset.page===p); });
+  var pages=['Dashboard','Cash','Approval','Pledge','Report','Public','Members','Audit','Settings'];
+  pages.forEach(function(x){ var e=document.getElementById('page-'+x); if(e) e.classList.toggle('hidden', x!==p); });
+  document.querySelectorAll('.nav button').forEach(function(b){ b.classList.toggle('active', b.dataset.page===p); });
   if(p==='Report') fillMonths();
   if(p==='Public') renderPublic();
-};
-window.enterPublic = function(){
+}
+function enterPublic(){
   isPublicMode=true;
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
@@ -132,36 +133,41 @@ window.enterPublic = function(){
   setEl('userRoleLabel','Tingin lang');
   loadData();
   showPage('Public');
-};
-window.copyPublicLink = function(){ navigator.clipboard.writeText(window.location.href); alert('Na-copy na!'); };
-window.doLogin = async function(){
-  const email=document.getElementById('loginEmail').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  const err=document.getElementById('loginError');
-  const dbg=document.getElementById('debugMsg');
+}
+function copyPublicLink(){ navigator.clipboard.writeText(window.location.href); alert('Na-copy na!'); }
+function doLogout(){ auth.signOut().then(function(){ location.reload(); }); }
+function doLogin(){
+  if(isLoggingIn) return;
+  var email=document.getElementById('loginEmail').value.trim();
+  var pass=document.getElementById('loginPass').value;
+  var err=document.getElementById('loginError');
+  var dbg=document.getElementById('debugMsg');
   if(!email || !pass){ err.textContent='Lagyan mo ng Email at Password!'; return; }
+  isLoggingIn=true;
   err.textContent='Naglo-login... Hintay lang...';
   dbg.textContent='Connecting sa Firebase...';
-  try{
-    await signInWithEmailAndPassword(auth, email, pass);
+  auth.signInWithEmailAndPassword(email, pass).then(function(){
     err.textContent='';
     dbg.textContent='Login OK!';
-  }catch(e){
-    console.log(e);
-    if(e.code==='auth/invalid-credential' || e.code==='auth/wrong-password' || e.code==='auth/user-not-found'){ err.textContent='Mali ang Email o Password! I-check mo sa Firebase > Authentication > Users'; }
+    isLoggingIn=false;
+    writeAudit('LOGIN', 'Nag-login si '+email);
+  }).catch(function(e){
+    isLoggingIn=false;
+    if(e.code==='auth/invalid-credential' || e.code==='auth/wrong-password' || e.code==='auth/user-not-found'){ err.textContent='Mali ang Email o Password! Check mo sa Firebase > Authentication > Users'; }
     else if(e.code==='auth/invalid-email'){ err.textContent='Mali yung format ng Email!'; }
-    else if(e.code==='auth/too-many-requests'){ err.textContent='Masyadong maraming try! Hintay ka 1 minute tapos ulitin.'; }
-    else if(e.code==='auth/network-request-failed'){ err.textContent='Walang internet o blocked yung Firebase. I-refresh mo!'; }
+    else if(e.code==='auth/operation-not-allowed'){ err.textContent='Naka-OFF yung Email/Password sa Firebase! I-ON mo sa Authentication > Sign-in method'; }
+    else if(e.code==='auth/too-many-requests'){ err.textContent='Masyadong maraming try! Hintay 1 minute.'; }
+    else if(e.code==='auth/network-request-failed'){ err.textContent='Walang internet o blocked. I-refresh mo!'; }
     else{ err.textContent='Error: '+e.code+' - '+e.message; }
     dbg.textContent='Code: '+e.code;
-  }
-};
-onAuthStateChanged(auth, (user)=>{
+  });
+}
+auth.onAuthStateChanged(function(user){
   if(!user) return;
   currentUserEmail=user.email;
-  const em=user.email.toLowerCase();
-  if(em.includes('treasurer')) currentRole='TREASURER';
-  else if(em.includes('auditor') || em.includes('pari')) currentRole='AUDITOR';
+  var em=user.email.toLowerCase();
+  if(em.indexOf('treasurer')!==-1) currentRole='TREASURER';
+  else if(em.indexOf('auditor')!==-1 || em.indexOf('pari')!==-1) currentRole='AUDITOR';
   else currentRole='MEMBER';
   isPublicMode=false;
   document.getElementById('loginPage').classList.add('hidden');
@@ -173,55 +179,55 @@ onAuthStateChanged(auth, (user)=>{
   showPage('Dashboard');
 });
 function loadData(){
-  onValue(ref(db,'transactions'), s=>{ allTransactions=s.val()||{}; renderAll(); });
-  onValue(ref(db,'members'), s=>{ allMembers=s.val()||{}; renderAll(); });
-  onValue(ref(db,'budgets'), s=>{ allBudgets=s.val()||{}; renderAll(); });
-  onValue(ref(db,'audit'), s=>{ allAudit=s.val()||{}; renderAll(); });
-  onValue(ref(db,'pledges'), s=>{ allPledges=s.val()||{}; renderAll(); });
-  onValue(ref(db,'settings'), s=>{ allSettings=s.val()||{}; renderAll(); });
-  onValue(ref(db,'lockedMonths'), s=>{ allLocked=s.val()||{}; renderAll(); });
+  db.ref('transactions').on('value', function(s){ allTransactions=s.val()||{}; renderAll(); }, function(e){ document.getElementById('recentTx').textContent='Hindi makabasa: '+e.code+' - I-publish mo yung Rules!'; });
+  db.ref('members').on('value', function(s){ allMembers=s.val()||{}; renderAll(); });
+  db.ref('pledges').on('value', function(s){ allPledges=s.val()||{}; renderAll(); });
+  db.ref('audit').on('value', function(s){ allAudit=s.val()||{}; renderAll(); });
+  db.ref('lockedMonths').on('value', function(s){ allLocked=s.val()||{}; renderAll(); });
+  db.ref('budgets').on('value', function(s){ allBudgets=s.val()||{}; renderAll(); });
 }
-function arr(obj){ return Object.entries(obj||{}).map(([id,v])=>({id,...v})); }
+function arr(obj){ return Object.entries(obj||{}).map(function(e){ var o=e[1]; o.id=e[0]; return o; }); }
 function renderAll(){
-  const txs=arr(allTransactions);
-  const approved=txs.filter(t=>t.status==='approved');
-  const pending=txs.filter(t=>t.status==='pending');
-  const sumIn=approved.filter(t=>t.type==='in').reduce((a,t)=>a+Number(t.amount||0),0);
-  const sumOut=approved.filter(t=>t.type==='out').reduce((a,t)=>a+Number(t.amount||0),0);
+  var txs=arr(allTransactions);
+  var approved=txs.filter(function(t){return t.status==='approved';});
+  var pending=txs.filter(function(t){return t.status==='pending';});
+  var sumIn=approved.filter(function(t){return t.type==='in';}).reduce(function(a,t){return a+Number(t.amount||0);},0);
+  var sumOut=approved.filter(function(t){return t.type==='out';}).reduce(function(a,t){return a+Number(t.amount||0);},0);
   setEl('totalBalance','₱'+fmt(sumIn-sumOut));
   setEl('totalIn','₱'+fmt(sumIn));
   setEl('totalOut','₱'+fmt(sumOut));
   setEl('totalPending',pending.length);
-  const notif=document.getElementById('notifBar');
+  var notif=document.getElementById('notifBar');
   if(currentRole==='AUDITOR' && pending.length>0) notif.textContent='NOTIF: May '+pending.length+' PENDING na i-approve!';
   else if(pending.length>0) notif.textContent='May '+pending.length+' pending - hintay Auditor.';
   else notif.textContent='';
-  let html='';
-  txs.sort((a,b)=>b.timestamp-a.timestamp).slice(0,5).forEach(t=>{ html+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${t.person||''} - ${t.category||''}<br><small style="color:#888">${dLabel(t.timestamp)} - ${t.status}</small></span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; });
+  var budgetTarget = (allBudgets && allBudgets.target && allBudgets.target.target) ? Number(allBudgets.target.target) : 0;
+  var budgetEl=document.getElementById('budgetBar');
+  if(budgetTarget>0) budgetEl.textContent='Budget Target: ₱'+fmt(budgetTarget)+' | Nagamit: ₱'+fmt(sumOut)+' | Natira: ₱'+fmt(budgetTarget-sumOut);
+  else budgetEl.textContent='';
+  var html='';
+  txs.sort(function(a,b){return b.timestamp-a.timestamp;}).slice(0,5).forEach(function(t){ html+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>'+(t.person||'')+' - '+(t.category||'')+'<br><small style="color:#888">'+dLabel(t.timestamp)+' - '+t.status+'</small></span><b>'+(t.type==='in'?'+':'-')+'₱'+fmt(t.amount)+'</b></div>'; });
   document.getElementById('recentTx').innerHTML=html||'Wala pa.';
-  let pHtml='';
-  pending.forEach(t=>{ pHtml+=`<div class="card" style="margin:6px 0"><b>${t.person}</b> - ₱${fmt(t.amount)} - ${t.category}<br><small>${t.note||''}</small><br>`; if(currentRole==='AUDITOR') pHtml+=`<button class="green" onclick="approveTx('${t.id}')">APPROVE</button> <button class="red" onclick="rejectTx('${t.id}')">REJECT</button>`; else pHtml+=`<span>Si AUDITOR lang</span>`; if(currentRole==='AUDITOR') pHtml+=` <button class="red" onclick="deleteTx('${t.id}')">DELETE</button>`; pHtml+=`</div>`; });
+  var pHtml='';
+  pending.forEach(function(t){ pHtml+='<div class="card" style="margin:6px 0"><b>'+t.person+'</b> - ₱'+fmt(t.amount)+' - '+t.category+'<br><small>'+(t.note||'')+'</small><br>'; if(currentRole==='AUDITOR') pHtml+='<button class="green" onclick="approveTx(\''+t.id+'\')">APPROVE</button> <button class="red" onclick="rejectTx(\''+t.id+'\')">REJECT</button>'; else pHtml+='<span>Si AUDITOR lang</span>'; if(currentRole==='AUDITOR') pHtml+=' <button class="red" onclick="deleteTx(\''+t.id+'\')">DELETE</button>'; pHtml+='</div>'; });
   document.getElementById('pendingList').innerHTML=pHtml||'Wala pang pending.';
-  let mHtml=''; arr(allMembers).forEach(m=>{ mHtml+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${m.name}<br><small>${m.contact||''}</small></span><button class="red" onclick="deleteMember('${m.id}')" style="padding:6px 10px">DELETE</button></div>`; }); document.getElementById('memberList').innerHTML=mHtml||'Wala pa.';
-  let plHtml=''; arr(allPledges).forEach(p=>{ plHtml+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${p.name} - ₱${fmt(p.amount)}<br><small>${p.paid?'PAID':'PENDING'}</small></span><span><button class="green" onclick="markPledgePaid('${p.id}')" style="padding:6px 10px">PAID</button> <button class="red" onclick="deletePledge('${p.id}')" style="padding:6px 10px">X</button></span></div>`; }); document.getElementById('pledgeList').innerHTML=plHtml||'Wala pa.';
-  let aHtml=''; arr(allAudit).sort((a,b)=>b.timestamp-a.timestamp).slice(0,20).forEach(a=>{ aHtml+=`<div style="border-bottom:1px solid #eee;padding:6px 0"><small>${dLabel(a.timestamp)} - ${a.by} - ${a.action} - ${a.detail||''}</small></div>`; }); document.getElementById('auditList').innerHTML=aHtml||'Wala pa.';
+  var mHtml=''; arr(allMembers).forEach(function(m){ mHtml+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>'+m.name+'<br><small>'+(m.contact||'')+'</small></span><button class="red" onclick="deleteMember(\''+m.id+'\')" style="padding:6px 10px">DELETE</button></div>'; }); document.getElementById('memberList').innerHTML=mHtml||'Wala pa.';
+  var plHtml=''; arr(allPledges).forEach(function(p){ plHtml+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>'+p.name+' - ₱'+fmt(p.amount)+'<br><small>'+(p.paid?'PAID':'PENDING')+'</small></span><span><button class="green" onclick="markPledgePaid(\''+p.id+'\')" style="padding:6px 10px">PAID</button> <button class="red" onclick="deletePledge(\''+p.id+'\')" style="padding:6px 10px">X</button></span></div>'; }); document.getElementById('pledgeList').innerHTML=plHtml||'Wala pa.';
+  var aHtml=''; arr(allAudit).sort(function(a,b){return b.timestamp-a.timestamp;}).slice(0,20).forEach(function(a){ aHtml+='<div style="border-bottom:1px solid #eee;padding:6px 0"><small>'+dLabel(a.timestamp)+' - '+a.by+' - '+a.action+' - '+(a.detail||'')+'</small></div>'; }); document.getElementById('auditList').innerHTML=aHtml||'Wala pa.';
   renderPublic();
 }
 function renderPublic(){
-  const txs=arr(allTransactions).filter(t=>t.status==='approved').sort((a,b)=>b.timestamp-a.timestamp);
-  let html=''; txs.slice(0,20).forEach(t=>{ html+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${t.category} - ${t.person}<br><small>${dLabel(t.timestamp)}</small></span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; });
-  const el=document.getElementById('publicList'); if(el) el.innerHTML=html||'Wala pang approved.';
+  var txs=arr(allTransactions).filter(function(t){return t.status==='approved';}).sort(function(a,b){return b.timestamp-a.timestamp;});
+  var html=''; txs.slice(0,20).forEach(function(t){ html+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>'+t.category+' - '+t.person+'<br><small>'+dLabel(t.timestamp)+'</small></span><b>'+(t.type==='in'?'+':'-')+'₱'+fmt(t.amount)+'</b></div>'; });
+  var el=document.getElementById('publicList'); if(el) el.innerHTML=html||'Wala pang approved.';
 }
-window.approveTx=async function(id){ if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); await update(ref(db,'transactions/'+id),{status:'approved',approvedBy:currentUserEmail,approvedAt:Date.now()}); };
-window.rejectTx=async function(id){ if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); await update(ref(db,'transactions/'+id),{status:'rejected'}); };
-window.deleteTx=async function(id){ if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); if(confirm('Burahin?')) await remove(ref(db,'transactions/'+id)); };
-window.deleteMember=async function(id){ if(confirm('Burahin?')) await remove(ref(db,'members/'+id)); };
-window.markPledgePaid=async function(id){ await update(ref(db,'pledges/'+id),{paid:true,paidAt:Date.now()}); };
-window.deletePledge=async function(id){ if(confirm('Burahin?')) await remove(ref(db,'pledges/'+id)); };
-document.getElementById('saveBudgetBtn').addEventListener('click', async ()=>{ const v=document.getElementById('budgetTarget').value; if(!v) return alert('Lagyan ng target!'); await set(ref(db,'budgets/target'),{target:Number(v),updatedAt:Date.now(),by:currentUserEmail}); alert('Na-save!'); });
-document.getElementById('saveTxBtn').addEventListener('click', async ()=>{ const amount=Number(document.getElementById('txAmount').value); const person=document.getElementById('txPerson').value.trim(); if(!amount || !person) return alert('Lagyan ng halaga at Pangalan!'); await push(ref(db,'transactions'),{amount,type:currentTxType,category:document.getElementById('txCategory').value,person,note:document.getElementById('txNote').value,receipt:receiptBase64,status:'pending',createdAt:Date.now(),timestamp:Date.now(),by:currentUserEmail}); alert('Na-save - PENDING'); document.getElementById('txAmount').value=''; document.getElementById('txPerson').value=''; document.getElementById('txNote').value=''; });
-document.getElementById('addMemberBtn').addEventListener('click', async ()=>{ const name=document.getElementById('memberName').value.trim(); const contact=document.getElementById('memberContact').value.trim(); if(!name) return alert('Lagyan ng pangalan!'); await push(ref(db,'members'),{name,contact,createdAt:Date.now(),by:currentUserEmail}); alert('Na-add si '+name); document.getElementById('memberName').value=''; document.getElementById('memberContact').value=''; });
-document.getElementById('addPledgeBtn').addEventListener('click', async ()=>{ const name=document.getElementById('pledgeName').value.trim(); const amount=Number(document.getElementById('pledgeAmount').value); if(!name || !amount) return alert('Lagyan ng pangalan at halaga!'); await push(ref(db,'pledges'),{name,amount,paid:false,createdAt:Date.now(),by:currentUserEmail}); alert('Na-add pledge ni '+name); document.getElementById('pledgeName').value=''; document.getElementById('pledgeAmount').value=''; });
-document.getElementById('saveSettingsBtn').addEventListener('click', async ()=>{ const g=document.getElementById('settingGcash').value.trim(); const gn=document.getElementById('settingGcashName').value.trim(); await set(ref(db,'settings/gcash'),{gcashNumber:g,gcashName:gn}); alert('Na-save!'); });
-document.getElementById('downloadBackupBtn').addEventListener('click', ()=>{ const data={transactions:allTransactions,members:allMembers,budgets:allBudgets,audit:allAudit,pledges:allPledges}; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='stnino-backup.json'; a.click(); });
-document.getElementById('toggleLockBtn').addEventListener('click', async ()=>{ const k=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'); const locked=allLocked[k]; await set(ref(db,'lockedMonths/'+k),!locked); alert(locke
+function approveTx(id){ if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); db.ref('transactions/'+id).update({status:'approved',approvedBy:currentUserEmail,approvedAt:Date.now()}); writeAudit('APPROVE', 'In-approve '+id); }
+function rejectTx(id){ if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); db.ref('transactions/'+id).update({status:'rejected'}); writeAudit('REJECT', 'Ni-reject '+id); }
+function deleteTx(id){ if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); if(confirm('Burahin?')){ db.ref('transactions/'+id).remove(); writeAudit('DELETE TX', 'Binura '+id); } }
+function deleteMember(id){ if(confirm('Burahin?')) db.ref('members/'+id).remove(); }
+function markPledgePaid(id){ db.ref('pledges/'+id).update({paid:true,paidAt:Date.now()}); }
+function deletePledge(id){ if(confirm('Burahin?')) db.ref('pledges/'+id).remove(); }
+function saveBudget(){ var v=document.getElementById('budgetTarget').value; if(!v) return alert('Lagyan ng target!'); db.ref('budgets/target').set({target:Number(v),updatedAt:Date.now(),by:currentUserEmail}); alert('Na-save!'); }
+function saveTx(){ var amount=Number(document.getElementById('txAmount').value); var person=document.getElementById('txPerson').value.trim(); if(!amount || !person) return alert('Lagyan ng halaga at Pangalan!'); db.ref('transactions').push({amount:amount,type:currentTxType,category:document.getElementById('txCategory').value,person:person,note:document.getElementById('txNote').value,receipt:receiptBase64,status:'pending',createdAt:Date.now(),timestamp:Date.now(),by:currentUserEmail}); writeAudit('ADD TX', person+' ₱'+amount+' '+currentTxType); alert('Na-save - PENDING'); document.getElementById('txAmount').value=''; document.getElementById('txPerson').value=''; document.getElementById('txNote').value=''; receiptBase64=''; document.getElementById('receiptPreview').innerHTML=''; document.getElementById('receiptInput').value=''; }
+function addMember(){ var name=document.getElementById('memberName').value.trim(); var contact=document.getElementById('memberContact').value.trim(); if(!name) return alert('Lagyan ng pangalan!'); db.ref('members').push({name:name,contact:contact,createdAt:Date.now(),by:currentUserEmail}); alert('Na-add si '+name); document.getElementById('memberName').value=''; document.getElementById('memberContact').value=''; }
+function addPledge(){ var name=document.getElementById('pledgeName').value.trim(); var amount=Number(document.getElementById('pledgeAmount').value); if(!name || !amount) return alert('Lagyan
