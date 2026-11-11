@@ -1,42 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="tl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sto. Niño Chapel Finance System Online Tracker</title>
 <style>
-body{margin:0;font-family:Arial;background:#eef2ee;padding:12px}
-.card{background:#fff;border-radius:16px;padding:16px}
-.header{background:#1b5e20;color:#fff;border-radius:16px;padding:20px;text-align:center}
-button{border:none;padding:14px;border-radius:10px;color:#fff;font-weight:700;width:100%;margin:5px 0}
-.blue{background:#1565c0}.orange{background:#ef6c00}.gray{background:#757575}
-input{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;margin:5px 0;box-sizing:border-box}
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#eef2ee;padding:12px;padding-bottom:110px}
+.header{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;border-radius:16px;padding:18px;text-align:center}
+.header h2{margin:0;font-size:19px;line-height:1.3}.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0}
+input,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin:5px 0}
+button{border:none;padding:12px;border-radius:10px;color:#fff;font-weight:700;margin:4px 0}
+.green{background:#2e7d32}.red{background:#c62828}.blue{background:#1565c0}.orange{background:#ef6c00}.gray{background:#757575}
+.hidden{display:none}.balance{font-size:34px;font-weight:900;color:#1b5e20}
+.mini{display:flex;gap:8px}.mini div{flex:1;background:#f1f8e9;border-radius:12px;padding:10px;text-align:center}
+.row{display:flex;justify-content:space-between;gap:8px}.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;overflow-x:auto;padding:6px}
+.nav button{flex:0 0 auto;background:none;color:#777;font-size:12px}.nav button.active{background:#2e7d32;color:#fff}
 </style>
 </head>
 <body>
-<div class="header"><h2>Sto. Niño Chapel Finance System<br>Online Tracker</h2><p>V12 TINY TEST</p></div>
-<div class="card">
+<div id="loginPage" class="card">
+<div class="header"><h2>Sto. Niño Chapel Finance System<br>Online Tracker</h2><p>V13 FULL • 2 PARTS</p></div>
 <h3 style="text-align:center">Login</h3>
-<input value="treasurer@stonino.com">
-<input type="password" placeholder="Password">
-<button class="blue" onclick="doLogin()">LOGIN</button>
-<p id="msg" style="text-align:center;color:red;font-weight:700"></p>
-<button class="orange" onclick="enterPublic()">PUBLIC VIEW - Tingin Lang</button>
-<p id="debug" style="text-align:center;color:#888;font-size:12px">JS: Naglo-load...</p>
-<button class="gray" onclick="testJS()">TEST - Pindutin mo</button>
+<input id="loginEmail" value="treasurer@stonino.com">
+<input id="loginPass" type="password" placeholder="Password">
+<button class="blue" style="width:100%" onclick="doLogin()">LOGIN</button>
+<p id="loginError" style="color:red;text-align:center;font-weight:700;min-height:20px"></p>
+<button class="orange" style="width:100%" onclick="enterPublic()">PUBLIC VIEW - Tingin Lang</button>
+<p id="debugMsg" style="text-align:center;color:#888;font-size:11px">JS: Naglo-load...</p>
 </div>
-<div id="mainApp" style="display:none" class="card">
-<h2>🎉 GUMANA NA!</h2>
-<p>Buhay na yung JavaScript mo!</p>
-<p>Dashboard mo dito na ilalagay.</p>
-<button class="blue" onclick="backToLogin()">BACK TO LOGIN</button>
-</div>
-<script>
-function testJS(){ alert('JS GUMANA! Buhay na!'); document.getElementById('debug').textContent='JS: BUHAY! GUMANA!'; document.getElementById('msg').textContent='TEST OK!'; }
-function enterPublic(){ alert('PUBLIC VIEW GUMANA!'); document.getElementById('msg').textContent='PUBLIC VIEW GUMANA!'; document.getElementById('mainApp').style.display='block'; }
-function doLogin(){ alert('LOGIN BUTTON GUMANA! Firebase na lang kulang.'); document.getElementById('msg').textContent='LOGIN BUTTON GUMANA!'; }
-function backToLogin(){ document.getElementById('mainApp').style.display='none'; }
-document.getElementById('debug').textContent='JS: BUHAY! V12 loaded.';
+<div id="mainApp" class="hidden">
+<div class="header"><h2 style="font-size:17px">Sto. Niño Chapel Finance System<br>Online Tracker</h2></div>
+<div class="card"><div style="display:flex;justify-content:space-between"><div><b id="userEmail">USER</b><br><small id="userRoleLabel"></small></div><div><button class="blue" onclick="copyLink()">Copy Link</button> <button class="red" onclick="doLogout()">Logout</button></div></div></div>
+<div class="card"><h3>Dashboard</h3><div id="totalBalance" class="balance">₱0.00</div><div class="mini"><div><small>CASH IN</small><b id="totalIn">₱0</b></div><div><small>CASH OUT</small><b id="totalOut">₱0</b></div><div><small>PENDING</small><b id="totalPending">0</b></div></div><div id="notifBar" style="color:#e65100;font-weight:600;margin-top:8px"></div><div id="dbStatus" style="font-size:12px;color:#888;margin-top:6px"></div></div>
+<div id="page-Dashboard" class="card"><h3>Recent</h3><div id="recentTx">Wala pa.</div></div>
+<div id="page-Cash" class="hidden card"><h3>Cash</h3><div style="display:flex;gap:8px"><button id="typeInBtn" class="green" style="flex:1" onclick="setTx('in')">CASH IN</button><button id="typeOutBtn" class="red" style="flex:1" onclick="setTx('out')">CASH OUT</button></div><input id="txAmount" type="number" placeholder="Halaga"><select id="txCategory"><option>Mass Offering</option><option>Pondo</option><option>Fiesta</option><option>Donation</option><option>Expense</option><option>Others</option></select><input id="txPerson" placeholder="Pangalan"><input id="txNote" placeholder="Note"><button class="green" style="width:100%" onclick="saveTx()">SAVE - PENDING</button><h4>Budget Target</h4><input id="budgetTarget" type="number" placeholder="Target"><button class="blue" style="width:100%" onclick="saveBudget()">SET BUDGET</button><div id="budgetBar" style="margin-top:8px"></div></div>
+<div id="page-Approval" class="hidden card"><h3>Approval - AUDITOR LANG</h3><div id="pendingList"></div></div>
+<div id="page-Pledge" class="hidden card"><h3>Pledge</h3><input id="pledgeName" placeholder="Pangalan"><input id="pledgeAmount" type="number" placeholder="Halaga"><button class="green" style="width:100%" onclick="addPledge()">ADD PLEDGE</button><div id="pledgeList"></div></div>
+<div id="page-Report" class="hidden card"><h3>Report</h3><select id="reportMonth" onchange="renderReport()"></select><div id="reportList"></div></div>
+<div id="page-Public" class="hidden card"><h3>Public View</h3><div id="publicList"></div></div>
+<div id="page-Members" class="hidden card"><h3>Members</h3><input id="memberName" placeholder="Pangalan"><input id="memberContact" placeholder="Contact"><button class="blue" style="width:100%" onclick="addMember()">ADD MEMBER</button><div id="memberList"></div></div>
+<div id="page-Audit" class="hidden card"><h3>Audit Log</h3><div id="auditList"></div></div>
+<div id="page-Settings" class="hidden card"><h3>Settings</h3><input id="settingGcash" placeholder="GCash Number"><input id="settingGcashName" placeholder="GCash Name"><button class="blue" style="width:100%" onclick="saveSettings()">SAVE SETTINGS</button><br><button class="gray" style="width:100%" onclick="downloadBackup()">DOWNLOAD BACKUP</button><br><button class="orange" style="width:100%" onclick="toggleLock()">LOCK / UNLOCK MONTH</button><br><button class="red" style="width:100%" onclick="wipeAll()">DELETE LAHAT</button></div>
+<div class="nav" id="bottomNav"><button data-page="Dashboard" onclick="showPage('Dashboard')" class="active">Dashboard</button><button data-page="Cash" onclick="showPage('Cash')">Cash</button><button data-page="Approval" onclick="showPage('Approval')">Approval</button><button data-page="Pledge" onclick="showPage('Pledge')">Pledge</button><button data-page="Report" onclick="showPage('Report')">Report</button><button data-page="Public" onclick="showPage('Public')">Public</button><button data-page="Members" onclick="showPage('Members')">Members</button><button data-page="Audit" onclick="showPage('Audit')">Audit</button><button data-page="Settings" onclick="showPage('Settings')">Settings</button></div>
+  </div>
+  <script>
+var curEmail="",curRole="MEMBER",TX={},MB={},PL={},AU={},LK={},BG={},txType="in",isPub=false,isLog=false,monthsDone=false,auth=null,db=null,fOK=false;
+function fmt(n){return Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2})}
+function setEl(id,v){var e=document.getElementById(id);if(e)e.textContent=v}
+function dLabel(t){return t?new Date(t).toLocaleString('en-PH',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):''}
+function showPage(p){var ps=['Dashboard','Cash','Approval','Pledge','Report','Public','Members','Audit','Settings'];ps.forEach(function(x){var e=document.getElementById('page-'+x);if(e)e.classList.toggle('hidden',x!==p)});document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('active',b.dataset.page===p)});if(p==='Report')fillMonths();if(p==='Public')renderPublic()}
+function enterPublic(){isPub=true;document.getElementById('loginPage').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');document.getElementById('bottomNav').classList.add('hidden');setEl('userEmail','PUBLIC VIEWER');setEl('userRoleLabel','Tingin lang - V13');renderAll();showPage('Public');var d=document.getElementById('page-Dashboard');if(d)d.classList.remove('hidden');var s=document.getElementById('dbStatus');if(s)s.textContent=fOK?'Firebase: CONNECTED':'Firebase: Naglo-load pa...';}
+function copyLink(){try{navigator.clipboard.writeText(location.href);alert('Na-copy!')}catch(e){alert(location.href)}}
+function doLogout(){if(auth)auth.signOut().then(function(){location.reload()});else location.reload()}
+function setTx(t){txType=t;document.getElementById('typeInBtn').style.opacity=t==='in'?'1':'0.6';document.getElementById('typeOutBtn').style.opacity=t==='out'?'1':'0.6'}
+function doLogin(){var err=document.getElementById('loginError'),dbg=document.getElementById('debugMsg');if(!fOK||!auth){err.textContent='Firebase hindi pa nag-load. Hintay 3 seconds tapos try ulit. Buksan sa Chrome.';return}if(isLog)return;var em=document.getElementById('loginEmail').value.trim(),ps=document.getElementById('loginPass').value;if(!em||!ps){err.textContent='Lagyan ng Email at Password!';return}isLog=true;err.textContent='Naglo-login...';auth.signInWithEmailAndPassword(em,ps).then(function(){err.textContent='';isLog=false;writeAudit('LOGIN','Nag-login '+em)}).catch(function(e){isLog=false;if(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found')err.textContent='Mali ang Email o Password! Check sa Firebase > Authentication > Users';else if(e.code==='auth/operation-not-allowed')err.textContent='Naka-OFF yung Email/Password sa Firebase! I-ON mo!';else if(e.code==='auth/too-many-requests')err.textContent='Masyadong maraming try! Hintay 1 min.';else err.textContent='Error: '+e.code+' - '+e.message;dbg.textContent='Code: '+e.code})}
+function writeAudit(a,d){if(!fOK||!db)return;try{db.ref('audit').push({by:curEmail||'PUBLIC',action:a,detail:d||'',timestamp:Date.now()})}catch(e){}}
+function loadData(){if(!fOK||!db)return;db.ref('transactions').on('value',function(s){TX=s.val()||{};renderAll()},function(e){document.getElementById('recentTx').textContent='Hindi makabasa: '+e.code+' - Publish mo Rules: {".read":true}'});db.ref('members').on('value',function(s){MB=s.val()||{};renderAll()});db.ref('pledges').on('value',function(s){PL=s.val()||{};renderAll()});db.ref('audit').on('value',function(s){AU=s.val()||{};renderAll()});db.ref('lockedMonths').on('value',function(s){LK=s.val()||{};renderAll()});db.ref('budgets').on('value',function(s){BG=s.val()||{};renderAll()})}
+function arr(o){return Object.entries(o||{}).map(function(e){var v=e[1];v.id=e[0];return v})}
+function renderAll(){var txs=arr(TX),ap=txs.filter(function(t){return t.status==='approved'}),pd=txs.filter(function(t){return t.status==='pending'}),si=ap.filter(function(t){return t.type==='in'}).reduce(function(a,t){return a+Number(t.amount||0)},0),so=ap.filter(function(t){return t.type==='out'}).reduce(function(a,t){return a+Number(t.amount||0)},0);setEl('totalBalance','₱'+fmt(si-so));setEl('totalIn','₱'+fmt(si));setEl('totalOut','₱'+fmt(so));setEl('totalPending',pd.length);var nf=document.getElementById('notifBar');nf.textContent=pd.length>0?(curRole==='AUDITOR'?'NOTIF: '+pd.length+' PENDING i-approve!':'May '+pd.length+' pending - hintay Auditor.'):"";var bt=(BG&&BG.target&&BG.target.target)?Number(BG.target.target):0,be=document.getElementById('budgetBar');if(be)be.textContent=bt>0?('Budget: ₱'+fmt(bt)+' | Nagamit: ₱'+fmt(so)+' | Natira: ₱'+fmt(bt-so)):'';var h='';txs.sort(function(a,b){return b.timestamp-a.timestamp}).slice(0,5).forEach(function(t){h+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>'+(t.person||'')+' - '+(t.category||'')+'<br><small>'+dLabel(t.timestamp)+' - '+t.status+'</small></span><b>'+(t.type==='in'?'+':'-')+'₱'+fmt(t.amount)+'</b></div>'});document.getElementById('recentTx').innerHTML=h||'Wala pa.';var ph='';pd.forEach(function(t){ph+='<div class="card"><b>'+t.person+'</b> - ₱'+fmt(t.amount)+' - '+t.category+'<br><small>'+(t.note||'')+'</small><br>';if(curRole==='AUDITOR')ph+='<button class="green" onclick="approveTx(\''+t.id+'\')">APPROVE</button> <button class="red" onclick="rejectTx(\''+t.id+'\')">REJECT</button>';else ph+='<span>Si AUDITOR lang</span>';if(curRole==='AUDITOR')ph+=' <button class="red" onclick="deleteTx(\''+t.id+'\')">DELETE</button>';ph+='</div>'});document.getElementById('pendingList').innerHTML=ph||'Wala pang pending.';var mh='';arr(MB).forEach(function(m){mh+='<div class="row"><span>'+m.name+'<br><small>'+(m.contact||'')+'</small></span><button class="red" onclick="deleteMember(\''+m.id+'\')">DELETE</button></div>'});document.getElementById('memberList').innerHTML=mh||'Wala pa.';var lh='';arr(PL).forEach(function(p){lh+='<div class="row"><span>'+p.name+' - ₱'+fmt(p.amount)+'<br><small>'+(p.paid?'PAID':'PENDING')+'</small></span><span><button class="green" onclick="markPledge(\''+p.id+'\')">PAID</button> <button class="red" onclick="deletePledge(\''+p.id+'\')">X</button></span></div>'});document.getElementById('pledgeList').innerHTML=lh||'Wala pa.';var ah='';arr(AU).sort(function(a,b){return b.timestamp-a.timestamp}).slice(0,20).forEach(function(a){ah+='<div><small>'+dLabel(a.timestamp)+' - '+a.by+' - '+a.action+' - '+(a.detail||'')+'</small></div>'});document.getElementById('auditList').innerHTML=ah||'Wala pa.';renderPublic()}
+function renderPublic(){var txs=arr(TX).filter(function(t){return t.status==='approved'}).sort(function(a,b){return b.timestamp-a.timestamp}),h='';txs.slice(0,20).forEach(function(t){h+='<div class="row"><span>'+t.category+' - '+t.person+'<br><small>'+dLabel(t.timestamp)+'</small></span><b>'+(t.type==='in'?'+':'-')+'₱'+fmt(t.amount)+'</b></div>'});var e=document.getElementById('publicList');if(e)e.innerHTML=h||'Wala pang approved.'}
+function approveTx(id){if(!fOK)return alert('Hindi naka-connect!');if(curRole!=='AUDITOR')return alert('AUDITOR lang!');db.ref('transactions/'+id).update({status:'approved',approvedBy:curEmail,approvedAt:Date.now()});writeAudit('APPROVE','In-approve '+id)}
+function rejectTx(id){if(!fOK)return alert('Hindi naka-connect!');if(curRole!=='AUDITOR')return alert('AUDITOR lang!');db.ref('transactions/'+id).update({status:'rejected'});writeAudit('REJECT','Ni-reject '+id)}
+function deleteTx(id){if(curRole!=='AUDITOR')return alert('AUDITOR lang!');if(confirm('Burahin?')){db.ref('transactions/'+id).remove();writeAudit('DELETE','Binura '+id)}}
+function deleteMember(id){if(confirm('Burahin?'))db.ref('members/'+id).remove()}
+function markPledge(id){db.ref('pledges/'+id).update({paid:true,paidAt:Date.now()})}
+function deletePledge(id){if(confirm('Burahin?'))db.ref('pledges/'+id).remove()}
+function saveBudget(){if(!fOK)return alert('Hindi naka-connect!');var v=document.getElementById('budgetTarget').value;if(!v)return alert('Lagyan ng target!');db.ref('budgets/target').set({target:Number(v),updatedAt:Date.now(),by:curEmail});alert('Na-save!')}
+function saveTx(){if(!fOK)return alert('Hindi naka-connect!');var a=Number(document.getElementById('txAmount').value),p=document.getElementById('txPerson').value.trim();if(!a||!p)return alert('Lagyan ng halaga at Pangalan!');db.ref('transactions').push({amount:a,type:txType,category:document.getElementById('txCategory').value,person:p,note:document.getElementById('txNote').value,status:'pending',createdAt:Date.now(),timestamp:Date.now(),by:curEmail});writeAudit('ADD TX',p+' ₱'+a);alert('Na-save - PENDING');document.getElementById('txAmount').value='';document.getElementById('txPerson').value='';document.getElementById('txNote').value=''}
+function addMember(){if(!fOK)return alert('Hindi naka-connect!');var n=document.getElementById('memberName').value.trim(),c=document.getElementById('memberContact').value.trim();if(!n)return alert('Lagyan ng pangalan!');db.ref('members').push({name:n,contact:c,createdAt:Date.now(),by:curEmail});alert('Na-add '+n);document.getElementById('memberName').value='';document.getElementById('memberContact').value=''}
+function addPledge(){if(!fOK)return alert('Hindi naka-connect!');var n=document.getElementById('pledgeName').value.trim(),a=Number(document.getElementById('pledgeAmount').value);if(!n||!a)return alert('Lagyan ng pangalan at halaga!');db.ref('pledges').push({name:n,amount:a,paid:false,createdAt:Date.now(),by:curEmail});alert('Na-add pledge '+n);document.getElementById('pledgeName').value='';document.getElementById('pledgeAmount').value=''}
+function saveSettings(){if(!fOK)return alert('Hindi naka-connect!');db.ref('settings/gcash').set({gcashNumber:document.getElementById('settingGcash').value,gcashName:document.getElementById('settingGcashName').value});alert('Na-save!')}
+function downloadBackup(){var d={transactions:TX,members:MB,pledges:PL,audit:AU},b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='stnino-backup.json';a.click()}
+function toggleLock(){var k=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');db.ref('lockedMonths/'+k).set(!LK[k]);alert(LK[k]?'Na-UNLOCK':'Na-LOCK')}
+function wipeAll(){if(curRole!=='AUDITOR')return alert('AUDITOR lang!');if(!confirm('Sigurado?'))return;db.ref('transactions').remove();db.ref('members').remove();db.ref('audit').remove();db.ref('pledges').remove();db.ref('lockedMonths').remove();alert('Nabura na!')}
+function fillMonths(){if(monthsDone)return;var s=document.getElementById('reportMonth');if(!s)return;var ks=[];arr(TX).forEach(function(t){var k=new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0');if(ks.indexOf(k)===-1)ks.push(k)});if(!ks.length)ks.push(new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'));ks.sort().reverse().forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=new Date(k+'-01').toLocaleString('en-PH',{month:'long',year:'numeric'});s.appendChild(o)});monthsDone=true;renderReport()}
+function renderReport(){var s=document.getElementById('reportMonth');if(!s||!s.value)return;var k=s.value,list=arr(TX).filter(function(t){return (new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0'))===k&&t.status==='approved'}),h='';list.forEach(function(t){h+='<div class="row"><span>'+t.person+' - '+t.category+'</span><b>'+(t.type==='in'?'+':'-')+'₱'+fmt(t.amount)+'</b></div>'});document.getElementById('reportList').innerHTML=h||'Wala pa.'}
+document.getElementById('loginPass').addEventListener('keypress',function(e){if(e.key==='Enter')doLogin()});
+document.getElementById('debugMsg').textContent='JS: BUHAY! V13 loaded.';
+function loadFB(){var s1=document.createElement('script');s1.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js';s2.onload=function(){var s3=document.createElement('script');s3.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js';s3.onload=function(){try{var cfg={apiKey:"AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",authDomain:"stoninochapelfinance.firebaseapp.com",databaseURL:"https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"stoninochapelfinance",storageBucket:"stoninochapelfinance.firebasestorage.app",messagingSenderId:"633724409478",appId:"1:633724409478:web:a01f4e934d836ce3c82307",measurementId:"G-7WCS0PJWY6"};firebase.initializeApp(cfg);auth=firebase.auth();db=firebase.database();fOK=true;document.getElementById('debugMsg').textContent='Firebase: LOADED OK - Pwede na mag-login';auth.onAuthStateChanged(function(u){if(!u)return;curEmail=u.email;var em=u.email.toLowerCase();if(em.indexOf('treasurer')!==-1)curRole='TREASURER';else if(em.indexOf('auditor')!==-1||em.indexOf('pari')!==-1)curRole='AUDITOR';else curRole='MEMBER';isPub=false;document.getElementById('loginPage').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');document.getElementById('bottomNav').classList.remove('hidden');setEl('userEmail',u.email);setEl('userRoleLabel','Role: '+curRole+' - VB BAGO');loadData();showPage('Dashboard')});if(isPub)loadData()}catch(e){document.getElementById('debugMsg').textContent='Firebase error: '+e.message}};document.head.appendChild(s3)};document.head.appendChild(s2)};document.head.appendChild(s1)}
+setTimeout(loadFB,500);
 </script>
 </body>
 </html>
