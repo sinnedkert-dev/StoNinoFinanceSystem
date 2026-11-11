@@ -31,20 +31,18 @@ button{border:none;padding:13px;border-radius:10px;color:#fff;cursor:pointer;fon
 h3{margin:0 0 10px;font-size:17px}
 .login-card{max-width:420px;margin:30px auto}
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
 <div id="loginPage" class="card login-card">
-<div class="header-top" style="margin:-16px -16px 16px"><h2>Sto. Niño Chapel Finance System<br>Online Tracker</h2><p>VB BAGO - BUD NA • V10 • FIXED JS</p></div>
+<div class="header-top" style="margin:-16px -16px 16px"><h2>Sto. Niño Chapel Finance System<br>Online Tracker</h2><p>VB BAGO - BUD NA • V11 • NO BLOCK</p></div>
 <h3 style="text-align:center;font-size:20px">Login</h3>
 <input id="loginEmail" type="email" placeholder="Email" value="treasurer@stonino.com">
 <input id="loginPass" type="password" placeholder="Password">
 <button class="blue" style="width:100%" onclick="doLogin()">LOGIN</button>
 <p id="loginError" style="color:#c62828;text-align:center;min-height:22px;font-weight:700;font-size:13px"></p>
 <button class="orange" style="width:100%" onclick="enterPublic()">PUBLIC VIEW - Tingin Lang</button>
-<p id="debugMsg" style="text-align:center;font-size:11px;color:#888;margin-top:8px">Naglo-load...</p>
+<p id="debugMsg" style="text-align:center;font-size:11px;color:#888;margin-top:8px">JS: Naglo-load...</p>
+<button style="background:#eee;color:#333;width:100%;font-size:12px" onclick="testJS()">TEST - Pindutin mo kung ayaw pa din</button>
 </div>
 
 <div id="mainApp" class="hidden">
@@ -84,7 +82,8 @@ h3{margin:0 0 10px;font-size:17px}
 </div>
 
 <script>
-// STEP 1 - MGA FUNCTION NA GAGANA KAHIT WALANG FIREBASE - PARA HINDI NA MAMATAY YUNG PUBLIC VIEW
+// V11 - WALANG FIREBASE SA TAAS, KAYA HINDI NA MABA-BLOCK
+function testJS(){ alert('JS GUMANA! Buhay yung code. Yung Firebase na lang yung ayaw mag-load.'); document.getElementById('debugMsg').textContent='JS: BUHAY! GUMANA!'; }
 var currentUserEmail = "";
 var currentRole = "MEMBER";
 var allTransactions = {};
@@ -106,40 +105,34 @@ function fmt(n){ return Number(n||0).toLocaleString('en-PH',{minimumFractionDigi
 function setEl(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
 function dLabel(ts){ if(!ts) return ''; return new Date(ts).toLocaleString('en-PH',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}); }
 function showPage(p){
-  if(isPublicMode && p!=='Public' && !currentUserEmail){ alert('Naka-Public ka. Mag-login ka muna.'); return; }
   var pages=['Dashboard','Cash','Approval','Pledge','Report','Public','Members','Audit','Settings'];
   pages.forEach(function(x){ var e=document.getElementById('page-'+x); if(e) e.classList.toggle('hidden', x!==p); });
   document.querySelectorAll('.nav button').forEach(function(b){ b.classList.toggle('active', b.dataset.page===p); });
   if(p==='Report') fillMonths();
   if(p==='Public') renderPublic();
 }
-// ITO YUNG PINAKA-IMPORTANTE - PUBLIC VIEW, GAGANA KAHIT WALANG FIREBASE
 function enterPublic(){
+  alert('PUBLIC VIEW GUMANA! Lilipat na sa Dashboard.');
   isPublicMode=true;
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
   document.getElementById('bottomNav').classList.add('hidden');
   setEl('userEmail','PUBLIC VIEWER');
-  setEl('userRoleLabel','Tingin lang - V10');
-  // Kahit walang Firebase, ipakita pa din yung Dashboard
+  setEl('userRoleLabel','Tingin lang - V11');
   renderAll();
-  if(firebaseOK){ loadData(); }
-  else { var s=document.getElementById('dbStatus'); if(s) s.textContent='Hindi pa naka-connect sa Firebase - pero nakikita mo na yung app. I-refresh mo sa Chrome.'; }
   showPage('Public');
-  // Ipakita din yung Dashboard kahit Public - para makita na buhay yung app
   var d=document.getElementById('page-Dashboard'); if(d) d.classList.remove('hidden');
+  var s=document.getElementById('dbStatus'); if(s) s.textContent = firebaseOK ? 'Firebase: CONNECTED' : 'Firebase: Naglo-load pa... Hintay 3 seconds tapos Refresh.';
 }
 function copyPublicLink(){ try{ navigator.clipboard.writeText(window.location.href); alert('Na-copy na!'); }catch(e){ alert(window.location.href); } }
 function doLogout(){ if(auth){ auth.signOut().then(function(){ location.reload(); }); } else { location.reload(); } }
 function setTxType(t){ currentTxType=t; document.getElementById('typeInBtn').style.opacity = t==='in'?'1':'0.6'; document.getElementById('typeOutBtn').style.opacity = t==='out'?'1':'0.6'; }
-
 function doLogin(){
   var err=document.getElementById('loginError');
   var dbg=document.getElementById('debugMsg');
-  // CHECK 1 - KUNG HINDI NAG-LOAD YUNG FIREBASE, SABIHIN AGAD, HUWAG MANAHIMIK
   if(!firebaseOK || !auth){
-    err.textContent='HINDI NAG-LOAD YUNG FIREBASE! Buksan mo sa Chrome, hindi sa Messenger. Off mo AdBlock, tapos Refresh.';
-    dbg.textContent='Firebase: NOT LOADED - naka-block yung gstatic.com';
+    err.textContent='Firebase hindi pa nag-load. Pindutin mo muna PUBLIC VIEW para malaman kung buhay yung JS, tapos Refresh sa Chrome.';
+    dbg.textContent='Firebase: NOT LOADED YET - Naglo-load pa sa background';
     return;
   }
   if(isLoggingIn) return;
@@ -148,7 +141,6 @@ function doLogin(){
   if(!email || !pass){ err.textContent='Lagyan mo ng Email at Password!'; return; }
   isLoggingIn=true;
   err.textContent='Naglo-login... Hintay lang...';
-  dbg.textContent='Connecting sa Firebase...';
   auth.signInWithEmailAndPassword(email, pass).then(function(){
     err.textContent='';
     dbg.textContent='Login OK!';
@@ -165,57 +157,10 @@ function doLogin(){
     dbg.textContent='Code: '+e.code;
   });
 }
-
 function writeAudit(action, detail){ if(!firebaseOK || !db) return; try{ db.ref('audit').push({by: currentUserEmail || 'PUBLIC', action: action, detail: detail || '', timestamp: Date.now()}); }catch(e){} }
-
-// STEP 2 - SUBUKAN I-LOAD YUNG FIREBASE, PERO KUNG AYAW, HUWAG PATAYIN YUNG APP
-try{
-  if(typeof firebase !== 'undefined'){
-    var firebaseConfig = {
-      apiKey: "AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",
-      authDomain: "stoninochapelfinance.firebaseapp.com",
-      databaseURL: "https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "stoninochapelfinance",
-      storageBucket: "stoninochapelfinance.firebasestorage.app",
-      messagingSenderId: "633724409478",
-      appId: "1:633724409478:web:a01f4e934d836ce3c82307",
-      measurementId: "G-7WCS0PJWY6"
-    };
-    firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    db = firebase.database();
-    firebaseOK = true;
-    document.getElementById('debugMsg').textContent='Firebase: LOADED OK - Pwede na mag-login';
-    auth.onAuthStateChanged(function(user){
-      if(!user) return;
-      currentUserEmail=user.email;
-      var em=user.email.toLowerCase();
-      if(em.indexOf('treasurer')!==-1) currentRole='TREASURER';
-      else if(em.indexOf('auditor')!==-1 || em.indexOf('pari')!==-1) currentRole='AUDITOR';
-      else currentRole='MEMBER';
-      isPublicMode=false;
-      document.getElementById('loginPage').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('bottomNav').classList.remove('hidden');
-      setEl('userEmail',user.email);
-      setEl('userRoleLabel','Role: '+currentRole+' - VB BAGO');
-      loadData();
-      showPage('Dashboard');
-    });
-  } else {
-    throw new Error('firebase undefined');
-  }
-}catch(e){
-  firebaseOK = false;
-  var dbg=document.getElementById('debugMsg');
-  if(dbg) dbg.textContent='Firebase: HINDI NAG-LOAD - Buksan mo sa Chrome, off AdBlock, Refresh. Pero gagana pa din yung PUBLIC VIEW.';
-  var err=document.getElementById('loginError');
-  if(err) err.textContent='Hindi nag-load yung Firebase. Buksan mo sa Chrome, hindi sa Messenger.';
-}
-
 function loadData(){
   if(!firebaseOK || !db) return;
-  db.ref('transactions').on('value', function(s){ allTransactions=s.val()||{}; renderAll(); }, function(e){ var el=document.getElementById('recentTx'); if(el) el.textContent='Hindi makabasa: '+e.code+' - I-publish mo yung Rules sa Firebase! Rules: {".read": true, ".write": "auth != null"}'; });
+  db.ref('transactions').on('value', function(s){ allTransactions=s.val()||{}; renderAll(); }, function(e){ var el=document.getElementById('recentTx'); if(el) el.textContent='Hindi makabasa: '+e.code+' - I-publish mo yung Rules!'; });
   db.ref('members').on('value', function(s){ allMembers=s.val()||{}; renderAll(); });
   db.ref('pledges').on('value', function(s){ allPledges=s.val()||{}; renderAll(); });
   db.ref('audit').on('value', function(s){ allAudit=s.val()||{}; renderAll(); });
@@ -257,31 +202,13 @@ function renderPublic(){
   var html=''; txs.slice(0,20).forEach(function(t){ html+='<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>'+t.category+' - '+t.person+'<br><small>'+dLabel(t.timestamp)+'</small></span><b>'+(t.type==='in'?'+':'-')+'₱'+fmt(t.amount)+'</b></div>'; });
   var el=document.getElementById('publicList'); if(el) el.innerHTML=html||'Wala pang approved.';
 }
-function approveTx(id){ if(!firebaseOK) return alert('Hindi naka-connect sa Firebase!'); if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); db.ref('transactions/'+id).update({status:'approved',approvedBy:currentUserEmail,approvedAt:Date.now()}); writeAudit('APPROVE', 'In-approve '+id); }
+function approveTx(id){ if(!firebaseOK) return alert('Hindi naka-connect!'); if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); db.ref('transactions/'+id).update({status:'approved',approvedBy:currentUserEmail,approvedAt:Date.now()}); writeAudit('APPROVE', 'In-approve '+id); }
 function rejectTx(id){ if(!firebaseOK) return alert('Hindi naka-connect!'); if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); db.ref('transactions/'+id).update({status:'rejected'}); writeAudit('REJECT', 'Ni-reject '+id); }
 function deleteTx(id){ if(!firebaseOK) return alert('Hindi naka-connect!'); if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); if(confirm('Burahin?')){ db.ref('transactions/'+id).remove(); writeAudit('DELETE TX', 'Binura '+id); } }
 function deleteMember(id){ if(!firebaseOK) return alert('Hindi naka-connect!'); if(confirm('Burahin?')) db.ref('members/'+id).remove(); }
 function markPledgePaid(id){ if(!firebaseOK) return alert('Hindi naka-connect!'); db.ref('pledges/'+id).update({paid:true,paidAt:Date.now()}); }
 function deletePledge(id){ if(!firebaseOK) return alert('Hindi naka-connect!'); if(confirm('Burahin?')) db.ref('pledges/'+id).remove(); }
-function saveBudget(){ if(!firebaseOK) return alert('Hindi naka-connect sa Firebase!'); var v=document.getElementById('budgetTarget').value; if(!v) return alert('Lagyan ng target!'); db.ref('budgets/target').set({target:Number(v),updatedAt:Date.now(),by:currentUserEmail}); alert('Na-save!'); }
-function saveTx(){ if(!firebaseOK) return alert('Hindi naka-connect sa Firebase!'); var amount=Number(document.getElementById('txAmount').value); var person=document.getElementById('txPerson').value.trim(); if(!amount || !person) return alert('Lagyan ng halaga at Pangalan!'); db.ref('transactions').push({amount:amount,type:currentTxType,category:document.getElementById('txCategory').value,person:person,note:document.getElementById('txNote').value,receipt:receiptBase64,status:'pending',createdAt:Date.now(),timestamp:Date.now(),by:currentUserEmail}); writeAudit('ADD TX', person+' ₱'+amount+' '+currentTxType); alert('Na-save - PENDING'); document.getElementById('txAmount').value=''; document.getElementById('txPerson').value=''; document.getElementById('txNote').value=''; receiptBase64=''; document.getElementById('receiptPreview').innerHTML=''; document.getElementById('receiptInput').value=''; }
+function saveBudget(){ if(!firebaseOK) return alert('Hindi naka-connect!'); var v=document.getElementById('budgetTarget').value; if(!v) return alert('Lagyan ng target!'); db.ref('budgets/target').set({target:Number(v),updatedAt:Date.now(),by:currentUserEmail}); alert('Na-save!'); }
+function saveTx(){ if(!firebaseOK) return alert('Hindi naka-connect!'); var amount=Number(document.getElementById('txAmount').value); var person=document.getElementById('txPerson').value.trim(); if(!amount || !person) return alert('Lagyan ng halaga at Pangalan!'); db.ref('transactions').push({amount:amount,type:currentTxType,category:document.getElementById('txCategory').value,person:person,note:document.getElementById('txNote').value,receipt:receiptBase64,status:'pending',createdAt:Date.now(),timestamp:Date.now(),by:currentUserEmail}); writeAudit('ADD TX', person+' ₱'+amount+' '+currentTxType); alert('Na-save - PENDING'); document.getElementById('txAmount').value=''; document.getElementById('txPerson').value=''; document.getElementById('txNote').value=''; receiptBase64=''; document.getElementById('receiptPreview').innerHTML=''; document.getElementById('receiptInput').value=''; }
 function addMember(){ if(!firebaseOK) return alert('Hindi naka-connect!'); var name=document.getElementById('memberName').value.trim(); var contact=document.getElementById('memberContact').value.trim(); if(!name) return alert('Lagyan ng pangalan!'); db.ref('members').push({name:name,contact:contact,createdAt:Date.now(),by:currentUserEmail}); alert('Na-add si '+name); document.getElementById('memberName').value=''; document.getElementById('memberContact').value=''; }
-function addPledge(){ if(!firebaseOK) return alert('Hindi naka-connect!'); var name=document.getElementById('pledgeName').value.trim(); var amount=Number(document.getElementById('pledgeAmount').value); if(!name || !amount) return alert('Lagyan ng pangalan at halaga!'); db.ref('pledges').push({name:name,amount:amount,paid:false,createdAt:Date.now(),by:currentUserEmail}); alert('Na-add pledge ni '+name); document.getElementById('pledgeName').value=''; document.getElementById('pledgeAmount').value=''; }
-function saveSettings(){ if(!firebaseOK) return alert('Hindi naka-connect!'); var g=document.getElementById('settingGcash').value.trim(); var gn=document.getElementById('settingGcashName').value.trim(); db.ref('settings/gcash').set({gcashNumber:g,gcashName:gn}); alert('Na-save!'); }
-function downloadBackup(){ var data={transactions:allTransactions,members:allMembers,pledges:allPledges,audit:allAudit}; var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='stnino-backup.json'; a.click(); }
-function toggleLock(){ if(!firebaseOK) return alert('Hindi naka-connect!'); var k=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'); var locked=allLocked[k]; db.ref('lockedMonths/'+k).set(!locked); alert(locked?'Na-UNLOCK':'Na-LOCK'); }
-function wipeAll(){ if(!firebaseOK) return alert('Hindi naka-connect!'); if(currentRole!=='AUDITOR') return alert('AUDITOR lang pwede!'); if(!confirm('Sigurado ka?')) return; db.ref('transactions').remove(); db.ref('members').remove(); db.ref('audit').remove(); db.ref('pledges').remove(); db.ref('lockedMonths').remove(); alert('Nabura na lahat!'); }
-document.getElementById('receiptInput').addEventListener('change', function(e){ var f=e.target.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(ev){ receiptBase64=ev.target.result; document.getElementById('receiptPreview').innerHTML='<img src="'+receiptBase64+'" class="thumb">'; }; r.readAsDataURL(f); });
-function fillMonths(){ if(monthsFilled) return; var sel=document.getElementById('reportMonth'); if(!sel) return; var keys=[]; arr(allTransactions).forEach(function(t){ var k=new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0'); if(keys.indexOf(k)===-1) keys.push(k); }); if(keys.length===0){ keys.push(new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')); } keys.sort().reverse().forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=new Date(k+'-01').toLocaleString('en-PH',{month:'long',year:'numeric'}); sel.appendChild(o); }); monthsFilled=true; renderReport(); }
-function renderReport(){ var sel=document.getElementById('reportMonth'); if(!sel || !sel.value) return; var k=sel.value; var list=arr(allTransactions).filter(function(t){ return (new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0'))===k && t.status==='approved'; }); var html=''; list.forEach(function(t){ html+='<div class="row"><span>'+t.person+' - '+t.category+'</span><b>'+(t.type==='in'?'+':'-')+'₱'+fmt(t.amount)+'</b></div>'; }); document.getElementById('reportList').innerHTML=html||'Wala pa.'; }
-document.getElementById('loginPass').addEventListener('keypress', function(e){ if(e.key==='Enter') doLogin(); });
-// TEST - Pag nag-load yung page, i-check kung buhay yung JS
-setTimeout(function(){
-  var dbg=document.getElementById('debugMsg');
-  if(dbg && dbg.textContent==='Naglo-load...'){
-    dbg.textContent='JS: BUHAY - Pero Firebase hindi nag-load. Buksan mo sa Chrome.';
-  }
-}, 2000);
-</script>
-</body>
-</html>
+function addPledge(){ if(!firebaseOK) return alert('Hindi naka-connect!'
