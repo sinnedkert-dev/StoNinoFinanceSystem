@@ -5,38 +5,53 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sto. Nino Chapel - VB Bago</title>
 <style>
-body{margin:0;font-family:Arial;background:#f4f4f4;padding:10px;padding-bottom:90px}
-.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-input,select,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin:4px 0;box-sizing:border-box}
-button{border:none;padding:12px;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;margin:4px 0}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:#eef2ee;padding:12px;padding-bottom:110px;color:#222}
+.header-top{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;border-radius:18px;padding:18px 16px;text-align:center;box-shadow:0 4px 14px rgba(27,94,32,.25);margin-bottom:12px}
+.header-top h2{margin:0;font-size:22px;letter-spacing:.5px}
+.header-top p{margin:4px 0 0;opacity:.9;font-size:13px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+input,select,textarea{width:100%;padding:13px;border:1.5px solid #e0e0e0;border-radius:10px;margin:5px 0;font-size:15px;background:#fcfcfc}
+input:focus,select:focus{outline:none;border-color:#2e7d32;background:#fff}
+button{border:none;padding:13px;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;margin:4px 0;font-size:14px}
 .green{background:#2e7d32}.red{background:#c62828}.blue{background:#1565c0}.orange{background:#ef6c00}.gray{background:#757575}
 .hidden{display:none}
-.mini{display:flex;gap:8px}.mini div{flex:1;background:#f9f9f9;border-radius:12px;padding:10px;text-align:center}
-.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.balance{font-size:36px;font-weight:900;color:#1b5e20;line-height:1;margin:6px 0}
+.mini{display:flex;gap:10px;margin-top:12px}
+.mini div{flex:1;background:#f1f8e9;border-radius:12px;padding:12px 6px;text-align:center}
+.mini small{color:#666;font-size:11px;letter-spacing:.5px}
+.mini b{display:block;margin-top:4px;font-size:16px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .thumb{width:90px;height:90px;object-fit:cover;border-radius:10px;margin-top:8px}
-.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.1)}
-.nav button{flex:1;background:none;color:#666;font-size:11px;padding:8px 2px;border-radius:0}
-.nav button.active{color:#1f6f3d;background:#e8f5e9}
-.top{display:flex;justify-content:space-between;align-items:center}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.top b{font-size:14px;word-break:break-all}
+.top small{color:#2e7d32;font-weight:700}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;overflow-x:auto;box-shadow:0 -2px 12px rgba(0,0,0,.12);padding:6px 4px;z-index:99;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{flex:0 0 auto;background:none;color:#777;font-size:12px;padding:10px 14px;border-radius:20px;white-space:nowrap;margin:0 2px}
+.nav button.active{color:#fff;background:#2e7d32}
+h3{margin:0 0 10px;font-size:17px}
+.login-card{max-width:420px;margin:30px auto}
+.login-card input{padding:14px}
 </style>
 </head>
 <body>
-<div id="loginPage" class="card">
-<div style="text-align:center"><h2>STO. NIÑO CHAPEL</h2><p>VB BAGO - BUD NA</p></div>
-<h3 style="text-align:center">Login</h3>
+<div id="loginPage" class="card login-card">
+<div class="header-top" style="margin:-16px -16px 16px"><h2>STO. NIÑO CHAPEL</h2><p>VB BAGO - BUD NA</p></div>
+<h3 style="text-align:center;font-size:20px">Login</h3>
 <input id="loginEmail" type="email" placeholder="Email">
 <input id="loginPass" type="password" placeholder="Password">
 <button id="loginBtn" class="blue" style="width:100%">LOGIN</button>
-<p id="loginError" style="color:red;text-align:center"></p>
+<p id="loginError" style="color:red;text-align:center;min-height:18px"></p>
 <button id="enterPublic" class="orange" style="width:100%">PUBLIC VIEW - Tingin Lang</button>
 </div>
 
 <div id="mainApp" class="hidden">
-<div class="card top"><div><b id="userEmail">USER</b><br><small id="userRoleLabel">MEMBER</small></div><div><button id="copyLinkBtn" class="blue" style="padding:8px">Copy Link</button> <button id="logoutBtn" class="red" style="padding:8px">Logout</button></div></div>
-<div class="card"><h3 style="margin:0">Dashboard</h3><div id="totalBalance" style="font-size:32px;font-weight:900">₱0.00</div><div class="mini"><div>CASH IN<br><b id="totalIn">₱0</b></div><div>CASH OUT<br><b id="totalOut">₱0</b></div><div>PENDING<br><b id="totalPending">0</b></div></div><div id="notifBar" style="margin-top:8px"></div></div>
+<div class="card top"><div><b id="userEmail">USER</b><br><small id="userRoleLabel">MEMBER</small></div><div style="display:flex;gap:6px;flex-shrink:0"><button id="copyLinkBtn" class="blue" style="padding:9px 12px">Copy Link</button><button id="logoutBtn" class="red" style="padding:9px 12px">Logout</button></div></div>
+<div class="card"><h3>Dashboard</h3><div id="totalBalance" class="balance">₱0.00</div><div class="mini"><div><small>CASH IN</small><b id="totalIn">₱0</b></div><div><small>CASH OUT</small><b id="totalOut">₱0</b></div><div><small>PENDING</small><b id="totalPending">0</b></div></div><div id="notifBar" style="margin-top:10px;font-size:13px;color:#e65100;font-weight:600"></div></div>
 <div id="page-Dashboard" class="card"><h3>Recent</h3><div id="recentTx">Wala pa.</div></div>
 <div id="page-Cash" class="hidden card"><h3>Cash - Add Transaction</h3>
-<div class="mini"><button id="typeInBtn" class="green" onclick="setTxType('in')">CASH IN</button><button id="typeOutBtn" class="red" onclick="setTxType('out')">CASH OUT</button></div>
+<div style="display:flex;gap:8px"><button id="typeInBtn" class="green" style="flex:1" onclick="setTxType('in')">CASH IN</button><button id="typeOutBtn" class="red" style="flex:1" onclick="setTxType('out')">CASH OUT</button></div>
 <input id="txAmount" type="number" placeholder="Halaga">
 <select id="txCategory"><option>Mass Offering</option><option>Pondo</option><option>Fiesta</option><option>Donation</option><option>Expense</option><option>Others</option></select>
 <input id="txPerson" placeholder="Pangalan">
@@ -44,7 +59,7 @@ button{border:none;padding:12px;border-radius:8px;color:#fff;cursor:pointer;font
 <input id="receiptInput" type="file" accept="image/*">
 <div id="receiptPreview"></div>
 <button id="saveTxBtn" class="green" style="width:100%">SAVE - PENDING</button>
-<h4>Budget Target</h4><input id="budgetTarget" type="number" placeholder="Target"><button id="saveBudgetBtn" class="blue">SET BUDGET</button>
+<h4 style="margin:16px 0 4px">Budget Target</h4><input id="budgetTarget" type="number" placeholder="Target"><button id="saveBudgetBtn" class="blue" style="width:100%">SET BUDGET</button>
 </div>
 <div id="page-Approval" class="hidden card"><h3>Approval - AUDITOR LANG</h3><div id="pendingList"></div></div>
 <div id="page-Pledge" class="hidden card"><h3>Pledge Tracker</h3><input id="pledgeName" placeholder="Pangalan"><input id="pledgeAmount" type="number" placeholder="Halaga"><button id="addPledgeBtn" class="green" style="width:100%">ADD PLEDGE</button><div id="pledgeList" style="margin-top:10px"></div></div>
@@ -52,7 +67,7 @@ button{border:none;padding:12px;border-radius:8px;color:#fff;cursor:pointer;font
 <div id="page-Public" class="hidden card"><h3>Public View</h3><div id="publicList"></div></div>
 <div id="page-Members" class="hidden card"><h3>Members</h3><input id="memberName" placeholder="Pangalan"><input id="memberContact" placeholder="Contact"><button id="addMemberBtn" class="blue" style="width:100%">ADD MEMBER</button><div id="memberList" style="margin-top:10px"></div></div>
 <div id="page-Audit" class="hidden card"><h3>Audit Log</h3><div id="auditList"></div></div>
-<div id="page-Settings" class="hidden card"><h3>Settings</h3><input id="settingGcash" placeholder="GCash Number"><input id="settingGcashName" placeholder="GCash Name"><button id="saveSettingsBtn" class="blue">SAVE SETTINGS</button><br><br><button id="downloadBackupBtn" class="gray" style="width:100%">DOWNLOAD BACKUP</button><br><button id="toggleLockBtn" class="orange" style="width:100%">LOCK / UNLOCK MONTH</button><br><button id="wipeBtn" class="red" style="width:100%">DELETE LAHAT</button></div>
+<div id="page-Settings" class="hidden card"><h3>Settings</h3><input id="settingGcash" placeholder="GCash Number"><input id="settingGcashName" placeholder="GCash Name"><button id="saveSettingsBtn" class="blue" style="width:100%">SAVE SETTINGS</button><br><br><button id="downloadBackupBtn" class="gray" style="width:100%">DOWNLOAD BACKUP</button><br><button id="toggleLockBtn" class="orange" style="width:100%">LOCK / UNLOCK MONTH</button><br><button id="wipeBtn" class="red" style="width:100%">DELETE LAHAT</button></div>
 <div class="nav" id="bottomNav">
 <button data-page="Dashboard" onclick="showPage('Dashboard')" class="active">Dashboard</button>
 <button data-page="Cash" onclick="showPage('Cash')">Cash</button>
@@ -159,19 +174,19 @@ function renderAll(){
   else if(pending.length>0) notif.textContent='May '+pending.length+' pending - hintay Auditor.';
   else notif.textContent='';
   let html='';
-  txs.sort((a,b)=>b.timestamp-a.timestamp).slice(0,5).forEach(t=>{ html+=`<div class="row" style="border-bottom:1px solid #eee;padding:6px 0"><span>${t.person||''} - ${t.category||''}<br><small>${dLabel(t.timestamp)} - ${t.status}</small></span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; });
+  txs.sort((a,b)=>b.timestamp-a.timestamp).slice(0,5).forEach(t=>{ html+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${t.person||''} - ${t.category||''}<br><small style="color:#888">${dLabel(t.timestamp)} - ${t.status}</small></span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; });
   document.getElementById('recentTx').innerHTML=html||'Wala pa.';
   let pHtml='';
-  pending.forEach(t=>{ pHtml+=`<div class="card" style="margin:4px 0"><b>${t.person}</b> - ₱${fmt(t.amount)} - ${t.category}<br><small>${t.note||''}</small><br>`; if(currentRole==='AUDITOR') pHtml+=`<button class="green" onclick="approveTx('${t.id}')">APPROVE</button> <button class="red" onclick="rejectTx('${t.id}')">REJECT</button>`; else pHtml+=`<span>Si AUDITOR lang</span>`; if(currentRole==='AUDITOR') pHtml+=` <button class="red" onclick="deleteTx('${t.id}')">DELETE</button>`; pHtml+=`</div>`; });
+  pending.forEach(t=>{ pHtml+=`<div class="card" style="margin:6px 0"><b>${t.person}</b> - ₱${fmt(t.amount)} - ${t.category}<br><small>${t.note||''}</small><br>`; if(currentRole==='AUDITOR') pHtml+=`<button class="green" onclick="approveTx('${t.id}')">APPROVE</button> <button class="red" onclick="rejectTx('${t.id}')">REJECT</button>`; else pHtml+=`<span>Si AUDITOR lang</span>`; if(currentRole==='AUDITOR') pHtml+=` <button class="red" onclick="deleteTx('${t.id}')">DELETE</button>`; pHtml+=`</div>`; });
   document.getElementById('pendingList').innerHTML=pHtml||'Wala pang pending.';
-  let mHtml=''; arr(allMembers).forEach(m=>{ mHtml+=`<div class="row" style="border-bottom:1px solid #eee;padding:6px 0"><span>${m.name}<br><small>${m.contact||''}</small></span><button class="red" onclick="deleteMember('${m.id}')" style="padding:6px">DELETE</button></div>`; }); document.getElementById('memberList').innerHTML=mHtml||'Wala pa.';
-  let plHtml=''; arr(allPledges).forEach(p=>{ plHtml+=`<div class="row" style="border-bottom:1px solid #eee;padding:6px 0"><span>${p.name} - ₱${fmt(p.amount)}<br><small>${p.paid?'PAID':'PENDING'}</small></span><span><button class="green" onclick="markPledgePaid('${p.id}')" style="padding:6px">PAID</button> <button class="red" onclick="deletePledge('${p.id}')" style="padding:6px">X</button></span></div>`; }); document.getElementById('pledgeList').innerHTML=plHtml||'Wala pa.';
-  let aHtml=''; arr(allAudit).sort((a,b)=>b.timestamp-a.timestamp).slice(0,20).forEach(a=>{ aHtml+=`<div style="border-bottom:1px solid #eee;padding:4px 0"><small>${dLabel(a.timestamp)} - ${a.by} - ${a.action} - ${a.detail||''}</small></div>`; }); document.getElementById('auditList').innerHTML=aHtml||'Wala pa.';
+  let mHtml=''; arr(allMembers).forEach(m=>{ mHtml+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${m.name}<br><small>${m.contact||''}</small></span><button class="red" onclick="deleteMember('${m.id}')" style="padding:6px 10px">DELETE</button></div>`; }); document.getElementById('memberList').innerHTML=mHtml||'Wala pa.';
+  let plHtml=''; arr(allPledges).forEach(p=>{ plHtml+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${p.name} - ₱${fmt(p.amount)}<br><small>${p.paid?'PAID':'PENDING'}</small></span><span><button class="green" onclick="markPledgePaid('${p.id}')" style="padding:6px 10px">PAID</button> <button class="red" onclick="deletePledge('${p.id}')" style="padding:6px 10px">X</button></span></div>`; }); document.getElementById('pledgeList').innerHTML=plHtml||'Wala pa.';
+  let aHtml=''; arr(allAudit).sort((a,b)=>b.timestamp-a.timestamp).slice(0,20).forEach(a=>{ aHtml+=`<div style="border-bottom:1px solid #eee;padding:6px 0"><small>${dLabel(a.timestamp)} - ${a.by} - ${a.action} - ${a.detail||''}</small></div>`; }); document.getElementById('auditList').innerHTML=aHtml||'Wala pa.';
   renderPublic();
 }
 function renderPublic(){
   const txs=arr(allTransactions).filter(t=>t.status==='approved').sort((a,b)=>b.timestamp-a.timestamp);
-  let html=''; txs.slice(0,20).forEach(t=>{ html+=`<div class="row" style="border-bottom:1px solid #eee;padding:6px 0"><span>${t.category} - ${t.person}<br><small>${dLabel(t.timestamp)}</small></span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; });
+  let html=''; txs.slice(0,20).forEach(t=>{ html+=`<div class="row" style="border-bottom:1px solid #eee;padding:8px 0"><span>${t.category} - ${t.person}<br><small>${dLabel(t.timestamp)}</small></span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; });
   const el=document.getElementById('publicList'); if(el) el.innerHTML=html||'Wala pang approved.';
 }
 window.approveTx=async function(id){ if(currentRole!=='AUDITOR') return alert('AUDITOR lang!'); await update(ref(db,'transactions/'+id),{status:'approved',approvedBy:currentUserEmail,approvedAt:Date.now()}); };
@@ -189,19 +204,4 @@ document.getElementById('downloadBackupBtn').addEventListener('click', ()=>{ con
 document.getElementById('toggleLockBtn').addEventListener('click', async ()=>{ const k=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'); const locked=allLocked[k]; await set(ref(db,'lockedMonths/'+k),!locked); alert(locked?'Na-UNLOCK':'Na-LOCK'); });
 document.getElementById('wipeBtn').addEventListener('click', async ()=>{ if(currentRole!=='AUDITOR') return alert('AUDITOR lang pwede!'); if(!confirm('Sigurado ka?')) return; await remove(ref(db,'transactions')); await remove(ref(db,'members')); await remove(ref(db,'audit')); await remove(ref(db,'pledges')); await remove(ref(db,'lockedMonths')); alert('Nabura na lahat!'); });
 document.getElementById('receiptInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{ receiptBase64=ev.target.result; document.getElementById('receiptPreview').innerHTML=`<img src="${receiptBase64}" class="thumb">`; }; r.readAsDataURL(f); });
-function fillMonths(){ const sel=document.getElementById('reportMonth'); if(!sel || sel.options.length) return; let keys=[...new Set(arr(allTransactions).map(t=>new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0')) )]; keys.sort().reverse().forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=new Date(k+'-01').toLocaleString('en-PH',{month:'long',year:'numeric'}); sel.appendChild(o); }); sel.addEventListener('change', ()=>{ const k=sel.value; const list=arr(allTransactions).filter(t=> (new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0'))===k && t.status==='approved'); let html=''; list.forEach(t=>{ html+=`<div class="row"><span>${t.person} - ${t.category}</span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; }); document.getElementById('reportList').innerHTML=html||'Wala pa.'; }); }
-document.getElementById('loginBtn').addEventListener('click', async ()=>{
-  const email=document.getElementById('loginEmail').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  const err=document.getElementById('loginError');
-  if(!email || !pass){ err.textContent='Lagyan mo ng Email at Password!'; return; }
-  err.textContent='Naglo-login...';
-  try{ await signInWithEmailAndPassword(auth, email, pass); err.textContent=''; }
-  catch(e){ err.textContent='Mali ang Email o Password! ('+e.code+')'; }
-});
-document.getElementById('enterPublic').addEventListener('click', ()=>{ enterPublic(); });
-document.getElementById('logoutBtn').addEventListener('click', async ()=>{ await signOut(auth); location.reload(); });
-document.getElementById('copyLinkBtn').addEventListener('click', ()=>{ copyPublicLink(); });
-</script>
-</body>
-                                                                                                                                                                                        </html>
+function fillMonths(){ const sel=document.getElementById('reportMonth'); if(!sel || sel.options.length) return; let keys=[...new Set(arr(allTransactions).map(t=>new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0')) )]; keys.sort().reverse().forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=new Date(k+'-01').toLocaleString('en-PH',{month:'long',year:'numeric'}); sel.appendChild(o); }); sel.addEventListener('change', ()=>{ const k=sel.value; const list=arr(allTransactions).filter(t=> (new Date(t.timestamp).getFullYear()+'-'+String(new Date(t.timestamp).getMonth()+1).padStart(2,'0'))===k && t.status==='approved'); let html=''; list.forEach(t=>{ html+=`<div class="row"><span>${t.person} - ${t.category}</span><b>${t.type==='in'?'+':'-'}₱${fmt(t.amount)}</b></div>`; }); document.getElementById('reportList'
