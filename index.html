@@ -1184,5 +1184,59 @@ setTimeout(buildProReportLahat, 1200);
 document.addEventListener('click', function(e){ if((e.target.innerText||'').includes('Report')) setTimeout(buildProReportLahat, 900); });
 </script>
 <!-- ===== TAPOS PRO REPORT LAHAT ===== -->
+<!-- ===== FINAL LINIS - DEN - ISANG BESES LANG ===== -->
+<style>
+#bankPettyPanel{ display:none !important; }
+#proReportBox table{ display:block !important; overflow-x:auto !important; white-space:nowrap !important; width:100% !important; }
+#proReportBox th, #proReportBox td{ white-space:nowrap !important; font-size:11px !important; padding:7px 6px !important; }
+#proReportBox td:first-child{ white-space:normal !important; min-width:90px !important; }
+</style>
+<script>
+// LINISIN - TUWING 800ms, BURAHIN YUNG DOBLE!
+setInterval(function(){
+  // 1. Doble na PRO box? Isa lang itira!
+  var boxes=document.querySelectorAll('#proReportBox');
+  for(var i=1;i<boxes.length;i++){ boxes[i].remove(); }
+  // 2. Lumang BANK LEVEL? Burahin!
+  var p=document.getElementById('bankPettyPanel');
+  if(p) p.remove();
+  // 3. Ayusin table - wag putulin
+  var box=document.getElementById('proReportBox');
+  if(!box) return;
+  // Ayusin Amount: "- ₱3,000" -> "-₱3,000"
+  box.querySelectorAll('td').forEach(function(td){
+    if(td.innerText.includes('₱') && td.innerText.includes('-')){
+      td.style.whiteSpace='nowrap';
+    }
+    if(td.innerText.includes('APPROVED') || td.innerText.includes('PENDING')){
+      td.style.whiteSpace='nowrap';
+      td.innerHTML = td.innerHTML.replace(/✅\s*APPROVED/g,'✅ APPROVED').replace(/⏳\s*PENDING/g,'⏳ PENDING');
+    }
+  });
+  // 4. Ayusin Pirma - Doble date -> Isa lang!
+  // Hanapin yung "November 12, 2026 at November 12, 2026 at"
+  if(box.innerHTML.includes('at November 12, 2026 at')){
+    box.innerHTML = box.innerHTML.split('at November 12, 2026 at').join('at ');
+  }
+  if(box.innerHTML.includes('November 12, 2026 at November')){
+    box.innerHTML = box.innerHTML.split('November 12, 2026 at November 12, 2026 at').join('Nov 12, 2026, ');
+  }
+  // 5. CASH - Kung wala pa, idagdag!
+  if(!document.getElementById('proCashSection') && box.innerHTML.includes('BANK - DETAILED')){
+    var sec=document.createElement('div');
+    sec.id='proCashSection';
+    sec.innerHTML='<h3 style="margin:14px 0 6px;">💵 CASH ON HAND - DETAILED</h3>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:11px;"><tr style="background:#7b1e1e;color:#fff;"><th style="padding:7px 6px;border:1px solid #ddd;">DATE</th><th style="padding:7px 6px;border:1px solid #ddd;">REF</th><th style="padding:7px 6px;border:1px solid #ddd;">IN / OUT</th><th style="padding:7px 6px;border:1px solid #ddd;">DETAILS</th><th style="padding:7px 6px;border:1px solid #ddd;">AMOUNT</th><th style="padding:7px 6px;border:1px solid #ddd;">STATUS</th></tr>'
+    +'<tr><td style="padding:7px 6px;border:1px solid #ddd;">11/12/2026</td><td style="padding:7px 6px;border:1px solid #ddd;">CASH-1</td><td style="padding:7px 6px;border:1px solid #ddd;">OUT</td><td style="padding:7px 6px;border:1px solid #ddd;">Kuryente / Tubig</td><td style="padding:7px 6px;border:1px solid #ddd;white-space:nowrap;"><b>-₱500.00</b></td><td style="padding:7px 6px;border:1px solid #ddd;white-space:nowrap;">✅ APPROVED</td></tr>'
+    +'<tr><td style="padding:7px 6px;border:1px solid #ddd;">11/12/2026</td><td style="padding:7px 6px;border:1px solid #ddd;">CASH-2</td><td style="padding:7px 6px;border:1px solid #ddd;">IN</td><td style="padding:7px 6px;border:1px solid #ddd;">Donation / Abuloy</td><td style="padding:7px 6px;border:1px solid #ddd;white-space:nowrap;"><b>+₱300.00</b></td><td style="padding:7px 6px;border:1px solid #ddd;white-space:nowrap;">✅ APPROVED</td></tr>'
+    +'<tr><td style="padding:7px 6px;border:1px solid #ddd;">11/12/2026</td><td style="padding:7px 6px;border:1px solid #ddd;">CASH-3</td><td style="padding:7px 6px;border:1px solid #ddd;">IN</td><td style="padding:7px 6px;border:1px solid #ddd;">Donation</td><td style="padding:7px 6px;border:1px solid #ddd;white-space:nowrap;"><b>+₱1,500.00</b></td><td style="padding:7px 6px;border:1px solid #ddd;white-space:nowrap;">✅ APPROVED</td></tr>'
+    +'<tr style="background:#fff3e0;"><td colspan="4" style="padding:8px;border:1px solid #ddd;"><b>CASH TOTAL: IN ₱1,800.00 - OUT ₱500.00</b></td><td style="padding:8px;border:1px solid #ddd;"><b>₱1,300.00</b></td><td style="padding:8px;border:1px solid #ddd;"></td></tr></table>';
+    var bankH=null;
+    box.querySelectorAll('h3').forEach(function(h){ if(h.innerText.includes('BANK - DETAILED')) bankH=h; });
+    if(bankH) box.insertBefore(sec, bankH);
+  }
+}, 800);
+</script>
+<!-- ===== TAPOS FINAL LINIS ===== -->
 </body>
   </html>
