@@ -635,5 +635,30 @@ setTimeout(lockCoordinatorV99, 1500);
 setInterval(lockCoordinatorV99, 2000);
 </script>
 <!-- ================= TAPOS NA COORDINATOR A ================= -->
+<!-- ================= BUO PARA SA LAHAT - DAGDAG LANG ================= -->
+<script>
+var _origGetRoleAll = getRole;
+getRole = function(email){
+  email = (email || "").toLowerCase();
+  if(email === "admin@stonino.com") return "ADMIN";
+  if(email === "treasurer@stonino.com") return "TREASURER";
+  if(email === "auditor@stonino.com") return "AUDITOR";
+  if(email === "father@stonino.com") return "FATHER";
+  if(email === "coordinator@stonino.com") return "COORDINATOR";
+  if(email === "viewer@stonino.com") return "VIEWER";
+  return _origGetRoleAll(email);
+};
+var _origRoleTextAll = roleText;
+roleText = function(r){
+  if(r === "ADMIN") return "Role: ADMIN - Lock / Delete";
+  if(r === "TREASURER") return "Role: TREASURER - Add lang";
+  if(r === "AUDITOR") return "Role: AUDITOR - Approve lang";
+  if(r === "FATHER") return "Role: FATHER - Tingin + Approve 🙏";
+  if(r === "COORDINATOR") return "Role: COORDINATOR - Members + Tingin";
+  if(r === "VIEWER") return "Role: VIEWER - Tingin lang";
+  return _origRoleTextAll(r);
+};
+</script>
+<!-- ================= TAPOS NA ================= -->
 </body>
   </html>
