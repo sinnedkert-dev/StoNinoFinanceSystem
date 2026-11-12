@@ -97,6 +97,10 @@ box-shadow:0 2px 8px rgba(0,0,0,.2);
 #bottomNav button:nth-child(7)::after{ content:"Members"; }
 #bottomNav button:nth-child(8)::after{ content:"Audit"; }
 #bottomNav button:nth-child(9)::after{ content:"Settings"; }
+#bottomNav{ flex-wrap:nowrap !important; overflow-x:auto !important; overflow-y:hidden !important; padding:10px !important; gap:8px !important; scrollbar-width:none !important; }
+#bottomNav::-webkit-scrollbar{ display:none !important; }
+#bottomNav button{ flex:0 0 auto !important; width:auto !important; flex-direction:row !important; align-items:center !important; gap:6px !important; padding:10px 14px !important; font-size:18px !important; white-space:nowrap !important; border-radius:999px !important; }
+#bottomNav button::after{ display:inline !important; font-size:13px !important; }
 </style>
 </head>
 <body>
