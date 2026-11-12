@@ -1343,33 +1343,5 @@ window.downloadExcelPro=function(){
 setInterval(function(){ if(document.getElementById('proReportBox')) rebuildOfficial(); }, 1500);
 </script>
 <!-- ===== TAPOS OFFICIAL LAHAT AUTOMATIC ===== -->
-<!-- ===== SAFE FIX LANG - WALANG BUBURAHIN - DEN ===== -->
-<style>
-#proReportBox table{ display:block !important; overflow-x:auto !important; }
-#proReportBox th, #proReportBox td{ white-space:nowrap !important; padding:8px 10px !important; font-size:12px !important; }
-</style>
-<script>
-// AYUSIN LANG YUNG TOTAL - WAG BUBURAHIN KAHIT ANO!
-setTimeout(function(){
-  var box=document.getElementById('proReportBox');
-  if(!box) return;
-  // Cash: 1800 IN - 500 OUT = 1300 - galing sa totoong Monthly Report, hindi sa binura
-  var cashBal=1300;
-  // Hanapin yung TOTAL FUND at gawing 32700
-  box.querySelectorAll('td').forEach(function(td){
-    if(td.innerText.includes('TOTAL FUND')){
-      var cells=td.parentNode.querySelectorAll('td');
-      if(cells.length>=3) cells[2].innerHTML='<b>₱32,700.00</b>';
-    }
-  });
-  // Ayusin yung CASH count - 3, hindi 0
-  box.querySelectorAll('h3').forEach(function(h){
-    if(h.innerText.includes('CASH ON HAND')){
-      h.innerText='💵 CASH ON HAND - LAHAT NG TRANSACTIONS (3)';
-    }
-  });
-}, 1500);
-</script>
-<!-- ===== TAPOS SAFE FIX ===== -->
 </body>
   </html>
