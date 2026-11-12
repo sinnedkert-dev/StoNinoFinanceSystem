@@ -931,5 +931,59 @@ document.addEventListener('click', function(e){ if((e.target.innerText||'').trim
 setTimeout(gawaAuditBankPetty, 1500);
 </script>
 <!-- ===== TAPOS LAHAT DADAAN SA AUDIT ===== -->
+<!-- ===== FIX REJECTED BUG - IBALIK SA PENDING ===== -->
+<script>
+// 1. AYUSIN YUNG LUMANG TRANSACTION - WALANG STATUS = PENDING, HINDI REJECTED!
+(function(){
+  ['bankSavingsTx','pettyCashTx'].forEach(function(key){
+    var tx = JSON.parse(localStorage.getItem(key)||'[]');
+    var binago = false;
+    tx.forEach(function(x){
+      // Kung walang status, o naging REJECTED ng kusa (walang nag-reject), ibalik sa PENDING
+      if(!x.status || (x.status==='rejected' && !x.rejectedBy)){
+        x.status = 'pending';
+        binago = true;
+      }
+    });
+    if(binago) localStorage.setItem(key, JSON.stringify(tx));
+  });
+})();
+// 2. AYUSIN YUNG APPROVE - LAGYAN NG SINO NAG-APPROVE / REJECT
+var origApproveBP = window.approveBP;
+window.approveBP = function(kind, ref, ok){
+  var role = '';
+  var t = document.body.innerText||'';
+  var m = t.match(/Role:\s*([A-Z]+)/i);
+  if(m) role = m[1].toUpperCase();
+  if(role!=='AUDITOR' && role!=='ADMIN' && role!=='FATHER'){ alert('Auditor lang pwede mag-Approve! ⛔'); return; }
+  var key = kind==='bank' ? 'bankSavingsTx' : 'pettyCashTx';
+  var tx = JSON.parse(localStorage.getItem(key)||'[]');
+  tx.forEach(function(x){
+    if(x.ref===ref){
+      x.status = ok ? 'approved' : 'rejected';
+      if(ok) x.approvedBy = role; else x.rejectedBy = role;
+      x.approvedAt = new Date().toLocaleString('en-PH');
+    }
+  });
+  localStorage.setItem(key, JSON.stringify(tx));
+  alert(ok ? '✅ APPROVED! Pasok na sa balance!' : '❌ REJECTED ni '+role+'!');
+  // Refresh Audit box
+  if(window.gawaAuditBankPetty) setTimeout(window.gawaAuditBankPetty, 300);
+  location.reload();
+};
+// 3. BUTTON PANG-RESET - KUNG MAY MALING REJECTED ULIT
+function gawaResetBtn(){
+  var old=document.getElementById('resetPendingBtn');
+  if(old) return;
+  var auditTitle=null;
+  document.querySelectorAll('div').forEach(function(d){ if((d.innerText||'').trim()==='Audit') auditTitle=d; });
+  if(!auditTitle) return;
+}
+setTimeout(function(){
+  // Ipakita ulit ng tama - i-reload yung Audit box para PENDING na sila
+  if(window.gawaAuditBankPetty) window.gawaAuditBankPetty();
+}, 1000);
+</script>
+<!-- ===== TAPOS FIX REJECTED BUG ===== -->
 </body>
   </html>
