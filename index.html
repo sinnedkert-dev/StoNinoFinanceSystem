@@ -50,6 +50,9 @@ small{color:#78716c}
 .receipt-thumb{width:100%;max-height:200px;object-fit:contain;background:#fffbeb;border-radius:10px;border:1px solid #fcd34d;margin-top:8px;display:block}
 .receipt-preview{width:100%;max-height:200px;object-fit:contain;background:#fffbeb;border-radius:10px;border:2px dashed #d4af37;display:none;margin-top:8px}
 .report-box{background:#fffbeb;border:2px solid #d4af37;border-radius:12px;padding:14px;white-space:pre-wrap;font-size:14px;line-height:1.5}
+.fiesta-card{border:2px solid #d4af37;background:linear-gradient(to bottom,#fffbeb,#fef3c7);text-align:center}
+.fiesta-bar{height:22px;background:#e7e5e4;border-radius:20px;overflow:hidden;margin:10px 0;border:1px solid #d4af37}
+.fiesta-fill{height:100%;background:linear-gradient(to right,#991b1b,#d4af37,#16a34a);width:0%;transition:width 0.5s;text-align:center;color:#fff;font-size:12px;font-weight:800;line-height:22px}
 .footer{margin-top:20px;text-align:center;padding:18px 14px 22px;background:linear-gradient(to bottom,#7f1d1d,#991b1b,#b45309);border-radius:16px;border:2px solid #d4af37;color:#fff}
 .footer .f-title{font-size:15px;font-weight:900;letter-spacing:1px;color:#fde68a;margin:0}
 .footer .f-sub{font-size:12px;color:#fff;margin:4px 0 0}
@@ -63,7 +66,7 @@ small{color:#78716c}
 <div class="top">
 <div class="logo-wrap"><img src="stonino.jpg" alt="Sto Nino"></div>
 <h1>Sto. Niño Chapel</h1>
-<p>Finance System Online • V9.4</p>
+<p>Finance System Online • V9.5</p>
 <p class="verse">✨ Viva Pit Señor! ✨</p>
 <p id="liveClock" style="margin:6px 0 0;font-size:13px;font-weight:700;color:#fde68a;background:rgba(0,0,0,0.25);display:inline-block;padding:4px 12px;border-radius:20px">--:--:--</p>
 </div>
@@ -80,6 +83,14 @@ small{color:#78716c}
 </div>
 <div id="dashBox" class="hidden">
 <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><b id="userEmail"></b><br><small id="roleLabel"></small></div><button style="width:auto;padding:8px 12px" class="btn-gray" onclick="doLogout()">Logout</button></div></div>
+<div class="card fiesta-card">
+<div style="font-size:14px;font-weight:900;color:#7f1d1d">🎯 FIESTA FUND TARGET</div>
+<div id="fiestaMsg" style="font-size:16px;font-weight:900;color:#991b1b;margin-top:6px">Nakaipon na: ₱0</div>
+<div style="font-size:12px;color:#78716c">Target: <b id="fiestaTargetLabel" style="color:#7f1d1d">₱20,000.00</b> • Kulang pa: <b id="fiestaRemaining" style="color:#dc2626">₱20,000.00</b></div>
+<div class="fiesta-bar"><div class="fiesta-fill" id="fiestaFill">0%</div></div>
+<div class="row"><input id="fiestaTargetInput" type="number" placeholder="Bagong Target, ex: 20000" style="flex:2"><button class="btn-gold" style="flex:1" onclick="saveFiestaTarget()">SAVE TARGET</button></div>
+<small>Yung Nakaipon = Kaban mo (Approved lang). Pag nag-donate, tataas din to.</small>
+</div>
 <div class="card" style="text-align:center;border:2px solid #d4af37"><small>KABAN - APPROVED LANG</small><div class="kaban" id="kaban">₱0.00</div><small>Approved lang ang binibilang</small></div>
 <div class="grid">
 <div class="mini"><b id="cashIn">₱0</b><span>CASH IN</span></div>
@@ -139,7 +150,7 @@ var CATEGORIES = {
 in: ["Mass Offering","Donation / Abuloy","Donation","Fiesta Fund","Special Collection","Iba pa"],
 out: ["Kuryente / Tubig","Linis / Maintenance","Kandila / Bulaklak","Pampare / Misa","Iba pa"]
 };
-var currentUser=null, currentRole="MEMBER", allTx=[], allMembers=[], receiptData="";
+var currentUser=null, currentRole="MEMBER", allTx=[], allMembers=[], receiptData="", fiestaTarget=20000;
 function getRole(email){
 if(email==="admin@stonino.com") return "ADMIN";
 if(email==="auditor@stonino.com") return "AUDITOR";
@@ -223,6 +234,12 @@ alert("AYAW MAG-LOGIN:\n\n"+err.code+"\n\n"+err.message);
 });
 }
 function doLogout(){ auth.signOut(); }
+function saveFiestaTarget(){
+if(currentRole!=="TREASURER" && currentRole!=="ADMIN"){ alert("Treasurer / Admin lang pwede magpalit ng Target!"); return; }
+var v=parseFloat(document.getElementById("fiestaTargetInput").value);
+if(!v || v<=0){ alert("Lagyan mo ng Target, ex: 20000"); return; }
+db.ref("settings/fiestaTarget").set(v).then(function(){ alert("Na-save na! Target: "+peso(v)); document.getElementById("fiestaTargetInput").value=""; });
+}
 function addTx(){
 if(currentRole!=="TREASURER" && currentRole!=="ADMIN"){ alert("Treasurer lang pwede mag-add!"); return; }
 var type=document.getElementById("txType").value;
@@ -285,14 +302,20 @@ if(t.type==="in") cashIn+=Number(t.amount||0); else cashOut+=Number(t.amount||0)
 var key=(t.type==="in"?"IN - ":"OUT - ")+(t.category||"Walang Category");
 byCat[key]=(byCat[key]||0) + (t.type==="in"?Number(t.amount||0):-Number(t.amount||0));
 });
+var kaban=cashIn-cashOut;
+var pct = fiestaTarget>0 ? Math.min(100, Math.round((kaban/fiestaTarget)*100)) : 0;
 var lines=[];
 lines.push("⛪ STO. NIÑO CHAPEL");
 lines.push("Treasury Report - "+monthNames[m-1]+" "+y);
 lines.push("--------------------------------");
 lines.push("Total Cash In: "+peso(cashIn));
 lines.push("Total Withdraw: "+peso(cashOut));
-lines.push("Kaban (Approved): "+peso(cashIn-cashOut));
+lines.push("Kaban (Approved): "+peso(kaban));
 lines.push("Pending pa: "+pending.length);
+lines.push("");
+lines.push("🎯 FIESTA FUND TARGET: "+peso(fiestaTarget));
+lines.push("Nakaipon na: "+peso(kaban)+" ("+pct+"%)");
+lines.push("Kulang pa: "+peso(Math.max(0, fiestaTarget-kaban)));
 lines.push("");
 lines.push("Breakdown (Approved lang):");
 var keys=Object.keys(byCat);
@@ -317,13 +340,28 @@ if(t.status==="approved" && t.type==="out") cashOut+=Number(t.amount||0);
 if(t.status==="pending") pending++;
 if(t.locked) locked++;
 });
-document.getElementById("kaban").innerText = peso(cashIn-cashOut);
+var kaban=cashIn-cashOut;
+document.getElementById("kaban").innerText = peso(kaban);
 document.getElementById("cashIn").innerText = peso(cashIn);
 document.getElementById("cashOut").innerText = peso(cashOut);
 document.getElementById("membersCount").innerText = allMembers.length;
 document.getElementById("pendingCount").innerText = pending;
 document.getElementById("txCount").innerText = allTx.length;
 document.getElementById("lockedCount").innerText = locked;
+var pct = fiestaTarget>0 ? Math.min(100, Math.round((kaban/fiestaTarget)*100)) : 0;
+var remaining = Math.max(0, fiestaTarget-kaban);
+document.getElementById("fiestaTargetLabel").innerText = peso(fiestaTarget);
+document.getElementById("fiestaRemaining").innerText = peso(remaining);
+var fill=document.getElementById("fiestaFill");
+fill.style.width = pct+"%";
+fill.innerText = pct+"%";
+if(pct>=100){
+document.getElementById("fiestaMsg").innerText = "🎉 NA-ABOT NA NATIN! Nakaipon na: "+peso(kaban);
+document.getElementById("fiestaMsg").style.color="#16a34a";
+} else {
+document.getElementById("fiestaMsg").innerText = "Nakaipon na: "+peso(kaban)+" ("+pct+"%)";
+document.getElementById("fiestaMsg").style.color="#991b1b";
+}
 var filter=document.getElementById("filterCat").value;
 var filtered = allTx.filter(function(t){ return filter==="all" || t.category===filter; });
 var html="";
@@ -367,6 +405,11 @@ document.getElementById("roleLabel").innerText=roleText(currentRole);
 document.getElementById("addCard").style.display = (currentRole==="TREASURER"||currentRole==="ADMIN")?"block":"none";
 var now=new Date();
 document.getElementById("reportMonth").value = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+db.ref("settings/fiestaTarget").on("value", function(snap){
+var v=snap.val();
+if(v && v>0) fiestaTarget=v;
+render();
+});
 db.ref("transactions").on("value", function(snap){
 var val=snap.val()||{};
 var arr=Object.keys(val).map(function(k){ var o=val[k]; o.id=k; return o; });
