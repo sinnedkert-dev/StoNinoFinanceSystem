@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sto. Niño Chapel - Treasury Tracker V7</title>
+<title>Sto. Niño Chapel - Treasury Tracker V7.1</title>
 <style>
 *{box-sizing:border-box;font-family:system-ui,Arial,sans-serif}
 body{margin:0;background:#fff7ed;color:#1c1917}
@@ -18,7 +18,7 @@ body{margin:0;background:#fff7ed;color:#1c1917}
 .mini b{display:block;font-size:18px}
 .mini span{font-size:11px;color:#78716c}
 label{font-size:12px;font-weight:700;display:block;margin:10px 0 4px}
-input,select,textarea{width:100%;padding:11px;border:1px solid #d6d3d1;border-radius:10px;font-size:15px;background:#fff}
+input,select{width:100%;padding:11px;border:1px solid #d6d3d1;border-radius:10px;font-size:15px;background:#fff}
 button{width:100%;padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
 .btn-orange{background:#ea580c;color:#fff}
 .btn-green{background:#16a34a;color:#fff}
@@ -42,110 +42,37 @@ small{color:#78716c}
 </style>
 </head>
 <body>
-<div class="top">
-<h1>⛪ Sto. Niño Chapel</h1>
-<p>Treasury Tracker • V7 - WITH CATEGORIES</p>
-</div>
-
+<div class="top"><h1>⛪ Sto. Niño Chapel</h1><p>Treasury Tracker • V7.1 - WITH CATEGORIES</p></div>
 <div class="wrap">
 <div id="loginBox" class="card">
 <h2 style="margin:0">LOGIN</h2>
-<p><small>Gamitin ang account na binigay sa'yo.</small></p>
-<label>Email</label>
-<input id="email" type="email" value="treasurer@stonino.com">
-<label>Password</label>
-<input id="password" type="password" placeholder="Password">
-<div style="height:10px"></div>
-<button class="btn-orange" onclick="doLogin()">LOGIN</button>
+<label>Email</label><input id="email" type="email" value="treasurer@stonino.com">
+<label>Password</label><input id="password" type="password" placeholder="Password">
+<div style="height:10px"></div><button class="btn-orange" onclick="doLogin()">LOGIN</button>
 <p id="loginMsg" style="color:#dc2626;font-size:13px"></p>
 </div>
-
 <div id="dashBox" class="hidden">
-<div class="card">
-<div style="display:flex;justify-content:space-between;align-items:center">
-<div><b id="userEmail"></b><br><small id="roleLabel"></small></div>
-<button style="width:auto;padding:8px 12px" class="btn-gray" onclick="doLogout()">Logout</button>
-</div>
-</div>
-
-<div class="card" style="text-align:center">
-<small>KABAN - APPROVED LANG</small>
-<div class="kaban" id="kaban">₱0.00</div>
-<small>Approved lang ang binibilang</small>
-</div>
-
-<div class="grid">
-<div class="mini"><b id="cashIn">₱0</b><span>CASH IN</span></div>
-<div class="mini"><b id="cashOut">₱0</b><span>WITHDRAW</span></div>
-<div class="mini"><b id="membersCount">0</b><span>MEMBERS</span></div>
-<div class="mini"><b id="pendingCount">0</b><span>PENDING</span></div>
-<div class="mini"><b id="txCount">0</b><span>TRANSACTIONS</span></div>
-<div class="mini"><b id="lockedCount">0</b><span>LOCKED</span></div>
-</div>
-
-<div class="tabs">
-<button id="tabCash" class="active" onclick="showTab('cash')">Cash</button>
-<button id="tabAudit" onclick="showTab('audit')">Audit</button>
-<button id="tabMembers" onclick="showTab('members')">Members</button>
-</div>
-
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><b id="userEmail"></b><br><small id="roleLabel"></small></div><button style="width:auto;padding:8px 12px" class="btn-gray" onclick="doLogout()">Logout</button></div></div>
+<div class="card" style="text-align:center"><small>KABAN - APPROVED LANG</small><div class="kaban" id="kaban">₱0.00</div><small>Approved lang ang binibilang</small></div>
+<div class="grid"><div class="mini"><b id="cashIn">₱0</b><span>CASH IN</span></div><div class="mini"><b id="cashOut">₱0</b><span>WITHDRAW</span></div><div class="mini"><b id="membersCount">0</b><span>MEMBERS</span></div><div class="mini"><b id="pendingCount">0</b><span>PENDING</span></div><div class="mini"><b id="txCount">0</b><span>TRANSACTIONS</span></div><div class="mini"><b id="lockedCount">0</b><span>LOCKED</span></div></div>
+<div class="tabs"><button id="tabCash" class="active" onclick="showTab('cash')">Cash</button><button id="tabAudit" onclick="showTab('audit')">Audit</button><button id="tabMembers" onclick="showTab('members')">Members</button></div>
 <div id="cashTab">
-<div class="card" id="addCard">
-<h3 style="margin:0">Add Transaction</h3>
-<label>Type</label>
-<select id="txType" onchange="updateCategories()">
-<option value="in">Cash In (+)</option>
-<option value="out">Withdraw (-)</option>
-</select>
-<label>Category - BAGONG FEATURE</label>
-<select id="txCategory"></select>
-<label>Amount</label>
-<input id="txAmount" type="number" placeholder="500">
-<label>Note / Para saan?</label>
-<input id="txNote" placeholder="Ex: Sunday Mass, Bili kandila">
-<div style="height:10px"></div>
-<button class="btn-orange" onclick="addTx()">+ ADD TRANSACTION</button>
-<p><small>Treasurer lang pwede mag-add. Auditor lang pwede mag-approve. Admin lang pwede mag-lock / delete.</small></p>
+<div class="card" id="addCard"><h3 style="margin:0">Add Transaction</h3>
+<label>Type</label><select id="txType" onchange="updateCategories()"><option value="in">Cash In (+)</option><option value="out">Withdraw (-)</option></select>
+<label>Category</label><select id="txCategory"></select>
+<label>Amount</label><input id="txAmount" type="number" placeholder="500">
+<label>Note / Para saan?</label><input id="txNote" placeholder="Ex: Sunday Mass, Bili kandila">
+<div style="height:10px"></div><button class="btn-orange" onclick="addTx()">+ ADD TRANSACTION</button>
+<p><small>Treasurer = Add, Auditor = Approve, Admin = Lock / Delete</small></p></div>
+<div class="card"><label>Filter by Category</label><select id="filterCat" onchange="render()"><option value="all">Lahat ng Category</option></select><div id="txList"></div></div>
 </div>
-
-<div class="card">
-<label>Filter by Category</label>
-<select id="filterCat" onchange="render()">
-<option value="all">Lahat ng Category</option>
-</select>
-<div id="txList"></div>
-</div>
-</div>
-
-<div id="auditTab" class="hidden">
-<div class="card">
-<h3 style="margin:0">Audit / Approval</h3>
-<p><small>Auditor: Approve o Reject mo dito. Admin: Lock mo dito pag final na.</small></p>
-<div id="auditList"></div>
-</div>
-</div>
-
-<div id="membersTab" class="hidden">
-<div class="card">
-<h3 style="margin:0">Members</h3>
-<label>Name</label>
-<input id="memberName" placeholder="Juan Dela Cruz">
-<div style="height:10px"></div>
-<button class="btn-orange" onclick="addMember()">Add Member</button>
-<div style="height:12px"></div>
-<div id="memberList"></div>
-</div>
-</div>
-
-</div>
-</div>
-
+<div id="auditTab" class="hidden"><div class="card"><h3 style="margin:0">Audit / Approval</h3><p><small>Auditor: Approve o Reject mo dito. Admin: Lock mo dito pag final na.</small></p><div id="auditList"></div></div></div>
+<div id="membersTab" class="hidden"><div class="card"><h3 style="margin:0">Members</h3><label>Name</label><input id="memberName" placeholder="Juan Dela Cruz"><div style="height:10px"></div><button class="btn-orange" onclick="addMember()">Add Member</button><div style="height:12px"></div><div id="memberList"></div></div></div>
+</div></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-// ===== FIREBASE CONFIG MO - NAKALAGAY NA, WAG MO NA GALAWIN =====
+import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 const firebaseConfig = {
   apiKey: "AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",
   authDomain: "stoninochapelfinance.firebaseapp.com",
@@ -156,38 +83,25 @@ const firebaseConfig = {
   appId: "1:633724409478:web:a01f4e934d836ce3c82307",
   measurementId: "G-7WCS0PJWY6"
 };
-// ===============================================================
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-
 const CATEGORIES = {
-  in: ["Mass Offering","Donation / Abuloy","Fiesta Fund","Special Collection","Iba pa"],
+  in: ["Mass Offering","Donation / Abuloy","Donation","Fiesta Fund","Special Collection","Iba pa"],
   out: ["Kuryente / Tubig","Linis / Maintenance","Kandila / Bulaklak","Pampare / Misa","Iba pa"]
 };
-
 let currentUser=null, currentRole="MEMBER", allTx=[], allMembers=[];
-
-function getRole(email){
-  if(email==="admin@stonino.com") return "ADMIN";
-  if(email==="auditor@stonino.com") return "AUDITOR";
-  if(email==="treasurer@stonino.com") return "TREASURER";
-  return "MEMBER";
-}
-function roleText(r){
-  if(r==="TREASURER") return "Role: TREASURER - Add lang";
-  if(r==="AUDITOR") return "Role: AUDITOR - Approve lang";
-  if(r==="ADMIN") return "Role: ADMIN - Lock / Unlock / Delete";
-  return "Role: MEMBER - Tingin lang";
-}
+function getRole(email){ if(email==="admin@stonino.com") return "ADMIN"; if(email==="auditor@stonino.com") return "AUDITOR"; if(email==="treasurer@stonino.com") return "TREASURER"; return "MEMBER"; }
+function roleText(r){ if(r==="TREASURER") return "Role: TREASURER - Add lang"; if(r==="AUDITOR") return "Role: AUDITOR - Approve lang"; if(r==="ADMIN") return "Role: ADMIN - Lock / Unlock / Delete"; return "Role: MEMBER - Tingin lang"; }
 window.updateCategories = function(){
   const type=document.getElementById("txType").value;
   const sel=document.getElementById("txCategory");
   sel.innerHTML = CATEGORIES[type].map(c=>`<option value="${c}">${c}</option>`).join("");
   const filter=document.getElementById("filterCat");
-  const all=[...new Set([...CATEGORIES.in, ...CATEGORIES.out])];
+  const all=[...new Set([...CATEGORIES.in, ...CATEGORIES.out, ...allTx.map(t=>t.category).filter(Boolean)])];
+  const cur=filter.value;
   filter.innerHTML = `<option value="all">Lahat ng Category</option>` + all.map(c=>`<option value="${c}">${c}</option>`).join("");
+  if(all.includes(cur)) filter.value=cur;
 }
 window.showTab = function(t){
   document.getElementById("cashTab").classList.toggle("hidden", t!=="cash");
@@ -197,11 +111,7 @@ window.showTab = function(t){
   document.getElementById("tabAudit").classList.toggle("active", t==="audit");
   document.getElementById("tabMembers").classList.toggle("active", t==="members");
 }
-window.doLogin = async function(){
-  const e=document.getElementById("email").value.trim();
-  const p=document.getElementById("password").value;
-  try{ await signInWithEmailAndPassword(auth,e,p); }catch(err){ document.getElementById("loginMsg").innerText="Mali email o password: "+err.code; }
-}
+window.doLogin = async function(){ const e=document.getElementById("email").value.trim(); const p=document.getElementById("password").value; try{ await signInWithEmailAndPassword(auth,e,p); }catch(err){ document.getElementById("loginMsg").innerText="Mali email o password: "+err.code; } }
 window.doLogout = async function(){ await signOut(auth); }
 window.addTx = async function(){
   if(currentRole!=="TREASURER" && currentRole!=="ADMIN"){ alert("Treasurer lang pwede mag-add!"); return; }
@@ -210,40 +120,21 @@ window.addTx = async function(){
   const amt=parseFloat(document.getElementById("txAmount").value);
   const note=document.getElementById("txNote").value.trim();
   if(!amt || amt<=0){ alert("Lagyan mo ng amount!"); return; }
-  await push(ref(db,"transactions"),{
-    type, category:cat, amount:amt, note:note||cat,
-    status:"pending", locked:false,
-    createdBy: currentUser.email,
-    createdAt: Date.now(),
-    txNo: allTx.length+1
-  });
+  await push(ref(db,"transactions"),{ type, category:cat, amount:amt, note:note||cat, status:"pending", locked:false, createdBy: currentUser.email, createdAt: Date.now() });
   document.getElementById("txAmount").value=""; document.getElementById("txNote").value="";
   alert("Na-add na! Category: "+cat);
 }
-window.addMember = async function(){
-  const name=document.getElementById("memberName").value.trim();
-  if(!name) return alert("Lagyan mo ng pangalan");
-  await push(ref(db,"members"),{name, createdAt: Date.now()});
-  document.getElementById("memberName").value="";
-}
+window.addMember = async function(){ const name=document.getElementById("memberName").value.trim(); if(!name) return alert("Lagyan mo ng pangalan"); await push(ref(db,"members"),{name, createdAt: Date.now()}); document.getElementById("memberName").value=""; }
 window.approveTx = async function(id){ if(currentRole!=="AUDITOR" && currentRole!=="ADMIN") return alert("Auditor lang pwede mag-approve!"); await update(ref(db,"transactions/"+id),{status:"approved"}); }
 window.rejectTx = async function(id){ if(currentRole!=="AUDITOR" && currentRole!=="ADMIN") return alert("Auditor lang pwede mag-reject!"); await update(ref(db,"transactions/"+id),{status:"rejected"}); }
 window.lockTx = async function(id){ if(currentRole!=="ADMIN") return alert("Admin lang pwede mag-lock!"); await update(ref(db,"transactions/"+id),{locked:true}); }
 window.unlockTx = async function(id){ if(currentRole!=="ADMIN") return alert("Admin lang pwede mag-unlock!"); await update(ref(db,"transactions/"+id),{locked:false}); }
-window.deleteTx = async function(id){
-  if(currentRole!=="ADMIN") return alert("Admin lang pwede mag-delete!");
-  if(!confirm("Sigurado ka burahin? Mas maganda mag-add ng correction.")) return;
-  await remove(ref(db,"transactions/"+id));
-}
+window.deleteTx = async function(id){ if(currentRole!=="ADMIN") return alert("Admin lang pwede mag-delete!"); if(!confirm("Sigurado ka burahin? Mas maganda mag-add ng correction.")) return; await remove(ref(db,"transactions/"+id)); }
 function peso(n){ return "₱"+Number(n||0).toLocaleString("en-PH",{minimumFractionDigits:2}); }
+function fmtNo(n){ return "#"+String(n).padStart(3,"0"); }
 window.render = function(){
   let cashIn=0, cashOut=0, pending=0, locked=0;
-  allTx.forEach(t=>{
-    if(t.status==="approved" && t.type==="in") cashIn+=Number(t.amount||0);
-    if(t.status==="approved" && t.type==="out") cashOut+=Number(t.amount||0);
-    if(t.status==="pending") pending++;
-    if(t.locked) locked++;
-  });
+  allTx.forEach(t=>{ if(t.status==="approved" && t.type==="in") cashIn+=Number(t.amount||0); if(t.status==="approved" && t.type==="out") cashOut+=Number(t.amount||0); if(t.status==="pending") pending++; if(t.locked) locked++; });
   document.getElementById("kaban").innerText = peso(cashIn-cashOut);
   document.getElementById("cashIn").innerText = peso(cashIn);
   document.getElementById("cashOut").innerText = peso(cashOut);
@@ -251,35 +142,20 @@ window.render = function(){
   document.getElementById("pendingCount").innerText = pending;
   document.getElementById("txCount").innerText = allTx.length;
   document.getElementById("lockedCount").innerText = locked;
-
   const filter=document.getElementById("filterCat").value;
   const filtered = allTx.filter(t=> filter==="all" || t.category===filter);
   document.getElementById("txList").innerHTML = filtered.map(t=>{
-    const sign = t.type==="in"?"+":"-";
-    const color = t.type==="in"?"#16a34a":"#dc2626";
-    return `<div class="tx">
-      <div style="display:flex;justify-content:space-between"><b>#${String(t.txNo||"?").padStart(3,"0")} <span style="color:${color}">${sign}${peso(t.amount)}</span></b> <span class="badge ${t.status}">${(t.status||"pending").toUpperCase()}</span></div>
-      <div><span class="cat">${t.category||"Walang Category (Luma)"}</span> ${t.locked?'<span class="badge locked">🔒 LOCKED</span>':''}</div>
-      <small>${t.note||""} • by ${t.createdBy||""}</small>
-    </div>`;
+    const sign = t.type==="in"?"+":"-"; const color = t.type==="in"?"#16a34a":"#dc2626";
+    return `<div class="tx"><div style="display:flex;justify-content:space-between"><b>${fmtNo(t.displayNo)} <span style="color:${color}">${sign}${peso(t.amount)}</span></b> <span class="badge ${t.status}">${(t.status||"pending").toUpperCase()}</span></div><div><span class="cat">${t.category||"Walang Category (Luma)"}</span> ${t.locked?'<span class="badge locked">🔒 LOCKED</span>':''}</div><small>${t.note||""} • by ${t.createdBy||""}</small></div>`;
   }).join("") || "<p><small>Wala pang transaction sa category na to.</small></p>";
-
   document.getElementById("auditList").innerHTML = allTx.map(t=>{
     let btns="";
-    if(currentRole==="AUDITOR" || currentRole==="ADMIN"){
-      if(t.status==="pending") btns+=`<div class="row"><button class="btn-green" onclick="approveTx('${t.id}')">Approve</button><button class="btn-red" onclick="rejectTx('${t.id}')">Reject</button></div>`;
-    }
-    if(currentRole==="ADMIN"){
-      if(!t.locked) btns+=`<div style="height:6px"></div><button class="btn-gray" onclick="lockTx('${t.id}')">🔒 LOCK</button>`;
-      else btns+=`<div style="height:6px"></div><button class="btn-gray" onclick="unlockTx('${t.id}')">🔓 UNLOCK</button>`;
-      btns+=`<div style="height:6px"></div><button class="btn-red" onclick="deleteTx('${t.id}')">Delete</button>`;
-    }
-    return `<div class="tx"><b>#${String(t.txNo||"?").padStart(3,"0")} ${t.type==="in"?"+":"-"}${peso(t.amount)} • ${t.category||"Walang Category"}</b><br><small>${t.note||""} • ${t.status}</small><div style="height:8px"></div>${btns}</div>`;
+    if(currentRole==="AUDITOR" || currentRole==="ADMIN"){ if(t.status==="pending") btns+=`<div class="row"><button class="btn-green" onclick="approveTx('${t.id}')">Approve</button><button class="btn-red" onclick="rejectTx('${t.id}')">Reject</button></div>`; }
+    if(currentRole==="ADMIN"){ if(!t.locked) btns+=`<div style="height:6px"></div><button class="btn-gray" onclick="lockTx('${t.id}')">🔒 LOCK</button>`; else btns+=`<div style="height:6px"></div><button class="btn-gray" onclick="unlockTx('${t.id}')">🔓 UNLOCK</button>`; btns+=`<div style="height:6px"></div><button class="btn-red" onclick="deleteTx('${t.id}')">Delete</button>`; }
+    return `<div class="tx"><b>${fmtNo(t.displayNo)} ${t.type==="in"?"+":"-"}${peso(t.amount)} • ${t.category||"Walang Category"}</b><br><small>${t.note||""} • ${t.status}</small><div style="height:8px"></div>${btns}</div>`;
   }).join("") || "<p><small>Wala pang transaction.</small></p>";
-
   document.getElementById("memberList").innerHTML = allMembers.map(m=>`<div class="tx"><b>${m.name}</b></div>`).join("");
 }
-
 onAuthStateChanged(auth,(user)=>{
   if(user){
     currentUser=user; currentRole=getRole(user.email);
@@ -290,21 +166,17 @@ onAuthStateChanged(auth,(user)=>{
     document.getElementById("addCard").style.display = (currentRole==="TREASURER"||currentRole==="ADMIN")?"block":"none";
     onValue(ref(db,"transactions"),(snap)=>{
       const val=snap.val()||{};
-      allTx=Object.keys(val).map(k=>({id:k,...val[k]})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-      render();
+      let arr=Object.keys(val).map(k=>({id:k,...val[k]}));
+      arr.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+      arr.forEach((t,i)=>{ t.displayNo = t.txNo || (i+1); });
+      arr.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      allTx=arr;
+      updateCategories(); render();
     });
-    onValue(ref(db,"members"),(snap)=>{
-      const val=snap.val()||{};
-      allMembers=Object.keys(val).map(k=>({id:k,...val[k]}));
-      render();
-    });
-  } else {
-    currentUser=null;
-    document.getElementById("loginBox").classList.remove("hidden");
-    document.getElementById("dashBox").classList.add("hidden");
-  }
+    onValue(ref(db,"members"),(snap)=>{ const val=snap.val()||{}; allMembers=Object.keys(val).map(k=>({id:k,...val[k]})); render(); });
+  } else { currentUser=null; document.getElementById("loginBox").classList.remove("hidden"); document.getElementById("dashBox").classList.add("hidden"); }
 });
 updateCategories();
 </script>
 </body>
-  </html>
+                                                                                                                                                                                                                                                                                                                       </html>
