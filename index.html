@@ -696,5 +696,149 @@ setTimeout(ibalikBackupLahat, 1000);
 setInterval(ibalikBackupLahat, 2000);
 </script>
 <!-- ===== TAPOS IBALIK BACKUP LAHAT ===== -->
+<!-- ===== BANK LEVEL - LANDBANK + PETTY CASH ===== -->
+<script>
+// ==== BANK LEVEL DATA ====
+let bankTx = JSON.parse(localStorage.getItem('bankSavingsTx') || '[]');
+let pettyTx = JSON.parse(localStorage.getItem('pettyCashTx') || '[]');
+let BANK_START = 25000;
+let PETTY_START = 10000;
+
+function bankBalance(){
+  let b = BANK_START;
+  bankTx.forEach(t=>{ if(t.type==='DEPOSIT') b+=t.amount; else b-=t.amount; });
+  return b;
+}
+function pettyBalance(){
+  let p = PETTY_START;
+  pettyTx.forEach(t=>{ if(t.type==='REPLENISH') p+=t.amount; else p-=t.amount; });
+  return p;
+}
+function saveBankPetty(){
+  localStorage.setItem('bankSavingsTx', JSON.stringify(bankTx));
+  localStorage.setItem('pettyCashTx', JSON.stringify(pettyTx));
+  renderBankPetty();
+}
+function fmt(n){ return '₱' + Number(n).toLocaleString('en-PH',{minimumFractionDigits:2}); }
+
+// ==== GUMAWA NG 2 TAB SA BABA NG CASH ====
+function gawaBankTabs(){
+  // Hanapin yung lalagyan ng tabs
+  let tabs = document.querySelectorAll('button');
+  let cashBtn = null;
+  tabs.forEach(b=>{ if((b.innerText||'').trim()==='Cash') cashBtn = b; });
+  if(!cashBtn || document.getElementById('tabBankSavings')) return;
+
+  // Bank Tab Button
+  let b1 = document.createElement('button');
+  b1.id = 'tabBankSavings'; b1.innerText = '🏦 BANK SAVINGS';
+  b1.style.cssText = cashBtn.style.cssText;
+  b1.onclick = ()=>{ showBankPetty('bank'); };
+  cashBtn.parentNode.insertBefore(b1, cashBtn.nextSibling);
+
+  // Petty Tab Button
+  let b2 = document.createElement('button');
+  b2.id = 'tabPettyCash'; b2.innerText = '💵 PETTY CASH';
+  b2.style.cssText = cashBtn.style.cssText;
+  b2.onclick = ()=>{ showBankPetty('petty'); };
+  b1.parentNode.insertBefore(b2, b1.nextSibling);
+
+  // Panel
+  let panel = document.createElement('div');
+  panel.id = 'bankPettyPanel';
+  panel.style.cssText = 'display:none;background:#fffbe6;border:2px solid #b58900;border-radius:16px;padding:14px;margin-top:12px;';
+  cashBtn.parentNode.parentNode.appendChild(panel);
+  renderBankPetty();
+}
+
+function showBankPetty(which){
+  let p = document.getElementById('bankPettyPanel');
+  if(!p) return;
+  p.style.display = 'block';
+  p.dataset.show = which;
+  renderBankPetty();
+  p.scrollIntoView({behavior:'smooth'});
+}
+
+function renderBankPetty(){
+  let p = document.getElementById('bankPettyPanel');
+  if(!p) return;
+  let show = p.dataset.show || 'bank';
+  let bb = bankBalance(), pb = pettyBalance();
+  let total = bb + pb;
+  let isTreasurer = (typeof currentRole !== 'undefined' && (currentRole==='TREASURER' || currentRole==='ADMIN'));
+
+  let bankRows = bankTx.slice().reverse().map((t,i)=>{
+    return `<div style="border-bottom:1px solid #eee;padding:8px 0;display:flex;justify-content:space-between;"><div><b>${t.type}</b> - ${t.note}<br><small>${t.date} • by ${t.by} • ${t.ref}</small></div><b style="color:${t.type==='DEPOSIT'?'green':'red'}">${t.type==='DEPOSIT'?'+':'-'}${fmt(t.amount)}</b></div>`;
+  }).join('') || '<p style="text-align:center;color:#888;">Wala pang bank transaction. Starting balance lang.</p>';
+
+  let pettyRows = pettyTx.slice().reverse().map((t,i)=>{
+    return `<div style="border-bottom:1px solid #eee;padding:8px 0;display:flex;justify-content:space-between;"><div><b>${t.type}</b> - ${t.note}<br><small>${t.date} • by ${t.by} • ${t.ref}</small></div><b style="color:${t.type==='REPLENISH'?'green':'red'}">${t.type==='REPLENISH'?'+':'-'}${fmt(t.amount)}</b></div>`;
+  }).join('') || '<p style="text-align:center;color:#888;">Wala pang petty cash gastos.</p>';
+
+  // Reconciliation
+  let recon = `<div style="background:#e8f5e9;border-radius:12px;padding:12px;margin-top:12px;">
+  <b>📊 BANK RECONCILIATION - Dapat Tugma!</b><br>
+  🏦 Landbank: <b>${fmt(bb)}</b><br>
+  💵 Petty Cash: <b>${fmt(pb)}</b><br>
+  <hr>
+  💰 TOTAL FUND: <b>${fmt(total)}</b><br>
+  <small>Formula: Bank + Petty = Total. Kung may kulang, pula agad kay Auditor.</small></div>`;
+
+  if(show==='bank'){
+    p.innerHTML = `
+    <h3 style="text-align:center;">🏦 LANDBANK SAVINGS</h3>
+    <p style="text-align:center;">Account: <b>LANDBANK - STO. NIÑO FIESTA FUND</b><br>Starting: ${fmt(BANK_START)}</p>
+    <div style="background:#1a5c2a;color:white;text-align:center;border-radius:12px;padding:14px;"><div>CURRENT BANK BALANCE</div><div style="font-size:32px;font-weight:bold;">${fmt(bb)}</div></div>
+    ${isTreasurer ? `<div style="display:flex;gap:8px;margin-top:10px;">
+      <input id="bankAmt" type="number" placeholder="Amount" style="flex:1;padding:10px;border-radius:10px;border:1px solid #ccc;">
+      <input id="bankNote" type="text" placeholder="Note / Ref - hal. Donation ni Den" style="flex:2;padding:10px;border-radius:10px;border:1px solid #ccc;">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="addBank('DEPOSIT')" style="flex:1;background:green;color:white;padding:10px;border-radius:10px;border:none;">+ DEPOSIT</button>
+      <button onclick="addBank('WITHDRAW')" style="flex:1;background:#b71c1c;color:white;padding:10px;border-radius:10px;border:none;">- WITHDRAW</button>
+    </div>` : `<p style="text-align:center;color:#888;">Tingin lang - Treasurer / Admin lang pwede mag-add</p>`}
+    <h4 style="margin-top:14px;">📄 Bank Statement</h4>${bankRows}${recon}
+    <button onclick="document.getElementById('bankPettyPanel').style.display='none'" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;">Isara</button>
+    <button onclick="showBankPetty('petty')" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;background:#ffecb3;">Punta sa Petty Cash →</button>`;
+  } else {
+    p.innerHTML = `
+    <h3 style="text-align:center;">💵 PETTY CASH</h3>
+    <p style="text-align:center;">Hawak ni: <b>Treasurer</b> • Fund Limit: <b>${fmt(PETTY_START)}</b></p>
+    <div style="background:#fff3e0;border:2px solid #ff9800;text-align:center;border-radius:12px;padding:14px;"><div>PETTY CASH ON HAND</div><div style="font-size:32px;font-weight:bold;color:#e65100;">${fmt(pb)}</div><div>Pag bumaba sa ₱2,000 - mag-Replenish na!</div></div>
+    ${isTreasurer ? `<div style="display:flex;gap:8px;margin-top:10px;">
+      <input id="pettyAmt" type="number" placeholder="Amount" style="flex:1;padding:10px;border-radius:10px;border:1px solid #ccc;">
+      <input id="pettyNote" type="text" placeholder="Para saan? hal. Pamasahe / Xerox" style="flex:2;padding:10px;border-radius:10px;border:1px solid #ccc;">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="addPetty('EXPENSE')" style="flex:1;background:#e65100;color:white;padding:10px;border-radius:10px;border:none;">- GASTOS / EXPENSE</button>
+      <button onclick="addPetty('REPLENISH')" style="flex:1;background:green;color:white;padding:10px;border-radius:10px;border:none;">+ REPLENISH</button>
+    </div>` : `<p style="text-align:center;color:#888;">Tingin lang - Treasurer / Admin lang pwede mag-add</p>`}
+    <h4 style="margin-top:14px;">🧾 Petty Cash Vouchers</h4>${pettyRows}${recon}
+    <button onclick="document.getElementById('bankPettyPanel').style.display='none'" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;">Isara</button>
+    <button onclick="showBankPetty('bank')" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;background:#c8e6c9;">← Balik sa Bank Savings</button>`;
+  }
+}
+
+function addBank(type){
+  let amt = Number(document.getElementById('bankAmt').value);
+  let note = document.getElementById('bankNote').value || 'Bank Transaction';
+  if(!amt || amt<=0) return alert('Lagyan mo ng Amount, DEN!');
+  if(type==='WITHDRAW' && amt > bankBalance()) return alert('Kulang ang Bank Balance, DEN!');
+  bankTx.push({type, amount:amt, note, date:new Date().toLocaleString('en-PH'), by:(typeof currentUser!=='undefined'?currentUser:'Treasurer'), ref:'BANK-'+String(bankTx.length+1).padStart(3,'0')});
+  saveBankPetty(); alert('Na-save sa Bank, DEN! ✅');
+}
+function addPetty(type){
+  let amt = Number(document.getElementById('pettyAmt').value);
+  let note = document.getElementById('pettyNote').value || 'Petty Cash';
+  if(!amt || amt<=0) return alert('Lagyan mo ng Amount, DEN!');
+  if(type==='EXPENSE' && amt > pettyBalance()) return alert('Kulang ang Petty Cash, DEN!');
+  pettyTx.push({type, amount:amt, note, date:new Date().toLocaleString('en-PH'), by:(typeof currentUser!=='undefined'?currentUser:'Treasurer'), ref:'PCV-'+String(pettyTx.length+1).padStart(3,'0')});
+  saveBankPetty(); alert('Na-save sa Petty Cash, DEN! ✅');
+}
+setTimeout(gawaBankTabs, 1500);
+setInterval(()=>{ if(!document.getElementById('tabBankSavings')) gawaBankTabs(); }, 3000);
+</script>
+<!-- ===== TAPOS BANK LEVEL ===== -->
 </body>
   </html>
