@@ -914,5 +914,59 @@ setTimeout(ayosFooterAtReport, 1000);
 setInterval(ayosFooterAtReport, 3000);
 </script>
 <!-- ===== TAPOS AYOS FOOTER ===== -->
+<!-- ===== BANK REPORT SA LABAS NG REPORT - HINDI NA MABUBURA ===== -->
+<script>
+function lagayBankSaReport(){
+  // Hanapin yung COPY FOR GC button - dun natin ikakabit
+  var copyBtn = null;
+  document.querySelectorAll('button').forEach(function(b){
+    if((b.innerText||'').includes('COPY FOR GC')) copyBtn = b;
+  });
+  if(!copyBtn) return;
+
+  // Kung may luma na, burahin muna para hindi dumoble
+  var luma = document.getElementById('bankReportBox2');
+  if(luma) luma.remove();
+
+  // Kunin yung Bank at Petty data
+  var bankTx2 = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx2 = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var bb = 25000; bankTx2.forEach(t=>{ if(t.type==='DEPOSIT') bb+=t.amount; else bb-=t.amount; });
+  var pb = 10000; pettyTx2.forEach(t=>{ if(t.type==='REPLENISH') pb+=t.amount; else pb-=t.amount; });
+  var bankDep=0, bankWith=0; bankTx2.forEach(t=>{ if(t.type==='DEPOSIT') bankDep+=t.amount; else bankWith+=t.amount; });
+  var pettyExp=0, pettyRep=0; pettyTx2.forEach(t=>{ if(t.type==='EXPENSE') pettyExp+=t.amount; else pettyRep+=t.amount; });
+  var total = bb + pb;
+  function f(n){ return '₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2}); }
+
+  var box = document.createElement('div');
+  box.id = 'bankReportBox2';
+  box.style.cssText = 'background:#fffde7;border:2px solid #b58900;border-radius:16px;padding:14px;margin:12px 0;text-align:left;';
+  box.innerHTML = `
+    <b>🏦 BANK LEVEL REPORT</b><br><br>
+    <b>🏦 LANDBANK SAVINGS</b><br>
+    Bank: LANDBANK - STO. NIÑO FIESTA FUND<br>
+    Starting: ${f(25000)}<br>
+    Deposit: ${f(bankDep)} • Withdraw: ${f(bankWith)}<br>
+    <b>Current Bank: ${f(bb)}</b><br><br>
+    <b>💵 PETTY CASH</b><br>
+    Hawak ni: Treasurer • Fund: ${f(10000)}<br>
+    Gastos: ${f(pettyExp)} • Replenish: ${f(pettyRep)}<br>
+    <b>Petty On Hand: ${f(pb)}</b><br><br>
+    <hr>
+    <b>📊 RECONCILIATION</b><br>
+    Bank ${f(bb)} + Petty ${f(pb)} = <b>TOTAL FUND: ${f(total)}</b><br>
+    <small>Checked by: Auditor / Father</small>
+  `;
+  // Ilagay BAGO yung COPY FOR GC button
+  copyBtn.parentNode.insertBefore(box, copyBtn);
+}
+setTimeout(lagayBankSaReport, 1000);
+setInterval(lagayBankSaReport, 2000);
+// Pag pinindot Report tab, ilagay agad
+document.addEventListener('click', function(e){
+  if((e.target.innerText||'').includes('Report')) setTimeout(lagayBankSaReport, 500);
+});
+</script>
+<!-- ===== TAPOS BANK REPORT SA LABAS ===== -->
 </body>
   </html>
