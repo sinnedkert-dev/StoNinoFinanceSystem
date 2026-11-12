@@ -842,5 +842,94 @@ setInterval(function(){ ayosFooterLagi(); tagoButtonsPagBawal(); }, 1000);
 document.addEventListener('click', function(){ setTimeout(function(){ ayosFooterLagi(); tagoButtonsPagBawal(); }, 500); });
 </script>
 <!-- ===== TAPOS FIX FOOTER + AUDITOR ===== -->
+<!-- ===== LAHAT DADAAN SA AUDIT - BANK + PETTY ===== -->
+<script>
+function kuhaRole2(){
+  var t=document.body.innerText||'';
+  var m=t.match(/Role:\s*([A-Z]+)/i);
+  if(m) return m[1].toUpperCase();
+  if(typeof currentRole!=='undefined'&&currentRole) return String(currentRole).toUpperCase();
+  return '';
+}
+function f2(n){ return '₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2}); }
+// Balance - APPROVED LANG ang bilang!
+function bankBalApproved(){
+  var tx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var b=25000;
+  tx.forEach(function(x){ if(x.status==='rejected') return; if(x.status==='pending') return; if(x.type==='DEPOSIT') b+=x.amount; else b-=x.amount; });
+  return b;
+}
+function pettyBalApproved(){
+  var tx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var p=10000;
+  tx.forEach(function(x){ if(x.status==='rejected') return; if(x.status==='pending') return; if(x.type==='REPLENISH') p+=x.amount; else p-=x.amount; });
+  return p;
+}
+// I-OVERRIDE YUNG DATI - GAGAWING PENDING LAHAT!
+window.addBank = function(type){
+  if(!(kuhaRole2()==='TREASURER'||kuhaRole2()==='ADMIN')){ alert('Bawal ka mag-transact! Treasurer lang! ⛔'); return; }
+  var amt=Number(document.getElementById('bankAmt').value);
+  var note=document.getElementById('bankNote').value||'Bank';
+  if(!amt) return alert('Lagyan ng Amount!');
+  var tx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  tx.push({type,amount:amt,note,date:new Date().toLocaleString('en-PH'),by:'Treasurer',ref:'BANK-'+String(tx.length+1).padStart(3,'0'),status:'pending'});
+  localStorage.setItem('bankSavingsTx',JSON.stringify(tx));
+  alert('✅ Na-send sa AUDIT! PENDING muna - hintayin si Auditor mag-Approve bago pumasok sa balance!');
+  if(window.renderBP) window.renderBP();
+};
+window.addPetty = function(type){
+  if(!(kuhaRole2()==='TREASURER'||kuhaRole2()==='ADMIN')){ alert('Bawal ka mag-transact! Treasurer lang! ⛔'); return; }
+  var amt=Number(document.getElementById('pettyAmt').value);
+  var note=document.getElementById('pettyNote').value||'Petty';
+  if(!amt) return alert('Lagyan ng Amount!');
+  var tx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  tx.push({type,amount:amt,note,date:new Date().toLocaleString('en-PH'),by:'Treasurer',ref:'PCV-'+String(tx.length+1).padStart(3,'0'),status:'pending'});
+  localStorage.setItem('pettyCashTx',JSON.stringify(tx));
+  alert('✅ Na-send sa AUDIT! PENDING muna - hintayin si Auditor mag-Approve!');
+  if(window.renderBP) window.renderBP();
+};
+function approveBP(kind, ref, ok){
+  if(kuhaRole2()!=='AUDITOR' && kuhaRole2()!=='ADMIN' && kuhaRole2()!=='FATHER'){ alert('Auditor lang pwede mag-Approve! ⛔'); return; }
+  var key = kind==='bank' ? 'bankSavingsTx' : 'pettyCashTx';
+  var tx=JSON.parse(localStorage.getItem(key)||'[]');
+  tx.forEach(function(x){ if(x.ref===ref) x.status = ok ? 'approved' : 'rejected'; });
+  localStorage.setItem(key, JSON.stringify(tx));
+  alert(ok ? '✅ APPROVED! Pasok na sa balance!' : '❌ REJECTED! Hindi papasok sa balance!');
+  gawaAuditBankPetty();
+  if(window.renderBP) window.renderBP();
+}
+// ILAGAY SA AUDIT TAB YUNG BANK + PETTY
+function gawaAuditBankPetty(){
+  var old=document.getElementById('auditBankPettyBox');
+  if(old) old.remove();
+  var auditTitle=null;
+  document.querySelectorAll('div,h2,h3').forEach(function(d){ if((d.innerText||'').trim()==='Audit') auditTitle=d; });
+  if(!auditTitle) return;
+  var bankTx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  if(bankTx.length===0 && pettyTx.length===0) return;
+  var box=document.createElement('div');
+  box.id='auditBankPettyBox';
+  box.style.cssText='background:#fff3e0;border:2px solid #e65100;border-radius:14px;padding:12px;margin:12px 0;';
+  var html='<b>🏦 BANK + 💵 PETTY - DAPAT I-AUDIT</b><br><small>Lahat dumadaan dito bago pumasok sa balance.</small><br><br>';
+  bankTx.forEach(function(x){
+    var badge = x.status==='pending' ? '<span style="background:orange;color:#fff;padding:2px 8px;border-radius:8px;">⏳ PENDING</span>' : x.status==='approved' ? '<span style="background:green;color:#fff;padding:2px 8px;border-radius:8px;">✅ APPROVED</span>' : '<span style="background:red;color:#fff;padding:2px 8px;border-radius:8px;">❌ REJECTED</span>';
+    html+='<div style="border-bottom:1px solid #ddd;padding:8px 0;"><b>'+x.ref+' - '+x.type+' '+f2(x.amount)+'</b> - '+x.note+'<br><small>'+x.date+' • '+badge+'</small>';
+    if(x.status==='pending') html+='<br><button onclick="approveBP(\'bank\',\''+x.ref+'\',true)" style="background:green;color:#fff;padding:6px 12px;margin:4px 4px 0 0;">✅ APPROVE</button><button onclick="approveBP(\'bank\',\''+x.ref+'\',false)" style="background:#b71c1c;color:#fff;padding:6px 12px;">❌ REJECT</button>';
+    html+='</div>';
+  });
+  pettyTx.forEach(function(x){
+    var badge2 = x.status==='pending' ? '<span style="background:orange;color:#fff;padding:2px 8px;border-radius:8px;">⏳ PENDING</span>' : x.status==='approved' ? '<span style="background:green;color:#fff;padding:2px 8px;border-radius:8px;">✅ APPROVED</span>' : '<span style="background:red;color:#fff;padding:2px 8px;border-radius:8px;">❌ REJECTED</span>';
+    html+='<div style="border-bottom:1px solid #ddd;padding:8px 0;"><b>'+x.ref+' - '+x.type+' '+f2(x.amount)+'</b> - '+x.note+'<br><small>'+x.date+' • '+badge2+'</small>';
+    if(x.status==='pending') html+='<br><button onclick="approveBP(\'petty\',\''+x.ref+'\',true)" style="background:green;color:#fff;padding:6px 12px;margin:4px 4px 0 0;">✅ APPROVE</button><button onclick="approveBP(\'petty\',\''+x.ref+'\',false)" style="background:#b71c1c;color:#fff;padding:6px 12px;">❌ REJECT</button>';
+    html+='</div>';
+  });
+  box.innerHTML=html;
+  auditTitle.parentNode.insertBefore(box, auditTitle.nextSibling);
+}
+document.addEventListener('click', function(e){ if((e.target.innerText||'').trim()==='Audit') setTimeout(gawaAuditBankPetty, 600); });
+setTimeout(gawaAuditBankPetty, 1500);
+</script>
+<!-- ===== TAPOS LAHAT DADAAN SA AUDIT ===== -->
 </body>
   </html>
