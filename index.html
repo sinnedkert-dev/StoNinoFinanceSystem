@@ -504,5 +504,69 @@ document.getElementById("dashBox").classList.add("hidden");
 });
 updateCategories();
 </script>
+  <!-- ================= V9.9 DAGDAG LANG - WALANG BINURA - ITAGO KAY VIEWER ================= -->
+<script>
+// V9.9 - Itago kay VIEWER yung SAVE TARGET + DOWNLOAD BACKUP + DOWNLOAD MEMBERS
+// + Kahit pindutin pa, hindi gagana - naka-lock din sa function
+
+function isViewerV99(){
+  return currentRole === "VIEWER";
+}
+
+function lockViewerV99(){
+  if(!isViewerV99()) return;
+
+  // 1. Itago lahat ng button na may text na SAVE TARGET / BACKUP / DOWNLOAD
+  var btns = document.querySelectorAll('button');
+  btns.forEach(function(b){
+    var t = (b.innerText || "").toUpperCase();
+    if(t.includes('SAVE TARGET')) b.style.display = 'none';
+    if(t.includes('DOWNLOAD BACKUP')) b.style.display = 'none';
+    if(t.includes('DOWNLOAD MEMBERS')) b.style.display = 'none';
+  });
+
+  // 2. Itago yung buong Backup Tab button - para hindi na makita ni Viewer yung tab
+  var tabBackup = document.getElementById('tabBackup');
+  if(tabBackup) tabBackup.style.display = 'none';
+
+  // 3. Itago yung Fiesta Target Input + SAVE TARGET row
+  var fiestaInput = document.getElementById('fiestaTargetInput');
+  if(fiestaInput){
+    fiestaInput.style.display = 'none';
+    if(fiestaInput.parentElement) fiestaInput.parentElement.style.display = 'none';
+  }
+
+  // 4. Kung nasa Backup Tab si Viewer, ibalik siya sa Cash Tab
+  var backupTab = document.getElementById('backupTab');
+  if(backupTab && !backupTab.classList.contains('hidden')){
+    showTab('cash');
+  }
+}
+
+// I-lock din yung mismong function - kahit tawagin pa ni Viewer, hindi gagana
+var _origSaveFiestaTarget = saveFiestaTarget;
+saveFiestaTarget = function(){
+  if(isViewerV99()){ alert("Viewer ka lang - tingin lang, bawal mag-save ng Target!"); return; }
+  return _origSaveFiestaTarget();
+};
+
+var _origDownloadBackup = downloadBackup;
+downloadBackup = function(){
+  if(isViewerV99()){ alert("Viewer ka lang - bawal mag-download ng Backup!"); return; }
+  return _origDownloadBackup();
+};
+
+var _origDownloadMembers = downloadMembersBackup;
+downloadMembersBackup = function(){
+  if(isViewerV99()){ alert("Viewer ka lang - bawal mag-download ng Members List!"); return; }
+  return _origDownloadMembers();
+};
+
+// Tawagin palagi - para kahit magpalit ng tab, naka-hide pa rin
+setTimeout(lockViewerV99, 500);
+setTimeout(lockViewerV99, 1500);
+setInterval(lockViewerV99, 2000);
+</script>
+<!-- ================= TAPOS NA YUNG V9.9 DAGDAG ================= -->
 </body>
   </html>
