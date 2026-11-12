@@ -660,5 +660,23 @@ roleText = function(r){
 };
 </script>
 <!-- ================= TAPOS NA ================= -->
+<!-- ===== IBALIK BACKUP KAY TREASURER AT ADMIN ===== -->
+<script>
+function ibalikBackup(){
+  if(currentRole === "TREASURER" || currentRole === "ADMIN"){
+    var tabBackup = document.getElementById('tabBackup');
+    if(tabBackup) tabBackup.style.display = '';
+    var btns = document.querySelectorAll('button');
+    btns.forEach(function(b){
+      var t = (b.innerText || "").toUpperCase();
+      if(t.includes('DOWNLOAD BACKUP')) b.style.display = '';
+      if(t.includes('DOWNLOAD MEMBERS')) b.style.display = '';
+    });
+  }
+}
+setTimeout(ibalikBackup, 1000);
+setInterval(ibalikBackup, 2000);
+</script>
+<!-- ===== TAPOS IBALIK BACKUP ===== -->
 </body>
   </html>
