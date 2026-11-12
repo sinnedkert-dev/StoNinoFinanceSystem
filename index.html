@@ -568,5 +568,72 @@ setTimeout(lockViewerV99, 1500);
 setInterval(lockViewerV99, 2000);
 </script>
 <!-- ================= TAPOS NA YUNG V9.9 DAGDAG ================= -->
+<!-- ================= COORDINATOR A - DAGDAG LANG, WALANG PALIT ================= -->
+<script>
+// COORDINATOR A - Dagdag lang, walang palit sa taas
+// Coordinator = Members lang, bawal sa pera, bawal sa Backup
+
+// 1. Dagdag ng COORDINATOR sa getRole - hindi ginagalaw yung luma, pinapatungan lang
+var _origGetRole = getRole;
+getRole = function(email){
+  email = (email || "").toLowerCase();
+  if(email === "coordinator@stonino.com") return "COORDINATOR";
+  return _origGetRole(email);
+};
+
+// 2. Dagdag ng COORDINATOR sa roleText
+var _origRoleText = roleText;
+roleText = function(r){
+  if(r === "COORDINATOR") return "Role: COORDINATOR - Members + Tingin";
+  return _origRoleText(r);
+};
+
+// 3. Coordinator lang + Treasurer + Admin ang pwede mag-add ng Member
+var _origAddMember = addMember;
+addMember = function(){
+  if(currentRole !== "TREASURER" && currentRole !== "ADMIN" && currentRole !== "COORDINATOR"){
+    alert("Treasurer / Admin / Coordinator lang pwede mag-add ng Member!");
+    return;
+  }
+  return _origAddMember();
+};
+
+// 4. Siguraduhin na bawal si Coordinator sa pera - kahit pindutin pa niya
+var _origAddTx = addTx;
+addTx = function(){
+  if(currentRole === "COORDINATOR" || currentRole === "VIEWER"){
+    alert("Coordinator / Viewer - bawal sa pera! Members lang pwede sayo!");
+    return;
+  }
+  return _origAddTx();
+};
+
+// 5. Itago din kay Coordinator yung SAVE TARGET + BACKUP - tulad ni Viewer
+function lockCoordinatorV99(){
+  if(currentRole !== "COORDINATOR" && currentRole !== "VIEWER") return;
+
+  var btns = document.querySelectorAll('button');
+  btns.forEach(function(b){
+    var t = (b.innerText || "").toUpperCase();
+    if(t.includes('SAVE TARGET')) b.style.display = 'none';
+    if(t.includes('DOWNLOAD BACKUP')) b.style.display = 'none';
+    if(t.includes('DOWNLOAD MEMBERS')) b.style.display = 'none';
+  });
+
+  var tabBackup = document.getElementById('tabBackup');
+  if(tabBackup) tabBackup.style.display = 'none';
+
+  var fiestaInput = document.getElementById('fiestaTargetInput');
+  if(fiestaInput && fiestaInput.parentElement) fiestaInput.parentElement.style.display = 'none';
+
+  var backupTab = document.getElementById('backupTab');
+  if(backupTab && !backupTab.classList.contains('hidden')) showTab('cash');
+}
+
+setTimeout(lockCoordinatorV99, 500);
+setTimeout(lockCoordinatorV99, 1500);
+setInterval(lockCoordinatorV99, 2000);
+</script>
+<!-- ================= TAPOS NA COORDINATOR A ================= -->
 </body>
   </html>
