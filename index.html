@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
-<title>Sto. Niño Chapel - V8.1</title>
+<title>Sto. Niño Chapel - V8.2</title>
 <style>
 *{box-sizing:border-box;
 font-family:system-ui,Arial,sans-serif}
@@ -107,7 +107,7 @@ line-height:1.5}
 <img src="stonino.jpg" alt="Sto Nino">
 </div>
 <h1>Sto. Niño Chapel</h1>
-<p>Treasury Tracker • V8.1</p>
+<p>Treasury Tracker • V8.2</p>
 <p class="verse">✨ Viva Pit Señor! ✨</p>
 </div>
 <div class="wrap">
@@ -123,7 +123,10 @@ placeholder="Password">
 <button class="btn-orange"
 onclick="doLogin()">LOGIN</button>
 <p id="loginMsg"
-style="color:#dc2626;font-size:13px"></p>
+style="color:#dc2626;font-size:13px;
+font-weight:700"></p>
+<p><small>Site:
+stoninochapelfinance.web.app</small></p>
 </div>
 <div id="dashBox" class="hidden">
 <div class="card">
@@ -352,10 +355,14 @@ if(t==="report") buildReport();
 window.doLogin = async function(){
 const e=document.getElementById("email").value.trim();
 const p=document.getElementById("password").value;
-try{ await signInWithEmailAndPassword(auth,e,p);
+document.getElementById("loginMsg").innerText="Naglo-login...";
+try{
+await signInWithEmailAndPassword(auth,e,p);
+document.getElementById("loginMsg").innerText="";
 }catch(err){
-document.getElementById("loginMsg")
-.innerText="Mali email o password: "+err.code;
+const msg="Mali email o password: "+err.code;
+document.getElementById("loginMsg").innerText=msg;
+alert(msg+"\n\nSite: stoninochapelfinance.web.app\nEmail: "+e);
 }
 }
 window.doLogout = async function(){
@@ -598,7 +605,7 @@ onclick="window.open(this.src,'_blank')">
 return `<div class="tx">
 <b>${fmtNo(t.displayNo)}
 ${t.type==="in"?"+":"-"}${peso(t.amount)}
-• ${t.category||"Walang Category"}</b>
+- ${t.category||"Walang Category"}</b>
 <br><small>${t.note||""} •
 ${t.status}</small>${receiptHtml}
 <div style="height:8px"></div>${btns}</div>`;
