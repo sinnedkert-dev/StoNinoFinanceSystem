@@ -985,5 +985,98 @@ setTimeout(function(){
 }, 1000);
 </script>
 <!-- ===== TAPOS FIX REJECTED BUG ===== -->
+<!-- ===== PRO REPORT + EXCEL - DEN ===== -->
+<script>
+function proDate(){
+  var d=new Date();
+  return d.toLocaleString('en-PH',{month:'long',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+}
+function proMoney(n){ return '₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2}); }
+function getBankTx(){ return JSON.parse(localStorage.getItem('bankSavingsTx')||'[]'); }
+function getPettyTx(){ return JSON.parse(localStorage.getItem('pettyCashTx')||'[]'); }
+function getCashTx(){
+  // Hanapin sa lahat ng posibleng storage yung Cash transactions
+  var keys=['transactions','apelTransactions','cashTransactions','txList','financeTx'];
+  for(var i=0;i<keys.length;i++){
+    try{ var v=JSON.parse(localStorage.getItem(keys[i])||'[]'); if(v && v.length) return v; }catch(e){}
+  }
+  return [];
+}
+function buildProReport(){
+  var old=document.getElementById('bankPettyPanel');
+  if(old) old.style.display='none'; // Itago yung panget na luma
+  var old2=document.getElementById('proReportBox');
+  if(old2) old2.remove();
+  var bankTx=getBankTx(), pettyTx=getPettyTx();
+  var bankBal=25000; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankBal+=x.amount; else bankBal-=x.amount; } });
+  var pettyBal=10000; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyBal+=x.amount; else pettyBal-=x.amount; } });
+  var box=document.createElement('div');
+  box.id='proReportBox';
+  box.style.cssText='background:#fff;border:2px solid #7b1e1e;border-radius:16px;padding:14px;margin:14px 0;font-family:Arial,sans-serif;color:#222;';
+  var html='';
+  html+='<div style="text-align:center;border-bottom:3px double #7b1e1e;padding-bottom:10px;">';
+  html+='<div style="font-size:22px;">⛪</div><b style="font-size:19px;color:#7b1e1e;">STO. NIÑO CHAPEL</b><br>';
+  html+='<b>OFFICIAL TREASURY REPORT</b><br><small>NOVEMBER 2026 • Generated: '+proDate()+'</small><br>';
+  html+='<small>Prepared: Treasurer | Checked: Auditor | Approved: Father</small></div>';
+  // SUMMARY TABLE
+  html+='<h3 style="margin:12px 0 6px;">📊 SUMMARY</h3>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#7b1e1e;color:#fff;"><th style="padding:8px;border:1px solid #ddd;text-align:left;">ACCOUNT</th><th style="padding:8px;border:1px solid #ddd;text-align:right;">STARTING</th><th style="padding:8px;border:1px solid #ddd;text-align:right;">CURRENT</th></tr>';
+  html+='<tr><td style="padding:8px;border:1px solid #ddd;">🏦 LANDBANK SAVINGS</td><td style="padding:8px;border:1px solid #ddd;text-align:right;">'+proMoney(25000)+'</td><td style="padding:8px;border:1px solid #ddd;text-align:right;"><b>'+proMoney(bankBal)+'</b></td></tr>';
+  html+='<tr><td style="padding:8px;border:1px solid #ddd;">💵 PETTY CASH</td><td style="padding:8px;border:1px solid #ddd;text-align:right;">'+proMoney(10000)+'</td><td style="padding:8px;border:1px solid #ddd;text-align:right;"><b>'+proMoney(pettyBal)+'</b></td></tr>';
+  html+='<tr style="background:#fff3e0;"><td style="padding:8px;border:1px solid #ddd;"><b>TOTAL FUND</b></td><td style="padding:8px;border:1px solid #ddd;"></td><td style="padding:8px;border:1px solid #ddd;text-align:right;"><b>'+proMoney(bankBal+pettyBal)+'</b></td></tr></table>';
+  // BANK DETAILED
+  html+='<h3 style="margin:14px 0 6px;">🏦 BANK - DETAILED TRANSACTIONS</h3>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="background:#1a237e;color:#fff;"><th style="padding:7px;border:1px solid #ddd;text-align:left;">DATE / TIME</th><th style="padding:7px;border:1px solid #ddd;">REF</th><th style="padding:7px;border:1px solid #ddd;">TYPE</th><th style="padding:7px;border:1px solid #ddd;text-align:right;">AMOUNT</th><th style="padding:7px;border:1px solid #ddd;">STATUS</th></tr>';
+  if(!bankTx.length) html+='<tr><td colspan="5" style="padding:8px;border:1px solid #ddd;text-align:center;">Walang Bank transaction</td></tr>';
+  bankTx.forEach(function(x){
+    var badge=x.status==='approved'?'✅ APPROVED':x.status==='rejected'?'❌ REJECTED':'⏳ PENDING';
+    var amt=(x.type==='DEPOSIT'?'+':'-')+proMoney(x.amount);
+    html+='<tr><td style="padding:7px;border:1px solid #ddd;">'+(x.date||'')+'<br><small>'+(x.note||'')+'</small></td><td style="padding:7px;border:1px solid #ddd;text-align:center;">'+x.ref+'</td><td style="padding:7px;border:1px solid #ddd;text-align:center;">'+x.type+'</td><td style="padding:7px;border:1px solid #ddd;text-align:right;"><b>'+amt+'</b></td><td style="padding:7px;border:1px solid #ddd;text-align:center;">'+badge+'</td></tr>';
+  });
+  html+='</table>';
+  // PETTY DETAILED
+  html+='<h3 style="margin:14px 0 6px;">💵 PETTY CASH - DETAILED TRANSACTIONS</h3>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="background:#2e7d32;color:#fff;"><th style="padding:7px;border:1px solid #ddd;text-align:left;">DATE / TIME</th><th style="padding:7px;border:1px solid #ddd;">REF</th><th style="padding:7px;border:1px solid #ddd;">TYPE</th><th style="padding:7px;border:1px solid #ddd;text-align:right;">AMOUNT</th><th style="padding:7px;border:1px solid #ddd;">STATUS</th></tr>';
+  if(!pettyTx.length) html+='<tr><td colspan="5" style="padding:8px;border:1px solid #ddd;text-align:center;">Walang Petty transaction</td></tr>';
+  pettyTx.forEach(function(x){
+    var badge2=x.status==='approved'?'✅ APPROVED':x.status==='rejected'?'❌ REJECTED':'⏳ PENDING';
+    var amt2=(x.type==='REPLENISH'?'+':'-')+proMoney(x.amount);
+    html+='<tr><td style="padding:7px;border:1px solid #ddd;">'+(x.date||'')+'<br><small>'+(x.note||'')+'</small></td><td style="padding:7px;border:1px solid #ddd;text-align:center;">'+x.ref+'</td><td style="padding:7px;border:1px solid #ddd;text-align:center;">'+x.type+'</td><td style="padding:7px;border:1px solid #ddd;text-align:right;"><b>'+amt2+'</b></td><td style="padding:7px;border:1px solid #ddd;text-align:center;">'+badge2+'</td></tr>';
+  });
+  html+='</table>';
+  // SIGNATURES
+  html+='<div style="display:flex;justify-content:space-between;margin-top:18px;text-align:center;font-size:12px;"><div>Prepared by:<br><br><b>________________</b><br>Treasurer<br><small>'+proDate()+'</small></div><div>Checked by:<br><br><b>________________</b><br>Auditor<br><small>'+proDate()+'</small></div><div>Approved by:<br><br><b>________________</b><br>Parish Priest<br><small>'+proDate()+'</small></div></div>';
+  // BUTTONS
+  html+='<button onclick="downloadExcelPro()" style="width:100%;background:#107c41;color:#fff;border:none;padding:14px;border-radius:12px;font-size:16px;font-weight:bold;margin-top:14px;">📊 DOWNLOAD EXCEL (Para i-Print)</button>';
+  html+='<button onclick="window.print()" style="width:100%;background:#7b1e1e;color:#fff;border:none;padding:12px;border-radius:12px;font-size:15px;font-weight:bold;margin-top:8px;">🖨️ PRINT / PDF</button>';
+  html+='<p style="text-align:center;font-size:11px;color:#666;margin-top:8px;">Excel file = .csv — bubuksan sa Excel / Google Sheets, diretso print na!</p>';
+  box.innerHTML=html;
+  // Ilagay pagkatapos ng Report
+  var reportBtn=null; document.querySelectorAll('button').forEach(function(b){ if((b.innerText||'').includes('COPY FOR GC')) reportBtn=b; });
+  if(reportBtn && reportBtn.parentNode) reportBtn.parentNode.parentNode.insertBefore(box, reportBtn.parentNode.nextSibling);
+  else document.body.appendChild(box);
+}
+function downloadExcelPro(){
+  var bankTx=getBankTx(), pettyTx=getPettyTx();
+  var csv='STO. NINO CHAPEL - OFFICIAL TREASURY REPORT\n';
+  csv+='NOVEMBER 2026,Generated: '+proDate()+'\n\n';
+  csv+='SUMMARY\nAccount,Starting,Current\n';
+  var bankBal=25000; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankBal+=x.amount; else bankBal-=x.amount; } });
+  var pettyBal=10000; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyBal+=x.amount; else pettyBal-=x.amount; } });
+  csv+='LANDBANK SAVINGS,25000,'+bankBal+'\nPETTY CASH,10000,'+pettyBal+'\nTOTAL FUND,,'+(bankBal+pettyBal)+'\n\n';
+  csv+='BANK TRANSACTIONS\nDate / Time,Ref,Type,Note,Amount,Status\n';
+  bankTx.forEach(function(x){ csv+='"'+(x.date||'')+'","'+x.ref+'","'+x.type+'","'+(x.note||'')+'","'+(x.type==='DEPOSIT'?x.amount:-x.amount)+'","'+(x.status||'')+'"\n'; });
+  csv+='\nPETTY TRANSACTIONS\nDate / Time,Ref,Type,Note,Amount,Status\n';
+  pettyTx.forEach(function(x){ csv+='"'+(x.date||'')+'","'+x.ref+'","'+x.type+'","'+(x.note||'')+'","'+(x.type==='REPLENISH'?x.amount:-x.amount)+'","'+(x.status||'')+'"\n'; });
+  csv+='\nPrepared by,Treasurer,'+proDate()+'\nChecked by,Auditor,'+proDate()+'\nApproved by,Parish Priest,'+proDate()+'\n';
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='StoNino_Treasury_Report_Nov2026.csv'; a.click();
+  alert('✅ Na-download na! Buksan mo sa Excel / Google Sheets - diretso print na!');
+}
+// Ipakita pag nasa Report tab
+document.addEventListener('click', function(e){ if((e.target.innerText||'').includes('Report')) setTimeout(buildProReport, 700); });
+setTimeout(buildProReport, 2000);
+</script>
+<!-- ===== TAPOS PRO REPORT + EXCEL ===== -->
 </body>
   </html>
