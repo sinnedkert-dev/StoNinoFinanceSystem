@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sto. Niño Chapel - Finance System Online</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box;font-family:system-ui,Arial,sans-serif}
+body{margin:0;color:#2b1a0a;background:#fdf3d8;min-height:100vh}
+.top{background:linear-gradient(to bottom,#7f1d1d,#991b1b,#b45309);color:#fff;text-align:center;padding:18px 12px 14px;border-bottom:4px solid #d4af37}
+.logo-wrap{width:110px;height:110px;margin:0 auto;background:#fff;padding:4px;border-radius:50%;border:4px solid #d4af37;overflow:hidden}
+.logo-wrap img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.top h1{margin:10px 0 0;font-size:24px}
+.top p{margin:2px 0 0;font-size:12px}
+.top .verse{font-size:11px;font-style:italic;color:#fde68a}
+.wrap{max-width:520px;margin:0 auto;padding:12px;padding-bottom:30px}
+.card{background:#fff;border:1px solid #eab308;border-radius:16px;padding:14px;margin-bottom:12px}
+.kaban{font-size:38px;font-weight:900;color:#b45309}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:10px;text-align:center}
+.mini b{display:block;font-size:18px;color:#7f1d1d}
+.mini span{font-size:11px;color:#78716c}
+label{font-size:12px;font-weight:700;display:block;margin:10px 0 4px;color:#7f1d1d}
+input,select{width:100%;padding:11px;border:1px solid #d6d3d1;border-radius:10px;font-size:15px}
+button{width:100%;padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-orange{background:#991b1b;color:#fff}
+.btn-green{background:#16a34a;color:#fff}
+.btn-red{background:#dc2626;color:#fff}
+.btn-gray{background:#e7e5e4;color:#1c1917}
+.btn-gold{background:#d4af37;color:#1c1917}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{flex:1;min-width:70px;background:#fff;border:1px solid #f59e0b;color:#7f1d1d;padding:10px 4px;font-size:13px}
+.tabs button.active{background:#991b1b;color:#fff}
+.tx{border:1px solid #fde68a;border-radius:10px;padding:10px;margin-bottom:8px;background:#fff;overflow:hidden}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.pending{background:#fef3c7;color:#92400e}
+.approved{background:#dcfce7;color:#166534}
+.rejected{background:#fee2e2;color:#991b1b}
+.locked{background:#e0e7ff;color:#3730a3}
+.cat{background:#ffedd5;color:#9a3412;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700}
+.has-receipt{background:#dcfce7;color:#166534}
+.no-receipt{background:#fee2e2;color:#991b1b}
+small{color:#78716c}
+.hidden{display:none}
+.row{display:flex;gap:8px}
+.row button{flex:1}
+.receipt-thumb{width:100%;max-height:200px;object-fit:contain;background:#fffbeb;border-radius:10px;border:1px solid #fcd34d;margin-top:8px;display:block}
+.receipt-preview{width:100%;max-height:200px;object-fit:contain;background:#fffbeb;border-radius:10px;border:2px dashed #d4af37;display:none;margin-top:8px}
+.report-box{background:#fffbeb;border:2px solid #d4af37;border-radius:12px;padding:14px;white-space:pre-wrap;font-size:14px;line-height:1.5}
+.footer{margin-top:20px;text-align:center;padding:18px 14px 22px;background:linear-gradient(to bottom,#7f1d1d,#991b1b,#b45309);border-radius:16px;border:2px solid #d4af37;color:#fff}
+.footer .f-title{font-size:15px;font-weight:900;letter-spacing:1px;color:#fde68a;margin:0}
+.footer .f-sub{font-size:12px;color:#fff;margin:4px 0 0}
+.footer .f-line{width:60px;height:2px;background:#d4af37;margin:10px auto}
+.footer .f-creator{font-size:14px;font-weight:800;color:#fff;margin:0}
+.footer .f-creator span{color:#fde68a;font-size:16px}
+.footer .f-date{font-size:11px;color:#fde68a;margin:4px 0 0;font-style:italic}
+</style>
+</head>
+<body>
+<div class="top">
+<div class="logo-wrap"><img src="stonino.jpg" alt="Sto Nino"></div>
+<h1>Sto. Niño Chapel</h1>
+<p>Finance System Online • V9.4</p>
+<p class="verse">✨ Viva Pit Señor! ✨</p>
+<p id="liveClock" style="margin:6px 0 0;font-size:13px;font-weight:700;color:#fde68a;background:rgba(0,0,0,0.25);display:inline-block;padding:4px 12px;border-radius:20px">--:--:--</p>
+</div>
+<div class="wrap">
+<div id="loginBox" class="card">
+<h2 style="margin:0;color:#7f1d1d">LOGIN</h2>
+<label>Email</label>
+<input id="email" type="email" value="treasurer@stonino.com">
+<label>Password</label>
+<input id="password" type="password" placeholder="Password">
+<div style="height:10px"></div>
+<button class="btn-orange" onclick="doLogin()">LOGIN</button>
+<p id="loginMsg" style="color:#fff;background:#dc2626;padding:10px;border-radius:10px;font-size:14px;font-weight:700;display:none"></p>
+</div>
+<div id="dashBox" class="hidden">
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><b id="userEmail"></b><br><small id="roleLabel"></small></div><button style="width:auto;padding:8px 12px" class="btn-gray" onclick="doLogout()">Logout</button></div></div>
+<div class="card" style="text-align:center;border:2px solid #d4af37"><small>KABAN - APPROVED LANG</small><div class="kaban" id="kaban">₱0.00</div><small>Approved lang ang binibilang</small></div>
+<div class="grid">
+<div class="mini"><b id="cashIn">₱0</b><span>CASH IN</span></div>
+<div class="mini"><b id="cashOut">₱0</b><span>WITHDRAW</span></div>
+<div class="mini"><b id="membersCount">0</b><span>MEMBERS</span></div>
+<div class="mini"><b id="pendingCount">0</b><span>PENDING</span></div>
+<div class="mini"><b id="txCount">0</b><span>TRANSACTIONS</span></div>
+<div class="mini"><b id="lockedCount">0</b><span>LOCKED</span></div>
+</div>
+<div class="tabs">
+<button id="tabCash" class="active" onclick="showTab('cash')">Cash</button>
+<button id="tabAudit" onclick="showTab('audit')">Audit</button>
+<button id="tabReport" onclick="showTab('report')">Report</button>
+<button id="tabMembers" onclick="showTab('members')">Members</button>
+</div>
+<div id="cashTab">
+<div class="card" id="addCard">
+<h3 style="margin:0;color:#7f1d1d">Add Transaction</h3>
+<label>Type</label><select id="txType" onchange="updateCategories()"><option value="in">Cash In (+)</option><option value="out">Withdraw (-)</option></select>
+<label>Category</label><select id="txCategory"></select>
+<label>Amount</label><input id="txAmount" type="number" placeholder="500">
+<label>Note / Para saan?</label><input id="txNote" placeholder="Ex: Sunday Mass">
+<label>📸 Picture ng Resibo - #2</label>
+<input id="txReceipt" type="file" accept="image/*" onchange="previewReceipt(event)">
+<img id="receiptPreview" class="receipt-preview">
+<div style="height:10px"></div>
+<button class="btn-orange" onclick="addTx()">+ ADD</button>
+</div>
+<div class="card"><label>Filter by Category</label><select id="filterCat" onchange="render()"><option value="all">Lahat</option></select><div id="txList"></div></div>
+</div>
+<div id="auditTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Audit</h3><p><small>Check mo resibo bago Approve.</small></p><div id="auditList"></div></div></div>
+<div id="reportTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Monthly Report - #3</h3><label>Buwan</label><input id="reportMonth" type="month"><div style="height:10px"></div><div class="report-box" id="reportBox">Pili ka muna ng buwan.</div><div style="height:10px"></div><button class="btn-gold" onclick="copyReport()">📋 COPY FOR GC</button><div style="height:8px"></div><button class="btn-gray" onclick="window.print()">🖨️ PRINT / PDF</button></div></div>
+<div id="membersTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Members</h3><label>Name</label><input id="memberName" placeholder="Juan Dela Cruz"><div style="height:10px"></div><button class="btn-orange" onclick="addMember()">Add Member</button><div style="height:12px"></div><div id="memberList"></div></div></div>
+<div class="footer">
+<p class="f-title">© ALL RIGHTS RESERVED</p>
+<p class="f-sub">Sto. Niño Chapel • Finance System Online</p>
+<div class="f-line"></div>
+<p class="f-creator">System Created By: <span>Bro. Den</span></p>
+<p class="f-date">11-12-2026 • Viva Pit Señor! 🙏</p>
+</div>
+</div></div>
+<script>
+var firebaseConfig = {
+apiKey: "AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",
+authDomain: "stoninochapelfinance.firebaseapp.com",
+databaseURL: "https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "stoninochapelfinance",
+storageBucket: "stoninochapelfinance.firebasestorage.app",
+messagingSenderId: "633724409478",
+appId: "1:633724409478:web:a01f4e934d836ce3c82307",
+measurementId: "G-7WCS0PJWY6"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.database();
+var CATEGORIES = {
+in: ["Mass Offering","Donation / Abuloy","Donation","Fiesta Fund","Special Collection","Iba pa"],
+out: ["Kuryente / Tubig","Linis / Maintenance","Kandila / Bulaklak","Pampare / Misa","Iba pa"]
+};
+var currentUser=null, currentRole="MEMBER", allTx=[], allMembers=[], receiptData="";
+function getRole(email){
+if(email==="admin@stonino.com") return "ADMIN";
+if(email==="auditor@stonino.com") return "AUDITOR";
+if(email==="treasurer@stonino.com") return "TREASURER";
+return "MEMBER";
+}
+function roleText(r){
+if(r==="TREASURER") return "Role: TREASURER - Add lang";
+if(r==="AUDITOR") return "Role: AUDITOR - Approve lang";
+if(r==="ADMIN") return "Role: ADMIN - Lock / Delete";
+return "Role: MEMBER - Tingin lang";
+}
+function showMsg(txt){
+var box=document.getElementById("loginMsg");
+box.style.display="block";
+box.innerText=txt;
+}
+function updateClock(){
+var now = new Date();
+var timeStr = now.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+var dateStr = now.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+var el = document.getElementById("liveClock");
+if(el) el.innerText = "🕒 " + dateStr + " • " + timeStr;
+}
+setInterval(updateClock, 1000);
+updateClock();
+function previewReceipt(e){
+var file=e.target.files[0];
+if(!file) return;
+var reader=new FileReader();
+reader.onload=function(ev){
+var img=new Image();
+img.onload=function(){
+var canvas=document.createElement("canvas");
+var maxW=800;
+var scale=Math.min(1, maxW/img.width);
+canvas.width=img.width*scale;
+canvas.height=img.height*scale;
+canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+receiptData=canvas.toDataURL("image/jpeg",0.7);
+var prev=document.getElementById("receiptPreview");
+prev.src=receiptData;
+prev.style.display="block";
+};
+img.src=ev.target.result;
+};
+reader.readAsDataURL(file);
+}
+function updateCategories(){
+var type=document.getElementById("txType").value;
+var sel=document.getElementById("txCategory");
+sel.innerHTML = CATEGORIES[type].map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join("");
+var filter=document.getElementById("filterCat");
+var all=[];
+CATEGORIES.in.concat(CATEGORIES.out).forEach(function(c){ if(all.indexOf(c)===-1) all.push(c); });
+allTx.forEach(function(t){ if(t.category && all.indexOf(t.category)===-1) all.push(t.category); });
+var cur=filter.value;
+filter.innerHTML = '<option value="all">Lahat</option>' + all.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join("");
+if(all.indexOf(cur)!==-1) filter.value=cur;
+}
+function showTab(t){
+document.getElementById("cashTab").classList.toggle("hidden", t!=="cash");
+document.getElementById("auditTab").classList.toggle("hidden", t!=="audit");
+document.getElementById("reportTab").classList.toggle("hidden", t!=="report");
+document.getElementById("membersTab").classList.toggle("hidden", t!=="members");
+document.getElementById("tabCash").classList.toggle("active", t==="cash");
+document.getElementById("tabAudit").classList.toggle("active", t==="audit");
+document.getElementById("tabReport").classList.toggle("active", t==="report");
+document.getElementById("tabMembers").classList.toggle("active", t==="members");
+if(t==="report") buildReport();
+}
+function doLogin(){
+var e=document.getElementById("email").value.trim();
+var p=document.getElementById("password").value;
+showMsg("Naglo-login... si "+e);
+auth.signInWithEmailAndPassword(e,p).then(function(){
+document.getElementById("loginMsg").style.display="none";
+}).catch(function(err){
+showMsg("AYAW MAG-LOGIN: "+err.code+" - "+err.message);
+alert("AYAW MAG-LOGIN:\n\n"+err.code+"\n\n"+err.message);
+});
+}
+function doLogout(){ auth.signOut(); }
+function addTx(){
+if(currentRole!=="TREASURER" && currentRole!=="ADMIN"){ alert("Treasurer lang pwede mag-add!"); return; }
+var type=document.getElementById("txType").value;
+var cat=document.getElementById("txCategory").value;
+var amt=parseFloat(document.getElementById("txAmount").value);
+var note=document.getElementById("txNote").value.trim();
+if(!amt || amt<=0){ alert("Lagyan mo ng amount!"); return; }
+db.ref("transactions").push({type:type, category:cat, amount:amt, note:note||cat, status:"pending", locked:false, createdBy: currentUser.email, createdAt: Date.now(), receipt: receiptData||""});
+document.getElementById("txAmount").value="";
+document.getElementById("txNote").value="";
+document.getElementById("txReceipt").value="";
+receiptData="";
+document.getElementById("receiptPreview").style.display="none";
+alert("Na-add na! Category: "+cat);
+}
+function addMember(){
+var name=document.getElementById("memberName").value.trim();
+if(!name) return alert("Lagyan mo ng pangalan");
+db.ref("members").push({name:name, createdAt: Date.now()});
+document.getElementById("memberName").value="";
+}
+function approveTx(id){
+if(currentRole!=="AUDITOR" && currentRole!=="ADMIN") return alert("Auditor lang pwede!");
+db.ref("transactions/"+id).update({status:"approved"});
+}
+function rejectTx(id){
+if(currentRole!=="AUDITOR" && currentRole!=="ADMIN") return alert("Auditor lang pwede!");
+db.ref("transactions/"+id).update({status:"rejected"});
+}
+function lockTx(id){
+if(currentRole!=="ADMIN") return alert("Admin lang pwede mag-lock!");
+db.ref("transactions/"+id).update({locked:true});
+}
+function unlockTx(id){
+if(currentRole!=="ADMIN") return alert("Admin lang pwede!");
+db.ref("transactions/"+id).update({locked:false});
+}
+function deleteTx(id){
+if(currentRole!=="ADMIN") return alert("Admin lang pwede!");
+if(!confirm("Sigurado ka burahin?")) return;
+db.ref("transactions/"+id).remove();
+}
+function peso(n){ return "₱"+Number(n||0).toLocaleString("en-PH",{minimumFractionDigits:2}); }
+function fmtNo(n){ return "#"+String(n).padStart(3,"0"); }
+function getReportText(){
+var monthVal=document.getElementById("reportMonth").value;
+if(!monthVal) return "Pili ka muna ng buwan.";
+var parts=monthVal.split("-");
+var y=parseInt(parts[0]), m=parseInt(parts[1]);
+var monthNames=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+var filtered=allTx.filter(function(t){
+var d=new Date(t.createdAt||Date.now());
+return d.getFullYear()===y && (d.getMonth()+1)===m;
+});
+var approved=filtered.filter(function(t){ return t.status==="approved"; });
+var pending=filtered.filter(function(t){ return t.status==="pending"; });
+var cashIn=0, cashOut=0, byCat={};
+approved.forEach(function(t){
+if(t.type==="in") cashIn+=Number(t.amount||0); else cashOut+=Number(t.amount||0);
+var key=(t.type==="in"?"IN - ":"OUT - ")+(t.category||"Walang Category");
+byCat[key]=(byCat[key]||0) + (t.type==="in"?Number(t.amount||0):-Number(t.amount||0));
+});
+var lines=[];
+lines.push("⛪ STO. NIÑO CHAPEL");
+lines.push("Treasury Report - "+monthNames[m-1]+" "+y);
+lines.push("--------------------------------");
+lines.push("Total Cash In: "+peso(cashIn));
+lines.push("Total Withdraw: "+peso(cashOut));
+lines.push("Kaban (Approved): "+peso(cashIn-cashOut));
+lines.push("Pending pa: "+pending.length);
+lines.push("");
+lines.push("Breakdown (Approved lang):");
+var keys=Object.keys(byCat);
+if(keys.length===0) lines.push("- Wala pang approved");
+else keys.forEach(function(k){ lines.push("- "+k+": "+peso(byCat[k])); });
+lines.push("");
+lines.push("Approved by: Auditor");
+lines.push("Viva Pit Señor! 🙏");
+return lines.join("\n");
+}
+function buildReport(){ document.getElementById("reportBox").innerText=getReportText(); }
+function copyReport(){
+var txt=getReportText();
+if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(function(){ alert("Na-copy na! Paste mo na sa GC."); }); }
+else { prompt("Copy mo:", txt); }
+}
+function render(){
+var cashIn=0, cashOut=0, pending=0, locked=0;
+allTx.forEach(function(t){
+if(t.status==="approved" && t.type==="in") cashIn+=Number(t.amount||0);
+if(t.status==="approved" && t.type==="out") cashOut+=Number(t.amount||0);
+if(t.status==="pending") pending++;
+if(t.locked) locked++;
+});
+document.getElementById("kaban").innerText = peso(cashIn-cashOut);
+document.getElementById("cashIn").innerText = peso(cashIn);
+document.getElementById("cashOut").innerText = peso(cashOut);
+document.getElementById("membersCount").innerText = allMembers.length;
+document.getElementById("pendingCount").innerText = pending;
+document.getElementById("txCount").innerText = allTx.length;
+document.getElementById("lockedCount").innerText = locked;
+var filter=document.getElementById("filterCat").value;
+var filtered = allTx.filter(function(t){ return filter==="all" || t.category===filter; });
+var html="";
+filtered.forEach(function(t){
+var sign = t.type==="in"?"+":"-";
+var color = t.type==="in"?"#16a34a":"#dc2626";
+var receiptHtml = t.receipt ? '<img class="receipt-thumb" src="'+t.receipt+'" onclick="window.open(this.src,\'_blank\')">' : '<small style="color:#991b1b">Walang resibo</small>';
+var receiptBadge = t.receipt ? '<span class="badge has-receipt">📸 MAY RESIBO</span>' : '<span class="badge no-receipt">WALANG RESIBO</span>';
+var lockBadge = t.locked ? '<span class="badge locked">🔒 LOCKED</span>' : '';
+html += '<div class="tx"><div style="display:flex;justify-content:space-between"><b>'+fmtNo(t.displayNo)+' <span style="color:'+color+'">'+sign+peso(t.amount)+'</span></b> <span class="badge '+t.status+'">'+(t.status||"pending").toUpperCase()+'</span></div><div><span class="cat">'+(t.category||"Walang Category")+'</span> '+receiptBadge+' '+lockBadge+'</div><small>'+(t.note||"")+' • by '+(t.createdBy||"")+'</small>'+receiptHtml+'</div>';
+});
+document.getElementById("txList").innerHTML = html || "<p><small>Wala pang transaction.</small></p>";
+var auditHtml="";
+allTx.forEach(function(t){
+var btns="";
+if(currentRole==="AUDITOR" || currentRole==="ADMIN"){
+if(t.status==="pending") btns+='<div class="row"><button class="btn-green" onclick="approveTx(\''+t.id+'\')">Approve</button><button class="btn-red" onclick="rejectTx(\''+t.id+'\')">Reject</button></div>';
+}
+if(currentRole==="ADMIN"){
+if(!t.locked) btns+='<div style="height:6px"></div><button class="btn-gray" onclick="lockTx(\''+t.id+'\')">🔒 LOCK</button>';
+else btns+='<div style="height:6px"></div><button class="btn-gray" onclick="unlockTx(\''+t.id+'\')">🔓 UNLOCK</button>';
+btns+='<div style="height:6px"></div><button class="btn-red" onclick="deleteTx(\''+t.id+'\')">Delete</button>';
+}
+var receiptHtml2 = t.receipt ? '<img class="receipt-thumb" src="'+t.receipt+'" onclick="window.open(this.src,\'_blank\')"><small>Pindutin para lumaki</small>' : '<p><small style="color:#991b1b">⚠️ Walang resibo</small></p>';
+auditHtml += '<div class="tx"><b>'+fmtNo(t.displayNo)+' '+(t.type==="in"?"+":"-")+peso(t.amount)+' - '+(t.category||"Walang Category")+'</b><br><small>'+(t.note||"")+' • '+t.status+'</small>'+receiptHtml2+'<div style="height:8px"></div>'+btns+'</div>';
+});
+document.getElementById("auditList").innerHTML = auditHtml || "<p><small>Wala pang transaction.</small></p>";
+var memHtml="";
+allMembers.forEach(function(m){ memHtml += '<div class="tx"><b>'+m.name+'</b></div>'; });
+document.getElementById("memberList").innerHTML = memHtml;
+buildReport();
+}
+auth.onAuthStateChanged(function(user){
+if(user){
+currentUser=user;
+currentRole=getRole(user.email);
+document.getElementById("loginBox").classList.add("hidden");
+document.getElementById("dashBox").classList.remove("hidden");
+document.getElementById("userEmail").innerText=user.email;
+document.getElementById("roleLabel").innerText=roleText(currentRole);
+document.getElementById("addCard").style.display = (currentRole==="TREASURER"||currentRole==="ADMIN")?"block":"none";
+var now=new Date();
+document.getElementById("reportMonth").value = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+db.ref("transactions").on("value", function(snap){
+var val=snap.val()||{};
+var arr=Object.keys(val).map(function(k){ var o=val[k]; o.id=k; return o; });
+arr.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+arr.forEach(function(t,i){ t.displayNo = t.txNo || (i+1); });
+arr.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+allTx=arr;
+updateCategories(); render();
+});
+db.ref("members").on("value", function(snap){
+var val=snap.val()||{};
+allMembers=Object.keys(val).map(function(k){ var o=val[k]; o.id=k; return o; });
+render();
+});
+} else {
+currentUser=null;
+document.getElementById("loginBox").classList.remove("hidden");
+document.getElementById("dashBox").classList.add("hidden");
+}
+});
+updateCategories();
+</script>
+</body>
+  </html>
