@@ -968,5 +968,91 @@ document.addEventListener('click', function(e){
 });
 </script>
 <!-- ===== TAPOS BANK REPORT SA LABAS ===== -->
+<!-- ===== FULL DETAILED REPORT - LAHAT NG TRANSACTION ===== -->
+<script>
+function fullReport(){
+  var hiwalay = document.getElementById('bankReportBox2');
+  if(hiwalay) hiwalay.remove();
+  var hiwalay2 = document.getElementById('bankReportBox');
+  if(hiwalay2) hiwalay2.remove();
+
+  var mainReport = null;
+  document.querySelectorAll('div, pre, p').forEach(function(d){
+    var t = d.innerText || '';
+    if(t.includes('STO. NIÑO CHAPEL') && t.includes('Treasury Report')){
+      if(!mainReport || t.length > mainReport.innerText.length) mainReport = d;
+    }
+  });
+  if(!mainReport) return;
+  if((mainReport.innerText||'').includes('DETAILED - LAHAT NG TRANSACTION')) return;
+
+  var bankTx = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var bb = 25000; bankTx.forEach(t=>{ if(t.type==='DEPOSIT') bb+=t.amount; else bb-=t.amount; });
+  var pb = 10000; pettyTx.forEach(t=>{ if(t.type==='REPLENISH') pb+=t.amount; else pb-=t.amount; });
+  function f(n){ return '₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2}); }
+
+  // DETAILED BANK LIST
+  var bankDetail = '';
+  if(bankTx.length===0){ bankDetail = '  - Wala pang Bank transaction. Starting lang: '+f(25000)+'\n'; }
+  else{
+    bankTx.forEach(function(t,i){
+      bankDetail += '  '+(i+1)+'. ['+t.ref+'] '+t.date+' - '+t.type+' '+f(t.amount)+' - '+t.note+' (by '+t.by+')\n';
+    });
+  }
+  // DETAILED PETTY LIST
+  var pettyDetail = '';
+  if(pettyTx.length===0){ pettyDetail = '  - Wala pang Petty transaction. Fund lang: '+f(10000)+'\n'; }
+  else{
+    pettyTx.forEach(function(t,i){
+      pettyDetail += '  '+(i+1)+'. ['+t.ref+'] '+t.date+' - '+t.type+' '+f(t.amount)+' - '+t.note+' (by '+t.by+')\n';
+    });
+  }
+
+  var detailText = '\n\n========================================\n';
+  detailText += '📋 FULL DETAILED REPORT - LAHAT NG TRANSACTION\n';
+  detailText += '========================================\n\n';
+  detailText += '🏦 LANDBANK SAVINGS - DETAILED\n';
+  detailText += 'Bank: LANDBANK - STO. NIÑO FIESTA FUND\n';
+  detailText += 'Starting: '+f(25000)+' | Current: '+f(bb)+'\n';
+  detailText += '----------------------------------------\n';
+  detailText += bankDetail;
+  detailText += '\n💵 PETTY CASH - DETAILED\n';
+  detailText += 'Hawak ni: Treasurer | Fund: '+f(10000)+' | On Hand: '+f(pb)+'\n';
+  detailText += '----------------------------------------\n';
+  detailText += pettyDetail;
+  detailText += '\n📊 BANK RECONCILIATION\n';
+  detailText += 'Bank '+f(bb)+' + Petty '+f(pb)+' = TOTAL FUND: '+f(bb+pb)+'\n';
+  detailText += '----------------------------------------\n';
+  detailText += 'Prepared by: Treasurer\nChecked by: Auditor\nApproved by: Father\n';
+
+  var orig = mainReport.innerText || mainReport.textContent;
+  if(orig.includes('Approved by')){
+    var bago = orig.replace('Approved by', detailText + '\nApproved by');
+    if(mainReport.tagName === 'PRE'){ mainReport.textContent = bago; }
+    else{ mainReport.innerHTML = bago.replace(/\n/g,'<br>'); }
+    window.buongReportText = bago;
+  }
+
+  // COPY FOR GC - buo na
+  document.querySelectorAll('button').forEach(function(b){
+    if((b.innerText||'').includes('COPY FOR GC') && !b.dataset.ayosNa2){
+      b.dataset.ayosNa2='1';
+      b.addEventListener('click', function(){
+        setTimeout(function(){
+          if(window.buongReportText){
+            navigator.clipboard.writeText(window.buongReportText);
+            alert('Na-copy na yung BUONG DETAILED REPORT, DEN! Lahat ng transaction kasama! ✅');
+          }
+        },200);
+      });
+    }
+  });
+}
+setTimeout(fullReport, 1000);
+setInterval(fullReport, 2000);
+document.addEventListener('click', function(e){ if((e.target.innerText||'').includes('Report')) setTimeout(fullReport, 800); });
+</script>
+<!-- ===== TAPOS FULL DETAILED REPORT ===== -->
 </body>
   </html>
