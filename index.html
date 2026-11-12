@@ -31,6 +31,7 @@ button{width:100%;padding:12px;border:0;border-radius:10px;font-size:15px;font-w
 .btn-red{background:#dc2626;color:#fff}
 .btn-gray{background:#e7e5e4;color:#1c1917}
 .btn-gold{background:#d4af37;color:#1c1917}
+.btn-blue{background:#2563eb;color:#fff}
 .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .tabs button{flex:1;min-width:70px;background:#fff;border:1px solid #f59e0b;color:#7f1d1d;padding:10px 4px;font-size:13px}
 .tabs button.active{background:#991b1b;color:#fff}
@@ -53,6 +54,11 @@ small{color:#78716c}
 .fiesta-card{border:2px solid #d4af37;background:linear-gradient(to bottom,#fffbeb,#fef3c7);text-align:center}
 .fiesta-bar{height:22px;background:#e7e5e4;border-radius:20px;overflow:hidden;margin:10px 0;border:1px solid #d4af37}
 .fiesta-fill{height:100%;background:linear-gradient(to right,#991b1b,#d4af37,#16a34a);width:0%;transition:width 0.5s;text-align:center;color:#fff;font-size:12px;font-weight:800;line-height:22px}
+.gallery-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gallery-item{border:1px solid #fcd34d;border-radius:12px;overflow:hidden;background:#fffbeb;text-align:center;padding-bottom:8px}
+.gallery-item img{width:100%;height:140px;object-fit:cover;display:block;background:#fff}
+.gallery-item b{font-size:13px;color:#7f1d1d;display:block;margin-top:6px}
+.gallery-item small{font-size:11px}
 .footer{margin-top:20px;text-align:center;padding:18px 14px 22px;background:linear-gradient(to bottom,#7f1d1d,#991b1b,#b45309);border-radius:16px;border:2px solid #d4af37;color:#fff}
 .footer .f-title{font-size:15px;font-weight:900;letter-spacing:1px;color:#fde68a;margin:0}
 .footer .f-sub{font-size:12px;color:#fff;margin:4px 0 0}
@@ -66,7 +72,7 @@ small{color:#78716c}
 <div class="top">
 <div class="logo-wrap"><img src="stonino.jpg" alt="Sto Nino"></div>
 <h1>Sto. Niño Chapel</h1>
-<p>Finance System Online • V9.6</p>
+<p>Finance System Online • V9.7</p>
 <p class="verse">✨ Viva Pit Señor! ✨</p>
 <p id="liveClock" style="margin:6px 0 0;font-size:13px;font-weight:700;color:#fde68a;background:rgba(0,0,0,0.25);display:inline-block;padding:4px 12px;border-radius:20px">--:--:--</p>
 </div>
@@ -100,11 +106,19 @@ small{color:#78716c}
 <div class="mini"><b id="txCount">0</b><span>TRANSACTIONS</span></div>
 <div class="mini"><b id="lockedCount">0</b><span>LOCKED</span></div>
 </div>
+<div class="card" style="border:2px solid #2563eb">
+<h3 style="margin:0;color:#1e40af">💾 Backup - Para hindi ka kabahan</h3>
+<p><small>Isang pindot, download agad ng Excel ng lahat ng transactions mo. Gawin mo to linggo-linggo.</small></p>
+<button class="btn-blue" onclick="downloadBackup()">💾 DOWNLOAD BACKUP - EXCEL</button>
+<div style="height:8px"></div>
+<button class="btn-gray" onclick="downloadMembersBackup()">👥 DOWNLOAD MEMBERS LIST</button>
+</div>
 <div class="tabs">
 <button id="tabCash" class="active" onclick="showTab('cash')">Cash</button>
 <button id="tabAudit" onclick="showTab('audit')">Audit</button>
 <button id="tabReport" onclick="showTab('report')">Report</button>
 <button id="tabMembers" onclick="showTab('members')">Members</button>
+<button id="tabGallery" onclick="showTab('gallery')">📸 Gallery</button>
 </div>
 <div id="cashTab">
 <div class="card" id="addCard">
@@ -124,6 +138,7 @@ small{color:#78716c}
 <div id="auditTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Audit</h3><p><small>Check mo resibo bago Approve.</small></p><div id="auditList"></div></div></div>
 <div id="reportTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Monthly Report - #3</h3><label>Buwan</label><input id="reportMonth" type="month"><div style="height:10px"></div><div class="report-box" id="reportBox">Pili ka muna ng buwan.</div><div style="height:10px"></div><button class="btn-gold" onclick="copyReport()">📋 COPY FOR GC</button><div style="height:8px"></div><button class="btn-gray" onclick="window.print()">🖨️ PRINT / PDF</button></div></div>
 <div id="membersTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Members</h3><label>Name</label><input id="memberName" placeholder="Juan Dela Cruz"><div style="height:10px"></div><button class="btn-orange" onclick="addMember()">Add Member</button><div style="height:12px"></div><div id="memberList"></div></div></div>
+<div id="galleryTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">📸 Gallery ng Resibo</h3><p><small>Lahat ng may resibo, nandito. Pindutin para lumaki.</small></p><div style="margin:10px 0"><label style="margin:0">Filter Gallery</label><select id="galleryFilter" onchange="renderGallery()"><option value="all">Lahat ng may resibo</option><option value="approved">Approved lang</option><option value="pending">Pending lang</option></select></div><div id="galleryCount" style="font-size:13px;font-weight:700;color:#7f1d1d;margin-bottom:10px"></div><div id="galleryGrid" class="gallery-grid"></div></div></div>
 <div class="footer">
 <p class="f-title">© ALL RIGHTS RESERVED</p>
 <p class="f-sub">Sto. Niño Chapel • Finance System Online</p>
@@ -220,11 +235,14 @@ document.getElementById("cashTab").classList.toggle("hidden", t!=="cash");
 document.getElementById("auditTab").classList.toggle("hidden", t!=="audit");
 document.getElementById("reportTab").classList.toggle("hidden", t!=="report");
 document.getElementById("membersTab").classList.toggle("hidden", t!=="members");
+document.getElementById("galleryTab").classList.toggle("hidden", t!=="gallery");
 document.getElementById("tabCash").classList.toggle("active", t==="cash");
 document.getElementById("tabAudit").classList.toggle("active", t==="audit");
 document.getElementById("tabReport").classList.toggle("active", t==="report");
 document.getElementById("tabMembers").classList.toggle("active", t==="members");
+document.getElementById("tabGallery").classList.toggle("active", t==="gallery");
 if(t==="report") buildReport();
+if(t==="gallery") renderGallery();
 }
 function doLogin(){
 var e=document.getElementById("email").value.trim();
@@ -288,6 +306,58 @@ db.ref("transactions/"+id).remove();
 }
 function peso(n){ return "₱"+Number(n||0).toLocaleString("en-PH",{minimumFractionDigits:2}); }
 function fmtNo(n){ return "#"+String(n).padStart(3,"0"); }
+function csvSafe(s){
+s=String(s==null?"":s).replace(/"/g,'""');
+return '"'+s+'"';
+}
+function downloadBackup(){
+if(!allTx.length){ alert("Wala pang transaction para i-backup!"); return; }
+var rows=[];
+rows.push(["No","Date","Type","Category","Amount","Note","Status","Locked","Created By","Has Receipt"]);
+allTx.forEach(function(t){
+var d=new Date(t.createdAt||Date.now());
+var dateStr=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+d.toLocaleTimeString('en-PH');
+rows.push([fmtNo(t.displayNo), dateStr, t.type==="in"?"Cash In":"Withdraw", t.category||"", t.amount||0, t.note||"", t.status||"pending", t.locked?"YES":"NO", t.createdBy||"", t.receipt?"YES":"NO"]);
+});
+var csv=rows.map(function(r){ return r.map(csvSafe).join(","); }).join("\n");
+var blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+var a=document.createElement("a");
+var now=new Date();
+var fname="StoNino-Backup-"+now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")+".csv";
+a.href=URL.createObjectURL(blob);
+a.download=fname;
+a.click();
+URL.revokeObjectURL(a.href);
+alert("Na-download na! File: "+fname+"\nBubuksan yan sa Excel / Google Sheets.");
+}
+function downloadMembersBackup(){
+if(!allMembers.length){ alert("Wala pang members!"); return; }
+var rows=[["Name","Date Added"]];
+allMembers.forEach(function(m){
+var d=new Date(m.createdAt||Date.now());
+rows.push([m.name, d.toLocaleDateString('en-PH')]);
+});
+var csv=rows.map(function(r){ return r.map(csvSafe).join(","); }).join("\n");
+var blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+var a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="StoNino-Members.csv";
+a.click();
+URL.revokeObjectURL(a.href);
+alert("Na-download na yung Members List!");
+}
+function renderGallery(){
+var filter=document.getElementById("galleryFilter").value;
+var withReceipt=allTx.filter(function(t){ return t.receipt && t.receipt.length>10; });
+var filtered=withReceipt.filter(function(t){ if(filter==="all") return true; return t.status===filter; });
+document.getElementById("galleryCount").innerText="May resibo: "+filtered.length+" / Total: "+allTx.length;
+var html="";
+filtered.forEach(function(t){
+var sign=t.type==="in"?"+":"-";
+html+='<div class="gallery-item" onclick="window.open(\''+t.receipt+'\',\'_blank\')"><img src="'+t.receipt+'"><b>'+fmtNo(t.displayNo)+' '+sign+peso(t.amount)+'</b><small>'+(t.category||"")+'<br>'+(t.note||"")+'<br><span style="color:'+(t.status==="approved"?"#16a34a":"#92400e")+'">'+(t.status||"pending").toUpperCase()+'</span></small></div>';
+});
+document.getElementById("galleryGrid").innerHTML=html||"<p><small>Wala pang resibo. Mag-add ka muna ng transaction na may picture.</small></p>";
+}
 function getReportText(){
 var monthVal=document.getElementById("reportMonth").value;
 if(!monthVal) return "Pili ka muna ng buwan.";
@@ -397,6 +467,7 @@ var memHtml="";
 allMembers.forEach(function(m){ memHtml += '<div class="tx"><b>'+m.name+'</b></div>'; });
 document.getElementById("memberList").innerHTML = memHtml;
 buildReport();
+renderGallery();
 }
 auth.onAuthStateChanged(function(user){
 if(user){
@@ -437,4 +508,4 @@ document.getElementById("dashBox").classList.add("hidden");
 updateCategories();
 </script>
 </body>
-</html>
+  </html>
