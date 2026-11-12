@@ -66,7 +66,7 @@ small{color:#78716c}
 <div class="top">
 <div class="logo-wrap"><img src="stonino.jpg" alt="Sto Nino"></div>
 <h1>Sto. Niño Chapel</h1>
-<p>Finance System Online • V9.5</p>
+<p>Finance System Online • V9.6</p>
 <p class="verse">✨ Viva Pit Señor! ✨</p>
 <p id="liveClock" style="margin:6px 0 0;font-size:13px;font-weight:700;color:#fde68a;background:rgba(0,0,0,0.25);display:inline-block;padding:4px 12px;border-radius:20px">--:--:--</p>
 </div>
@@ -150,18 +150,22 @@ var CATEGORIES = {
 in: ["Mass Offering","Donation / Abuloy","Donation","Fiesta Fund","Special Collection","Iba pa"],
 out: ["Kuryente / Tubig","Linis / Maintenance","Kandila / Bulaklak","Pampare / Misa","Iba pa"]
 };
-var currentUser=null, currentRole="MEMBER", allTx=[], allMembers=[], receiptData="", fiestaTarget=20000;
+var currentUser=null, currentRole="VIEWER", allTx=[], allMembers=[], receiptData="", fiestaTarget=20000;
 function getRole(email){
+email=(email||"").toLowerCase();
 if(email==="admin@stonino.com") return "ADMIN";
 if(email==="auditor@stonino.com") return "AUDITOR";
 if(email==="treasurer@stonino.com") return "TREASURER";
-return "MEMBER";
+if(email==="father@stonino.com"||email==="priest@stonino.com"||email==="fr@stonino.com") return "PRIEST";
+if(email==="viewer@stonino.com"||email==="view@stonino.com") return "VIEWER";
+return "VIEWER";
 }
 function roleText(r){
 if(r==="TREASURER") return "Role: TREASURER - Add lang";
 if(r==="AUDITOR") return "Role: AUDITOR - Approve lang";
 if(r==="ADMIN") return "Role: ADMIN - Lock / Delete";
-return "Role: MEMBER - Tingin lang";
+if(r==="PRIEST") return "Role: PRIEST - Tingin + Approve 🙏";
+return "Role: VIEWER - Tingin lang";
 }
 function showMsg(txt){
 var box=document.getElementById("loginMsg");
@@ -262,11 +266,11 @@ db.ref("members").push({name:name, createdAt: Date.now()});
 document.getElementById("memberName").value="";
 }
 function approveTx(id){
-if(currentRole!=="AUDITOR" && currentRole!=="ADMIN") return alert("Auditor lang pwede!");
+if(currentRole!=="AUDITOR" && currentRole!=="ADMIN" && currentRole!=="PRIEST") return alert("Auditor / Priest lang pwede!");
 db.ref("transactions/"+id).update({status:"approved"});
 }
 function rejectTx(id){
-if(currentRole!=="AUDITOR" && currentRole!=="ADMIN") return alert("Auditor lang pwede!");
+if(currentRole!=="AUDITOR" && currentRole!=="ADMIN" && currentRole!=="PRIEST") return alert("Auditor / Priest lang pwede!");
 db.ref("transactions/"+id).update({status:"rejected"});
 }
 function lockTx(id){
@@ -322,7 +326,7 @@ var keys=Object.keys(byCat);
 if(keys.length===0) lines.push("- Wala pang approved");
 else keys.forEach(function(k){ lines.push("- "+k+": "+peso(byCat[k])); });
 lines.push("");
-lines.push("Approved by: Auditor");
+lines.push("Approved by: Auditor / Priest");
 lines.push("Viva Pit Señor! 🙏");
 return lines.join("\n");
 }
@@ -377,7 +381,7 @@ document.getElementById("txList").innerHTML = html || "<p><small>Wala pang trans
 var auditHtml="";
 allTx.forEach(function(t){
 var btns="";
-if(currentRole==="AUDITOR" || currentRole==="ADMIN"){
+if(currentRole==="AUDITOR" || currentRole==="ADMIN" || currentRole==="PRIEST"){
 if(t.status==="pending") btns+='<div class="row"><button class="btn-green" onclick="approveTx(\''+t.id+'\')">Approve</button><button class="btn-red" onclick="rejectTx(\''+t.id+'\')">Reject</button></div>';
 }
 if(currentRole==="ADMIN"){
@@ -433,4 +437,4 @@ document.getElementById("dashBox").classList.add("hidden");
 updateCategories();
 </script>
 </body>
-  </html>
+</html>
