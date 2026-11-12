@@ -840,5 +840,79 @@ setTimeout(gawaBankTabs, 1500);
 setInterval(()=>{ if(!document.getElementById('tabBankSavings')) gawaBankTabs(); }, 3000);
 </script>
 <!-- ===== TAPOS BANK LEVEL ===== -->
+<!-- ===== AYOS FOOTER + BANK SA REPORT ===== -->
+<script>
+function ayosFooterAtReport(){
+  // 1. IBABA YUNG FOOTER - ALL RIGHTS RESERVED
+  var all = document.body.innerHTML;
+  var footer = null;
+  var divs = document.querySelectorAll('div');
+  divs.forEach(function(d){
+    if((d.innerText||'').includes('ALL RIGHTS RESERVED') && (d.innerText||'').includes('Bro. Den')){
+      if(!footer || d.innerText.length < footer.innerText.length) footer = d;
+    }
+  });
+  if(footer){
+    // Ilipat sa pinaka-dulo ng body
+    document.body.appendChild(footer);
+    footer.style.order = '9999';
+    footer.style.marginTop = '20px';
+  }
+  // 2. ILIPAT YUNG BANK PANEL BAGO YUNG FOOTER
+  var panel = document.getElementById('bankPettyPanel');
+  if(panel && footer && panel.parentNode){
+    // Kung nasa ilalim ng footer yung panel, iangat bago footer
+    if(footer.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_PRECEDING){
+      document.body.insertBefore(panel, footer);
+    }
+  }
+
+  // 3. DAGDAG BANK + PETTY SA REPORT
+  // Hanapin yung Monthly Report box
+  var reportBox = null;
+  document.querySelectorAll('div').forEach(function(d){
+    if((d.innerText||'').includes('STO. NIÑO CHAPEL') && (d.innerText||'').includes('Treasury Report')){
+      if(!reportBox) reportBox = d;
+    }
+  });
+  if(reportBox && !document.getElementById('bankReportBox')){
+    var bankTx2 = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+    var pettyTx2 = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+    var bb = 25000; bankTx2.forEach(t=>{ if(t.type==='DEPOSIT') bb+=t.amount; else bb-=t.amount; });
+    var pb = 10000; pettyTx2.forEach(t=>{ if(t.type==='REPLENISH') pb+=t.amount; else pb-=t.amount; });
+    var totalBank = bb + pb;
+    var bankDep = 0, bankWith = 0;
+    bankTx2.forEach(t=>{ if(t.type==='DEPOSIT') bankDep+=t.amount; else bankWith+=t.amount; });
+    var pettyExp = 0, pettyRep = 0;
+    pettyTx2.forEach(t=>{ if(t.type==='EXPENSE') pettyExp+=t.amount; else pettyRep+=t.amount; });
+
+    var box = document.createElement('div');
+    box.id = 'bankReportBox';
+    box.style.cssText = 'background:#fffde7;border:2px solid #b58900;border-radius:12px;padding:12px;margin-top:12px;';
+    box.innerHTML = `
+      <b>🏦 BANK LEVEL REPORT - NOVEMBER 2026</b><br><br>
+      <b>🏦 LANDBANK SAVINGS</b><br>
+      Bank: LANDBANK - STO. NIÑO FIESTA FUND<br>
+      Starting: ₱25,000.00<br>
+      Total Deposit: ₱${bankDep.toLocaleString('en-PH',{minimumFractionDigits:2})}<br>
+      Total Withdraw: ₱${bankWith.toLocaleString('en-PH',{minimumFractionDigits:2})}<br>
+      <b>Current Bank Balance: ₱${bb.toLocaleString('en-PH',{minimumFractionDigits:2})}</b><br><br>
+      <b>💵 PETTY CASH</b><br>
+      Hawak ni: Treasurer • Fund: ₱10,000.00<br>
+      Total Gastos: ₱${pettyExp.toLocaleString('en-PH',{minimumFractionDigits:2})}<br>
+      Total Replenish: ₱${pettyRep.toLocaleString('en-PH',{minimumFractionDigits:2})}<br>
+      <b>Petty Cash On Hand: ₱${pb.toLocaleString('en-PH',{minimumFractionDigits:2})}</b><br><br>
+      <hr>
+      <b>📊 BANK RECONCILIATION</b><br>
+      Bank (₱${bb.toLocaleString('en-PH')}) + Petty (₱${pb.toLocaleString('en-PH')}) = <b>TOTAL FUND: ₱${totalBank.toLocaleString('en-PH',{minimumFractionDigits:2})}</b><br>
+      <small>Checked by: Auditor / Father</small>
+    `;
+    reportBox.appendChild(box);
+  }
+}
+setTimeout(ayosFooterAtReport, 1000);
+setInterval(ayosFooterAtReport, 3000);
+</script>
+<!-- ===== TAPOS AYOS FOOTER ===== -->
 </body>
   </html>
