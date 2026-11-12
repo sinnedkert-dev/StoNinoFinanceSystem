@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sto.Nino Chapel V6 - Fixed</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#f2f0eb;padding-bottom:90px}
+.header{background:#7a1f1f;color:white;text-align:center;padding:16px 12px;line-height:1.6}
+.header h2{margin:0;font-size:18px;line-height:1.4}.header p{margin:5px 0 0;font-size:12px;line-height:1.6}
+.card{background:white;margin:10px;border-radius:14px;padding:14px}
+.big{font-size:32px;font-weight:bold;color:#1a7a3a;margin:8px 0 14px}
+.row{display:flex;gap:10px;margin-bottom:10px}
+.mini{flex:1;background:#fff8e6;border-radius:10px;padding:14px 8px;text-align:center;min-height:68px}
+.mini span{font-size:11px;letter-spacing:.5px;color:#666;display:block;margin-bottom:6px}
+.mini b{font-size:15px;color:#222;display:block;word-break:break-word;line-height:1.4}
+input,select{width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:10px}
+button{width:100%;padding:14px;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
+.btn-green{background:#1a7a3a;color:white}.btn-red{background:#c0392b;color:white}.btn-gold{background:#e6a817}.btn-blue{background:#2471a3;color:white}.btn-gray{background:#eee}
+/* FIXED - HINDI NA FLEX NA DIKIT */
+.tx,.mb,.audit{display:block;background:#fafafa;padding:14px;border-radius:10px;margin-bottom:10px;line-height:1.6;word-break:break-word;overflow-wrap:break-word}
+.tx > div:last-child,.audit > div:last-child,.mb > div:last-child{text-align:left;margin-top:10px}
+.tx b,.mb b{display:block;line-height:1.5;word-break:break-word}
+.tx small,.mb small,.audit small{display:block;line-height:1.6;margin-top:5px;word-break:break-word}
+.audit b{display:block;margin-bottom:6px;line-height:1.5;word-break:break-word}
+.badge{font-size:11px;padding:4px 9px;border-radius:20px;display:inline-block;margin-bottom:6px}.badge-pending{background:#fde68a}.badge-approved{background:#bbf7d0}
+.txnum{background:#7a1f1f;color:white;padding:4px 9px;border-radius:20px;font-size:11px;display:inline-block;margin-bottom:6px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;border-top:1px solid #ddd}
+.nav button{background:none;color:#666;font-size:11px;padding:11px 0;line-height:1.5}.nav button.active{color:#7a1f1f}
+.hidden{display:none}.thumb{width:70px;height:70px;object-fit:cover;border-radius:8px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="header"><h2>⛪ Sto.Niño Chapel<br>Finance Tracker Online</h2><p id="userEmail">Kaban ng Kapilya</p><p id="userRoleLabel"></p><p>V6 - FIXED SPACING</p></div>
+<div id="loginPage" class="card" style="max-width:400px;margin:40px auto">
+<h2 style="text-align:center;color:#7a1f1f">Login - V6</h2>
+<input id="loginEmail" type="email" placeholder="Email">
+<input id="loginPass" type="password" placeholder="Password">
+<button class="btn-green" id="loginBtn">LOGIN</button>
+<p id="loginError" style="color:red;text-align:center"></p>
+<p style="font-size:11px;text-align:center;line-height:1.7">TREASURER = Add lang<br>AUDITOR / FATHER = Approve lang<br>MEMBER = Tingin lang</p>
+</div>
+<div id="mainApp" class="hidden">
+<div class="card"><span style="font-size:12px;letter-spacing:.5px">KABAN - APPROVED LANG</span><div class="big" id="totalBalance">₱0.00</div>
+<div class="row"><div class="mini"><span>CASH IN</span><b id="totalIn">₱0.00</b></div><div class="mini"><span>WITHDRAW</span><b id="totalOut">₱0.00</b></div></div>
+<div class="row"><div class="mini"><span>MEMBERS</span><b id="totalMembers">0</b></div><div class="mini"><span>PENDING</span><b id="totalPending">0</b></div></div>
+<div class="row"><div class="mini"><span>TRANSACTIONS</span><b id="totalTx">0</b></div><div class="mini"><span>NEXT</span><b id="nextTxNum">Transaction #001</b></div></div>
+<div class="row"><div class="mini"><span>LOCKED</span><b id="totalLocked">0</b></div><div class="mini"><span>STATUS</span><b>V6</b></div></div>
+<button class="btn-blue" style="margin-top:4px" onclick="window.print()">🖨️ PRINT REPORT</button>
+<button class="btn-gray" style="margin-top:8px" onclick="downloadBackup()">⬇️ DOWNLOAD BACKUP</button>
+                                                                                         </div>
+  <div id="pageDashboard">
+<div class="card"><h3 style="margin:0 0 10px">🎯 Budget / Target</h3><div id="budgetList" style="line-height:1.7">Wala pang target</div>
+<div style="margin-top:12px"><select id="budgetCategory"><option>Pondo - Fiesta</option><option>Pondo - Simbahan</option><option>Pondo - Youth</option><option>Pondo - Charity</option></select><input id="budgetTarget" type="number" placeholder="Target Halaga - Hal. 10000"><button class="btn-gold" onclick="saveBudget()">SET TARGET</button></div></div>
+<div class="card"><h3 style="margin:0 0 10px">📊 Pondo Per Category</h3><div id="pondoList" style="line-height:1.9">Wala pang pondo</div></div>
+<div class="card"><h3 style="margin:0 0 10px">🕐 Recent Approved</h3><div id="recentTx">Wala pa</div></div>
+</div>
+<div id="pageCash" class="hidden"><div class="card">
+<h3 style="margin:0">💰 Mag-Add - V6</h3>
+<p id="roleHintCash" style="font-size:12px;line-height:1.7"></p>
+<p style="font-size:12px;line-height:1.6">Next: <b id="nextTxNum2">Transaction #001</b></p>
+<label style="font-size:12px">Uri</label><select id="txType"><option value="in">Cash In - Pumasok</option><option value="out">Cash Out - Lumabas</option></select>
+<label style="font-size:12px">Halaga</label><input id="txAmount" type="number" placeholder="Hal. 500">
+<label style="font-size:12px">Category</label><select id="txCategory"><option>Donation</option><option>Mass Offering</option><option>Pondo - Fiesta</option><option>Pondo - Simbahan</option><option>Pondo - Youth</option><option>Pondo - Charity</option><option>Gastos - Kuryente</option><option>Gastos - Pagkain</option><option>Gastos - Iba Pa</option></select>
+<label style="font-size:12px">Pangalan</label><input id="txPerson" placeholder="Sino nagbigay / gumastos?">
+<label style="font-size:12px">Note</label><input id="txNote" placeholder="Hal. Galing kay Pedro">
+<label style="font-size:12px">Resibo (Picture)</label><input id="txReceipt" type="file" accept="image/*"><img id="receiptPreview" class="hidden" style="width:100%;border-radius:10px;margin-top:8px">
+<button class="btn-green" id="saveTxBtn" style="margin-top:12px">SAVE - PENDING KAY AUDITOR</button>
+</div>
+<div class="card"><h3 style="margin:0 0 10px">🔍 Hanapin / Filter</h3>
+<input id="searchTx" placeholder="Hanapin - pangalan, note" oninput="renderTx()">
+<div class="row" style="margin-top:6px"><select id="monthFilter" onchange="renderTx()"><option value="all">Lahat ng Buwan</option></select><select id="filterStatus" onchange="renderTx()"><option value="all">Lahat Status</option><option value="approved">Approved</option><option value="pending">Pending</option></select></div>
+<div class="row"><div class="mini"><span>IN - FILTER</span><b id="monthIn">₱0.00</b></div><div class="mini"><span>OUT - FILTER</span><b id="monthOut">₱0.00</b></div><div class="mini"><span>NET</span><b id="monthNet">₱0.00</b></div></div>
+<button class="btn-gold" onclick="toggleMonthLock()">🔒 LOCK / UNLOCK BUWAN NA ITO</button>
+</div>
+<div class="card"><h3 style="margin:0 0 10px">📋 Lahat ng Transactions</h3><div id="allTx">Wala pa</div></div>
+</div>
+<div id="pageMembers" class="hidden"><div class="card">
+<h3 style="margin:0 0 10px">👥 Members</h3>
+<input id="memberName" placeholder="Pangalan ni Member"><input id="memberContact" placeholder="Contact / FB"><button class="btn-green" id="addMemberBtn">ADD MEMBER</button>
+<input id="searchMember" placeholder="Hanapin si Member" style="margin-top:12px" oninput="renderMembers()">
+</div><div class="card"><div id="memberList">Wala pang members</div></div></div>
+<div id="pageApproval" class="hidden"><div class="card">
+<h3 style="margin:0 0 10px">✅ Approve - AUDITOR LANG</h3>
+<p style="font-size:12px;line-height:1.7">Si AUDITOR / FATHER lang makaka-approve dito.<br>Si Treasurer, naka-block.</p>
+<div id="pendingList">Wala pang pending.</div>
+</div></div>
+<div id="pageAudit" class="hidden"><div class="card"><h3 style="margin:0 0 10px">📜 Audit Log</h3><div id="auditList">Wala pa</div></div></div>
+</div>
+<div id="bottomNav" class="nav hidden">
+<button id="navDashboard" class="active" onclick="showPage('Dashboard')">🏠<br>Dashboard</button>
+<button id="navCash" onclick="showPage('Cash')">💰<br>Cash</button>
+<button id="navMembers" onclick="showPage('Members')">👥<br>Members</button>
+<button id="navApproval" onclick="showPage('Approval')">✅<br>Approve</button>
+<button id="navAudit" onclick="showPage('Audit')">📜<br>Audit</button>
+  </div>   
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = { apiKey: "AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw", authDomain: "stoninochapelfinance.firebaseapp.com", databaseURL: "https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "stoninochapelfinance", storageBucket: "stoninochapelfinance.firebasestorage.app", messagingSenderId: "633724409478", appId: "1:633724409478:web:a01f4e934d836ce3c82307", measurementId: "G-7WCS0PJWY6" };
+
+const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
+let currentUserEmail = ""; let currentRole = "TREASURER"; let allTransactions = {}; let allMembers = {}; let allBudgets = {}; let allLocked = {}; let allAudit = {}; let receiptBase64 = "";
+window.formatMoney = (n)=> "₱" + Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2});
+window.formatDateTime = (ts)=>{ if(!ts) return ""; const d=new Date(ts); return d.toLocaleString('en-PH',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}); };
+window.monthKey = (ts)=>{ const d=new Date(ts); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0'); };
+window.monthLabel = (k)=>{ const [y,m]=k.split('-'); const d=new Date(Number(y),Number(m)-1,1); return d.toLocaleString('en-PH',{month:'long',year:'numeric'}); };
+window.formatTxNum = (n)=> "Transaction #" + String(n).padStart(3,'0');
+window.getDisplayTxNum = (t,id)=> t.txNumber ? formatTxNum(t.txNumber) : "Transaction #000";
+window.getNextTxNumber = ()=>{ const nums=Object.values(allTransactions).map(t=>Number(t.txNumber||0)).filter(n=>!isNaN(n)); return nums.length ? Math.max(...nums)+1 : 1; };
+window.setEl = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
+window.getRoleFromEmail = (email)=>{ if(!email) return "TREASURER"; const e=email.toLowerCase(); if(e.includes("auditor")||e.includes("father")||e.includes("pari")||e.includes("fr.")) return "AUDITOR"; if(e.includes("member")||e.includes("taga")) return "MEMBER"; return "TREASURER"; };
+window.addAudit = async (action,detail)=>{ try{ await push(ref(db,'audit'),{action,detail:detail||"",user:currentUserEmail||"System",role:currentRole,timestamp:Date.now()}); }catch(e){} };
+window.showPage = (name)=>{ ['Dashboard','Cash','Members','Approval','Audit'].forEach(p=>{ const el=document.getElementById('page'+p); if(el) el.classList.toggle('hidden',p!==name); const btn=document.getElementById('nav'+p); if(btn) btn.classList.toggle('active',p===name); }); };
+document.getElementById('loginBtn').onclick = async ()=>{ const email=document.getElementById('loginEmail').value.trim(); const pass=document.getElementById('loginPass').value; try{ await signInWithEmailAndPassword(auth,email,pass); }catch(e){ document.getElementById('loginError').textContent="Mali! Email o Password!"; } };
+onAuthStateChanged(auth,(user)=>{ if(!user){ document.getElementById('loginPage').classList.remove('hidden'); document.getElementById('mainApp').classList.add('hidden'); document.getElementById('bottomNav').classList.add('hidden'); return; } currentUserEmail=user.email||""; currentRole=getRoleFromEmail(currentUserEmail); document.getElementById('loginPage').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); document.getElementById('bottomNav').classList.remove('hidden'); setEl('userEmail',currentUserEmail+" • Logout"); setEl('userRoleLabel',"Role: "+currentRole+(currentRole==='TREASURER'?" - Add lang, HINDI pwede mag-approve":currentRole==='AUDITOR'?" - Approve ka! Ikaw lang pwede!":" - Tingin lang")); const hint=document.getElementById('roleHintCash'); if(hint) hint.textContent=currentRole==='TREASURER'?"Ikaw ay TREASURER - Pwede ka mag-Add, pero PENDING lang. Si AUDITOR ang mag-a-approve.":currentRole==='AUDITOR'?"Ikaw ay AUDITOR - Ikaw lang pwede mag-approve sa Approve page.":"Ikaw ay MEMBER - Tingin ka lang."; loadData(); showPage('Dashboard'); });
+document.getElementById('userEmail').onclick = async ()=>{ if(confirm("Mag-logout ka na?")){ await signOut(auth); await addAudit("LOGOUT",currentUserEmail); location.reload(); } };
+document.getElementById('txReceipt').onchange = (e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ receiptBase64=r.result; const img=document.getElementById('receiptPreview'); img.src=receiptBase64; img.classList.remove('hidden'); }; r.readAsDataURL(f); };
+window.db=db; window.ref=ref; window.push=push; window.update=update; window.remove=remove; window.onValue=onValue; window.addAuditGlobal=addAudit;
+    window.loadData = ()=>{ onValue(ref(db,'transactions'), s=>{ allTransactions=s.val()||{}; renderAll(); }); onValue(ref(db,'members'), s=>{ allMembers=s.val()||{}; renderAll(); }); onValue(ref(db,'budgets'), s=>{ allBudgets=s.val()||{}; renderAll(); }); onValue(ref(db,'lockedMonths'), s=>{ allLocked=s.val()||{}; renderAll(); }); onValue(ref(db,'audit'), s=>{ allAudit=s.val()||{}; renderAll(); }); };
+window.renderAll = ()=>{ const txs=Object.entries(allTransactions).map(([id,t])=>({id,...t})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)); const approved=txs.filter(t=>t.status==='approved'); const pending=txs.filter(t=>t.status==='pending'); const totalIn=approved.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount||0),0); const totalOut=approved.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount||0),0); setEl('totalBalance',formatMoney(totalIn-totalOut)); setEl('totalIn',formatMoney(totalIn)); setEl('totalOut',formatMoney(totalOut)); setEl('totalMembers',String(Object.keys(allMembers).length)); setEl('totalPending',String(pending.length)); setEl('totalTx',String(txs.length)); setEl('totalLocked',String(Object.keys(allLocked).length)); const next=getNextTxNumber(); setEl('nextTxNum',formatTxNum(next)); setEl('nextTxNum2',formatTxNum(next)); const mf=document.getElementById('monthFilter'); if(mf && mf.options.length<=1){ const keys=[...new Set(txs.map(t=>monthKey(t.timestamp)))].sort().reverse(); keys.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=monthLabel(k); mf.appendChild(o); }); } renderTx(); renderMembers(); renderBudgets(); renderAudit(); renderApproval(); };
+window.renderTx = ()=>{ const list=document.getElementById('allTx'); if(!list) return; const q=(document.getElementById('searchTx').value||'').toLowerCase(); const st=document.getElementById('filterStatus').value; const mf=document.getElementById('monthFilter').value; let txs=Object.entries(allTransactions).map(([id,t])=>({id,...t})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)); if(st!=='all') txs=txs.filter(t=>t.status===st); if(mf!=='all') txs=txs.filter(t=>monthKey(t.timestamp)===mf); if(q) txs=txs.filter(t=>(t.person||'').toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q)); const approved=txs.filter(t=>t.status==='approved'); const mIn=approved.filter(t=>t.type==='in').reduce((s,t)=>s+Number(t.amount||0),0); const mOut=approved.filter(t=>t.type==='out').reduce((s,t)=>s+Number(t.amount||0),0); setEl('monthIn',formatMoney(mIn)); setEl('monthOut',formatMoney(mOut)); setEl('monthNet',formatMoney(mIn-mOut)); if(!txs.length){ list.innerHTML='Wala pa'; return; } list.innerHTML=txs.map(t=>`<div class="tx"><div><span class="txnum">${getDisplayTxNum(t)}</span><br><b>${t.person||''} - ${t.type==='in'?'⬆️ IN':'⬇️ OUT'} ${formatMoney(t.amount)}</b><small>${t.category||''} • ${t.note||''}</small><small>${formatDateTime(t.timestamp)} • By: ${t.createdBy||''}</small>${t.receipt?`<br><img src="${t.receipt}" class="thumb" onclick="window.open(this.src)">`:''}</div><div><span class="badge ${t.status==='approved'?'badge-approved':'badge-pending'}">${t.status}</span>${currentRole==='AUDITOR'?`<br><button class="btn-red" style="width:auto;padding:8px 12px;margin-top:8px" onclick="deleteTx('${t.id}')">DELETE</button>`:''}</div></div>`).join(''); const recent=document.getElementById('recentTx'); if(recent) recent.innerHTML=approved.slice(0,3).map(t=>`<div class="tx"><div><b>${t.person||''} - ${formatMoney(t.amount)}</b><small>${formatDateTime(t.timestamp)}</small></div><div><span class="badge badge-approved">OK</span></div></div>`).join('')||'Wala pa'; };
+window.deleteTx = async (id)=>{ if(!confirm("Delete mo talaga?")) return; const t=allTransactions[id]; await remove(ref(db,'transactions/'+id)); await addAudit("DELETE",`Binura ${getDisplayTxNum(t)} - ${t.person} - ${formatMoney(t.amount)}`); };
+window.renderMembers = ()=>{ const list=document.getElementById('memberList'); if(!list) return; const q=(document.getElementById('searchMember').value||'').toLowerCase(); let ms=Object.entries(allMembers).map(([id,m])=>({id,...m})); if(q) ms=ms.filter(m=>(m.name||'').toLowerCase().includes(q)); list.innerHTML=ms.length?ms.map(m=>`<div class="mb"><div><b>${m.name}</b><small>${m.contact||''}</small><small>${formatDateTime(m.timestamp)}</small></div><div><button class="btn-red" style="width:auto;padding:8px 12px" onclick="deleteMember('${m.id}')">DELETE</button></div></div>`).join(''):'Wala pang members'; };
+window.deleteMember = async (id)=>{ if(!confirm("Delete member?")) return; await remove(ref(db,'members/'+id)); };
+window.renderBudgets = ()=>{ const bl=document.getElementById('budgetList'); const pl=document.getElementById('pondoList'); if(!bl) return; const approved=Object.values(allTransactions).filter(t=>t.status==='approved'); bl.innerHTML=Object.keys(allBudgets).length?Object.entries(allBudgets).map(([cat,b])=>{ const got=approved.filter(t=>t.category===cat&&t.type==='in').reduce((s,t)=>s+Number(t.amount||0),0); const pct=Math.min(100,Math.round(got/Number(b.target||1)*100)); return `<div style="margin-bottom:10px"><b>${cat}</b><br>${formatMoney(got)} / ${formatMoney(b.target)} (${pct}%)<div style="background:#eee;height:10px;border-radius:10px;overflow:hidden;margin-top:6px"><div style="width:${pct}%;background:#1a7a3a;height:10px"></div></div></div>`; }).join(''):'Wala pang target'; const cats=["Donation","Mass Offering","Pondo - Fiesta","Pondo - Simbahan","Pondo - Youth","Pondo - Charity","Gastos - Kuryente","Gastos - Pagkain","Gastos - Iba Pa"]; pl.innerHTML=cats.map(c=>{ const inn=approved.filter(t=>t.category===c&&t.type==='in').reduce((s,t)=>s+Number(t.amount||0),0); const out=approved.filter(t=>t.category===c&&t.type==='out').reduce((s,t)=>s+Number(t.amount||0),0); return `<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${c}</span><b>${formatMoney(inn-out)}</b></div>`; }).join(''); };
+window.renderApproval = ()=>{ const list=document.getElementById('pendingList'); if(!list) return; const pend=Object.entries(allTransactions).map(([id,t])=>({id,...t})).filter(t=>t.status==='pending').sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)); if(!pend.length){ list.innerHTML='Wala pang pending.'; return; } list.innerHTML=pend.map(t=>`<div class="tx"><div><span class="txnum">${getDisplayTxNum(t)}</span><br><b>${t.person||''} - ${t.type==='in'?'⬆️ IN':'⬇️ OUT'} ${formatMoney(t.amount)}</b><small>${t.category||''} • ${t.note||''}</small><small>${formatDateTime(t.timestamp)} • By: ${t.createdBy||''}</small>${t.receipt?`<br><img src="${t.receipt}" class="thumb" onclick="window.open(this.src)">`:''}</div><div>${currentRole==='AUDITOR'?`<button class="btn-green" style="width:auto;padding:10px 14px" onclick="approveTx('${t.id}')">✅ APPROVE</button><button class="btn-red" style="width:auto;padding:10px 14px;margin-top:8px" onclick="rejectTx('${t.id}')">❌ REJECT</button>`:`<p style="font-size:12px;line-height:1.7;margin:0">⛔ Naka-${currentRole} ka<br>HINDI ka pwede mag-approve.<br>Si AUDITOR lang.</p><button class="btn-red" style="width:auto;padding:10px 12px;margin-top:8px" onclick="tryApproveBlocked()">Try Approve - Ma-block ka</button>`}</div></div>`).join(''); };
+window.tryApproveBlocked = async ()=>{ alert("⛔ BAWAL! Si AUDITOR / FATHER lang pwede mag-approve. Naka-"+currentRole+" ka ngayon."); await addAudit("BLOCKED APPROVE",`Si ${currentUserEmail} (${currentRole}) nag-try mag-approve pero na-block`); };
+window.approveTx = async (id)=>{ if(currentRole!=='AUDITOR'){ await tryApproveBlocked(); return; } if(!confirm("Approve mo talaga?")) return; const t=allTransactions[id]; await update(ref(db,'transactions/'+id),{status:'approved',approvedBy:currentUserEmail,approvedAt:Date.now()}); await addAudit("APPROVE",`In-approve ${getDisplayTxNum(t)} - ${t.person} - ${formatMoney(t.amount)}`); };
+window.rejectTx = async (id)=>{ if(currentRole!=='AUDITOR') return; if(!confirm("Reject mo talaga?")) return; const t=allTransactions[id]; await update(ref(db,'transactions/'+id),{status:'rejected',approvedBy:currentUserEmail}); await addAudit("REJECT",`Ni-reject ${getDisplayTxNum(t)} - ${t.person}`); };
+window.renderAudit = ()=>{ const list=document.getElementById('auditList'); if(!list) return; const logs=Object.values(allAudit).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)); list.innerHTML=logs.length?logs.slice(0,50).map(a=>`<div class="audit"><div><b>${a.action||''}</b><small>${a.detail||''}</small><small>${formatDateTime(a.timestamp)}</small><small>${a.user||''} • ${a.role||''}</small></div></div>`).join(''):'Wala pa'; };
+document.getElementById('saveTxBtn').onclick = async ()=>{ const amt=Number(document.getElementById('txAmount').value); if(!amt) return alert("Lagyan mo ng halaga!"); const person=document.getElementById('txPerson').value.trim()||"Anonymous"; const t={type:document.getElementById('txType').value,amount:amt,category:document.getElementById('txCategory').value,person,note:document.getElementById('txNote').value.trim(),receipt:receiptBase64||"",status:'pending',createdBy:currentUserEmail,createdRole:currentRole,txNumber:getNextTxNumber(),timestamp:Date.now()}; await push(ref(db,'transactions'),t); await addAudit("ADD - PENDING",`Nag-add ${formatTxNum(t.txNumber)} - ${person} - ${formatMoney(amt)} - PENDING. Si AUDITOR lang pwede mag-approve!`); alert("Na-save! Ikaw ay "+formatTxNum(t.txNumber)+". PENDING. Si AUDITOR lang pwede mag-approve!"); document.getElementById('txAmount').value=""; document.getElementById('txNote').value=""; receiptBase64=""; document.getElementById('receiptPreview').classList.add('hidden'); showPage('Approval'); };
+document.getElementById('addMemberBtn').onclick = async ()=>{ const n=document.getElementById('memberName').value.trim(); if(!n) return alert("Lagyan ng pangalan!"); await push(ref(db,'members'),{name:n,contact:document.getElementById('memberContact').value.trim(),timestamp:Date.now()}); document.getElementById('memberName').value=""; document.getElementById('memberContact').value=""; };
+window.saveBudget = async ()=>{ const cat=document.getElementById('budgetCategory').value; const tgt=Number(document.getElementById('budgetTarget').value); if(!tgt) return alert("Lagyan ng target!"); await update(ref(db,'budgets/'+cat.replace(/[^a-zA-Z0-9]/g,'_')),{target:tgt}); alert("Na-save target!"); };
+window.toggleMonthLock = async ()=>{ const k=monthKey(Date.now()); if(allLocked[k]){ await remove(ref(db,'lockedMonths/'+k)); await addAudit("UNLOCK MONTH",`In-unlock ${monthLabel(k)}`); } else { await update(ref(db,'lockedMonths/'+k),{locked:true,by:currentUserEmail}); await addAudit("LOCK MONTH",`Ni-lock ${monthLabel(k)}`); } };
+window.downloadBackup = ()=>{ const data={transactions:allTransactions,members:allMembers,budgets:allBudgets,audit:allAudit,exportedAt:new Date().toISOString()}; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='stonino-backup-v6.json'; a.click(); };
+</script>
+</body>
+</html>
