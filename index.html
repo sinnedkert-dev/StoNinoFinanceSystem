@@ -759,5 +759,88 @@ document.addEventListener('click', function(e){
 setTimeout(gawaTabs, 1200);
 </script>
 <!-- ===== TAPOS CLEAN FINAL ===== -->
+<!-- ===== FIX FOOTER + AUDITOR BAWAL MAG-TRANSACT ===== -->
+<script>
+function kuhaRole(){
+  // Hanapin role kahit saan - sa variable o sa text sa screen
+  if(typeof currentRole!=='undefined' && currentRole) return String(currentRole).toUpperCase();
+  if(typeof userRole!=='undefined' && userRole) return String(userRole).toUpperCase();
+  if(window.currentUserRole) return String(window.currentUserRole).toUpperCase();
+  var t = document.body.innerText || '';
+  var m = t.match(/Role:\s*([A-Z]+)/i);
+  if(m) return m[1].toUpperCase();
+  if(t.includes('auditor@')) return 'AUDITOR';
+  if(t.includes('treasurer@')) return 'TREASURER';
+  return '';
+}
+function pwedeMagTransact(){
+  var r = kuhaRole();
+  // TREASURER at ADMIN lang pwede gumalaw ng pera!
+  return (r==='TREASURER' || r==='ADMIN' || r==='TREASURER / ADMIN');
+}
+
+// --- BANTAYAN ANG FOOTER - DAPAT LAGI SIYANG PINAKA-HULI ---
+function ayosFooterLagi(){
+  var footer=null;
+  document.querySelectorAll('div').forEach(function(d){
+    if((d.innerText||'').includes('ALL RIGHTS RESERVED') && (d.innerText||'').includes('Bro. Den')){
+      if(!footer || d.innerText.length < footer.innerText.length) footer=d;
+    }
+  });
+  if(!footer) return;
+  // Kung hindi siya yung pinaka-huli sa body, ilipat sa dulo
+  var panel=document.getElementById('bankPettyPanel');
+  // Ilipat panel BAGO footer, footer sa pinaka-dulo
+  if(panel && panel.parentNode!==document.body){
+    // Ilipat pareho sa body dulo - panel muna, footer huli
+    document.body.appendChild(panel);
+  }
+  if(footer.parentNode!==document.body || document.body.lastElementChild!==footer){
+    document.body.appendChild(footer);
+  }
+  footer.style.marginTop='16px';
+  if(panel) panel.style.display=panel.style.display||'none';
+}
+
+// --- HARANGIN SI AUDITOR KAHIT PININDOT NIYA ---
+var origAddBank = window.addBank;
+var origAddPetty = window.addPetty;
+window.addBank = function(type){
+  if(!pwedeMagTransact()){ alert('Bawal ka mag-transact, '+kuhaRole()+'! Tingin at Approve ka lang. Treasurer lang pwede! ⛔'); return; }
+  if(origAddBank) origAddBank(type);
+};
+window.addPetty = function(type){
+  if(!pwedeMagTransact()){ alert('Bawal ka mag-transact, '+kuhaRole()+'! Tingin at Approve ka lang. Treasurer lang pwede! ⛔'); return; }
+  if(origAddPetty) origAddPetty(type);
+};
+
+// --- ITAGO YUNG BUTTONS PAG AUDITOR / FATHER / MEMBER ---
+function tagoButtonsPagBawal(){
+  if(pwedeMagTransact()) return; // Treasurer - wag itago
+  var panel=document.getElementById('bankPettyPanel'); if(!panel) return;
+  // Hanapin yung DEPOSIT / WITHDRAW / GASTOS / REPLENISH sa panel, palitan ng warning
+  panel.querySelectorAll('button').forEach(function(b){
+    var txt=(b.innerText||'').toUpperCase();
+    if(txt.includes('DEPOSIT')||txt.includes('WITHDRAW')||txt.includes('GASTOS')||txt.includes('REPLENISH')){
+      b.style.display='none';
+    }
+  });
+  // Lagyan ng warning kung wala pa
+  if(!document.getElementById('bawalMsg')){
+    var msg=document.createElement('div');
+    msg.id='bawalMsg';
+    msg.style.cssText='background:#ffebee;border:2px solid red;border-radius:10px;padding:10px;text-align:center;margin-top:10px;';
+    msg.innerHTML='⛔ <b>VIEW ONLY KA, '+kuhaRole()+'</b><br>Tingin lang at Approve. Treasurer lang pwede mag-Deposit / Withdraw / Gastos.';
+    panel.appendChild(msg);
+  }
+  // Itago din yung input
+  panel.querySelectorAll('input').forEach(function(inp){ inp.style.display='none'; });
+}
+
+// TATAKBO ARAW-ARAW - PARA HINDI NA UMKYAT SI FOOTER AT HINDI NA MAKAPAG-TRANSACT SI AUDITOR
+setInterval(function(){ ayosFooterLagi(); tagoButtonsPagBawal(); }, 1000);
+document.addEventListener('click', function(){ setTimeout(function(){ ayosFooterLagi(); tagoButtonsPagBawal(); }, 500); });
+</script>
+<!-- ===== TAPOS FIX FOOTER + AUDITOR ===== -->
 </body>
   </html>
