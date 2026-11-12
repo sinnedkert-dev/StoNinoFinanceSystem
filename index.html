@@ -72,7 +72,7 @@ small{color:#78716c}
 <div class="top">
 <div class="logo-wrap"><img src="stonino.jpg" alt="Sto Nino"></div>
 <h1>Sto. Niño Chapel</h1>
-<p>Finance System Online • V9.7</p>
+<p>Finance System Online • V9.8</p>
 <p class="verse">✨ Viva Pit Señor! ✨</p>
 <p id="liveClock" style="margin:6px 0 0;font-size:13px;font-weight:700;color:#fde68a;background:rgba(0,0,0,0.25);display:inline-block;padding:4px 12px;border-radius:20px">--:--:--</p>
 </div>
@@ -106,19 +106,13 @@ small{color:#78716c}
 <div class="mini"><b id="txCount">0</b><span>TRANSACTIONS</span></div>
 <div class="mini"><b id="lockedCount">0</b><span>LOCKED</span></div>
 </div>
-<div class="card" style="border:2px solid #2563eb">
-<h3 style="margin:0;color:#1e40af">💾 Backup - Para hindi ka kabahan</h3>
-<p><small>Isang pindot, download agad ng Excel ng lahat ng transactions mo. Gawin mo to linggo-linggo.</small></p>
-<button class="btn-blue" onclick="downloadBackup()">💾 DOWNLOAD BACKUP - EXCEL</button>
-<div style="height:8px"></div>
-<button class="btn-gray" onclick="downloadMembersBackup()">👥 DOWNLOAD MEMBERS LIST</button>
-</div>
 <div class="tabs">
 <button id="tabCash" class="active" onclick="showTab('cash')">Cash</button>
 <button id="tabAudit" onclick="showTab('audit')">Audit</button>
 <button id="tabReport" onclick="showTab('report')">Report</button>
 <button id="tabMembers" onclick="showTab('members')">Members</button>
 <button id="tabGallery" onclick="showTab('gallery')">📸 Gallery</button>
+<button id="tabBackup" onclick="showTab('backup')">💾 Backup</button>
 </div>
 <div id="cashTab">
 <div class="card" id="addCard">
@@ -139,6 +133,7 @@ small{color:#78716c}
 <div id="reportTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Monthly Report - #3</h3><label>Buwan</label><input id="reportMonth" type="month"><div style="height:10px"></div><div class="report-box" id="reportBox">Pili ka muna ng buwan.</div><div style="height:10px"></div><button class="btn-gold" onclick="copyReport()">📋 COPY FOR GC</button><div style="height:8px"></div><button class="btn-gray" onclick="window.print()">🖨️ PRINT / PDF</button></div></div>
 <div id="membersTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Members</h3><label>Name</label><input id="memberName" placeholder="Juan Dela Cruz"><div style="height:10px"></div><button class="btn-orange" onclick="addMember()">Add Member</button><div style="height:12px"></div><div id="memberList"></div></div></div>
 <div id="galleryTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">📸 Gallery ng Resibo</h3><p><small>Lahat ng may resibo, nandito. Pindutin para lumaki.</small></p><div style="margin:10px 0"><label style="margin:0">Filter Gallery</label><select id="galleryFilter" onchange="renderGallery()"><option value="all">Lahat ng may resibo</option><option value="approved">Approved lang</option><option value="pending">Pending lang</option></select></div><div id="galleryCount" style="font-size:13px;font-weight:700;color:#7f1d1d;margin-bottom:10px"></div><div id="galleryGrid" class="gallery-grid"></div></div></div>
+<div id="backupTab" class="hidden"><div class="card" style="border:2px solid #2563eb"><h3 style="margin:0;color:#1e40af">💾 Backup - Para hindi ka kabahan</h3><p><small>Isang pindot, download agad ng Excel ng lahat ng transactions mo. Gawin mo to linggo-linggo.</small></p><button class="btn-blue" onclick="downloadBackup()">💾 DOWNLOAD BACKUP - EXCEL</button><div style="height:8px"></div><button class="btn-gray" onclick="downloadMembersBackup()">👥 DOWNLOAD MEMBERS LIST</button><div style="height:12px"></div><p><small>Tip: Pag nag-download ka, save mo sa Google Drive mo para kahit mawala phone mo, may kopya ka pa.</small></p></div></div>
 <div class="footer">
 <p class="f-title">© ALL RIGHTS RESERVED</p>
 <p class="f-sub">Sto. Niño Chapel • Finance System Online</p>
@@ -236,11 +231,13 @@ document.getElementById("auditTab").classList.toggle("hidden", t!=="audit");
 document.getElementById("reportTab").classList.toggle("hidden", t!=="report");
 document.getElementById("membersTab").classList.toggle("hidden", t!=="members");
 document.getElementById("galleryTab").classList.toggle("hidden", t!=="gallery");
+document.getElementById("backupTab").classList.toggle("hidden", t!=="backup");
 document.getElementById("tabCash").classList.toggle("active", t==="cash");
 document.getElementById("tabAudit").classList.toggle("active", t==="audit");
 document.getElementById("tabReport").classList.toggle("active", t==="report");
 document.getElementById("tabMembers").classList.toggle("active", t==="members");
 document.getElementById("tabGallery").classList.toggle("active", t==="gallery");
+document.getElementById("tabBackup").classList.toggle("active", t==="backup");
 if(t==="report") buildReport();
 if(t==="gallery") renderGallery();
 }
