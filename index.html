@@ -1078,5 +1078,111 @@ document.addEventListener('click', function(e){ if((e.target.innerText||'').incl
 setTimeout(buildProReport, 2000);
 </script>
 <!-- ===== TAPOS PRO REPORT + EXCEL ===== -->
+<!-- ===== PRO REPORT - KASAMA NA LAHAT - CASH + BANK + PETTY ===== -->
+<script>
+function kuhaCashTx(){
+  // 1. Hanapin sa localStorage - lahat ng posibleng pangalan
+  var keys=['transactions','apelTransactions','cashTransactions','txList','financeTx','cashTx','allTransactions','apelTx'];
+  for(var i=0;i<keys.length;i++){
+    try{
+      var v=JSON.parse(localStorage.getItem(keys[i])||'[]');
+      if(v && v.length && typeof v==='object') return v;
+    }catch(e){}
+  }
+  // 2. Hanapin sa window variable
+  if(window.transactions && window.transactions.length) return window.transactions;
+  if(window.allTx && window.allTx.length) return window.allTx;
+  // 3. Kung wala talaga - basahin sa lumang Monthly Report sa screen!
+  var cash=[];
+  document.querySelectorAll('div').forEach(function(d){
+    var t=d.innerText||'';
+    if(t.includes('Breakdown (Approved lang)')){
+      var lines=t.split('\n');
+      lines.forEach(function(ln){
+        // Hal: - OUT - Kuryente / Tubig: ₱-500.00
+        var m=ln.match(/-\s*(IN|OUT)\s*-\s*(.+?):\s*₱\s*([-\d,\.]+)/);
+        if(m){
+          cash.push({date:'11/12/2026', ref:'CASH-'+(cash.length+1), type:m[1], category:m[2].trim(), amount:Math.abs(Number(m[3].replace(/,/g,''))), note:m[2].trim(), status:'approved'});
+        }
+      });
+    }
+  });
+  return cash;
+}
+function buildProReportLahat(){
+  var box=document.getElementById('proReportBox');
+  if(!box) return;
+  // Tanggalin yung lumang Cash section kung meron na, para hindi dumoble
+  var oldCash=document.getElementById('proCashSection');
+  if(oldCash) oldCash.remove();
+  var cashTx=kuhaCashTx();
+  var bankTx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var cashIn=0, cashOut=0;
+  cashTx.forEach(function(x){
+    var amt=Number(x.amount||0);
+    var ty=(x.type||'').toUpperCase();
+    if(ty==='IN' || ty==='DONATION' || ty==='CASH IN' || (x.category && x.category.toLowerCase().includes('donation')) || amt>0 && ty!=='OUT') cashIn+=Math.abs(amt);
+    else cashOut+=Math.abs(amt);
+  });
+  var cashBal=cashIn-cashOut;
+  // Gawin yung CASH TABLE
+  var sec=document.createElement('div');
+  sec.id='proCashSection';
+  var html='<h3 style="margin:14px 0 6px;">💵 CASH ON HAND - DETAILED TRANSACTIONS (Lahat ng Donation / Gastos)</h3>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;"><tr style="background:#7b1e1e;color:#fff;"><th style="padding:7px 4px;border:1px solid #ddd;text-align:left;">DATE / TIME</th><th style="padding:7px 4px;border:1px solid #ddd;">REF</th><th style="padding:7px 4px;border:1px solid #ddd;">IN / OUT</th><th style="padding:7px 4px;border:1px solid #ddd;text-align:left;">DETAILS</th><th style="padding:7px 4px;border:1px solid #ddd;text-align:right;">AMOUNT</th><th style="padding:7px 4px;border:1px solid #ddd;">STATUS</th></tr>';
+  if(!cashTx.length){
+    html+='<tr><td colspan="6" style="padding:8px;border:1px solid #ddd;text-align:center;">Walang Cash transaction na nahanap - nasa Monthly Report pa.</td></tr>';
+  }
+  cashTx.forEach(function(x){
+    var isOut = (x.type||'').toUpperCase()==='OUT' || (x.amount<0);
+    var amtTxt = isOut ? '-₱'+Number(Math.abs(x.amount)).toLocaleString('en-PH',{minimumFractionDigits:2}) : '+₱'+Number(Math.abs(x.amount)).toLocaleString('en-PH',{minimumFractionDigits:2});
+    var detail = x.note || x.category || x.description || x.title || 'Cash';
+    var badge=(x.status||'approved')==='approved'?'✅ APPROVED':(x.status==='rejected'?'❌ REJECTED':'⏳ PENDING');
+    html+='<tr><td style="padding:7px 4px;border:1px solid #ddd;">'+(x.date||'11/12/2026')+'</td><td style="padding:7px 4px;border:1px solid #ddd;text-align:center;">'+(x.ref||x.id||'CASH')+'</td><td style="padding:7px 4px;border:1px solid #ddd;text-align:center;">'+(isOut?'OUT':'IN')+'</td><td style="padding:7px 4px;border:1px solid #ddd;">'+detail+'</td><td style="padding:7px 4px;border:1px solid #ddd;text-align:right;white-space:nowrap;"><b>'+amtTxt+'</b></td><td style="padding:7px 4px;border:1px solid #ddd;text-align:center;white-space:nowrap;font-size:10px;">'+badge+'</td></tr>';
+  });
+  html+='<tr style="background:#fff3e0;"><td colspan="4" style="padding:8px;border:1px solid #ddd;"><b>CASH TOTAL: IN ₱'+cashIn.toLocaleString('en-PH',{minimumFractionDigits:2})+' - OUT ₱'+cashOut.toLocaleString('en-PH',{minimumFractionDigits:2})+'</b></td><td style="padding:8px;border:1px solid #ddd;text-align:right;"><b>₱'+cashBal.toLocaleString('en-PH',{minimumFractionDigits:2})+'</b></td><td style="padding:8px;border:1px solid #ddd;"></td></tr></table>';
+  // Ilagay BAGO yung BANK section - CASH muna!
+  var bankH=null;
+  box.querySelectorAll('h3').forEach(function(h){ if(h.innerText.includes('BANK - DETAILED')) bankH=h; });
+  if(bankH) box.insertBefore(sec, bankH);
+  else box.appendChild(sec);
+  // Ayusin din yung SUMMARY - isama yung Cash sa TOTAL!
+  var bankBal=25000; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankBal+=x.amount; else bankBal-=x.amount; } });
+  var pettyBal=10000; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyBal+=x.amount; else pettyBal-=x.amount; } });
+  var totalAll=bankBal+pettyBal+cashBal;
+  // Hanapin yung TOTAL FUND row at palitan
+  box.querySelectorAll('td').forEach(function(td){
+    if(td.innerText.includes('TOTAL FUND')){
+      var row=td.parentNode;
+      row.innerHTML='<td style="padding:8px;border:1px solid #ddd;"><b>TOTAL FUND (Bank + Petty + Cash)</b></td><td style="padding:8px;border:1px solid #ddd;"></td><td style="padding:8px;border:1px solid #ddd;text-align:right;"><b>₱'+totalAll.toLocaleString('en-PH',{minimumFractionDigits:2})+'</b></td>';
+    }
+  });
+  // I-save para sa Excel
+  window._cashForExcel=cashTx; window._cashBal=cashBal; window._totalAll=totalAll;
+}
+// I-OVERRIDE YUNG EXCEL - KASAMA NA CASH!
+var origExcel=window.downloadExcelPro;
+window.downloadExcelPro=function(){
+  var bankTx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var cashTx=window._cashForExcel || kuhaCashTx();
+  var csv='STO. NINO CHAPEL - OFFICIAL TREASURY REPORT - LAHAT KASAMA\n';
+  csv+='NOVEMBER 2026,Generated: '+new Date().toLocaleString('en-PH')+'\n\n';
+  csv+='CASH TRANSACTIONS\nDate / Time,Ref,IN / OUT,Details,Amount,Status\n';
+  cashTx.forEach(function(x){ var isOut=(x.type||'').toUpperCase()==='OUT'; csv+='"'+(x.date||'')+'","'+(x.ref||'')+'","'+(isOut?'OUT':'IN')+'","'+(x.note||x.category||'')+'","'+(isOut?-Math.abs(x.amount):Math.abs(x.amount))+'","'+(x.status||'approved')+'"\n'; });
+  csv+='\nBANK TRANSACTIONS\nDate / Time,Ref,Type,Note,Amount,Status\n';
+  bankTx.forEach(function(x){ csv+='"'+(x.date||'')+'","'+x.ref+'","'+x.type+'","'+(x.note||'')+'","'+(x.type==='DEPOSIT'?x.amount:-x.amount)+'","'+(x.status||'')+'"\n'; });
+  csv+='\nPETTY TRANSACTIONS\nDate / Time,Ref,Type,Note,Amount,Status\n';
+  pettyTx.forEach(function(x){ csv+='"'+(x.date||'')+'","'+x.ref+'","'+x.type+'","'+(x.note||'')+'","'+(x.type==='REPLENISH'?x.amount:-x.amount)+'","'+(x.status||'')+'"\n'; });
+  csv+='\nPrepared by,Treasurer\nChecked by,Auditor\nApproved by,Parish Priest\n';
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='StoNino_Treasury_Report_LAHAT_Nov2026.csv'; a.click();
+  alert('✅ Na-download na - KASAMA NA LAHAT! Cash + Bank + Petty!');
+};
+setTimeout(buildProReportLahat, 1200);
+document.addEventListener('click', function(e){ if((e.target.innerText||'').includes('Report')) setTimeout(buildProReportLahat, 900); });
+</script>
+<!-- ===== TAPOS PRO REPORT LAHAT ===== -->
 </body>
   </html>
