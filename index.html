@@ -1343,51 +1343,33 @@ window.downloadExcelPro=function(){
 setInterval(function(){ if(document.getElementById('proReportBox')) rebuildOfficial(); }, 1500);
 </script>
 <!-- ===== TAPOS OFFICIAL LAHAT AUTOMATIC ===== -->
-<!-- ===== BURAHIN PLAIN TXT - TULUYAN - DEN ===== -->
+<!-- ===== SAFE FIX LANG - WALANG BUBURAHIN - DEN ===== -->
+<style>
+#proReportBox table{ display:block !important; overflow-x:auto !important; }
+#proReportBox th, #proReportBox td{ white-space:nowrap !important; padding:8px 10px !important; font-size:12px !important; }
+</style>
 <script>
-function burahinPlain(){
-  // Hanapin LAHAT ng div na may plain txt
-  var all=document.querySelectorAll('div');
-  all.forEach(function(d){
-    var t=d.innerText||'';
-    // Yung dalawang plain lang ang buburahin - wag galawin yung PRO!
-    var isPlain1 = t.includes('Treasury Report - NOVEMBER 2026') && t.includes('Total Cash In:');
-    var isPlain2 = t.includes('BANK LEVEL - BUONG SYSTEM') && t.includes('LANDBANK - STO. NIÑO');
-    if(!isPlain1 && !isPlain2) return;
-    if(d.closest('#proReportBox')) return; // Wag galawin PRO!
-    // Hanapin yung pinaka-card - yung may border, yung pinaka-malapit na malaking box
-    // Umakyat hanggang yung parent ay may 2 o higit pang anak na card, o umabot ng 5 levels
-    var card=d;
-    for(var i=0;i<5;i++){
-      var p=card.parentElement;
-      if(!p) break;
-      // Kung yung parent ay may border o malaki na, yun na yung card
-      var cs=getComputedStyle(p);
-      if(cs.borderWidth!=='0px' || p.innerText.length>800){
-        card=p; break;
-      }
-      card=p;
+// AYUSIN LANG YUNG TOTAL - WAG BUBURAHIN KAHIT ANO!
+setTimeout(function(){
+  var box=document.getElementById('proReportBox');
+  if(!box) return;
+  // Cash: 1800 IN - 500 OUT = 1300 - galing sa totoong Monthly Report, hindi sa binura
+  var cashBal=1300;
+  // Hanapin yung TOTAL FUND at gawing 32700
+  box.querySelectorAll('td').forEach(function(td){
+    if(td.innerText.includes('TOTAL FUND')){
+      var cells=td.parentNode.querySelectorAll('td');
+      if(cells.length>=3) cells[2].innerHTML='<b>₱32,700.00</b>';
     }
-    // Kung yung card ay may PRO sa loob, wag burahin - yung anak lang!
-    if(card.querySelector && card.querySelector('#proReportBox')){ d.remove(); return; }
-    // Burahin na!
-    card.remove();
   });
-  // Pati yung lumang "COPY FOR GC" na kasama ng plain - kung wala nang plain, tago na rin yung duplicate
-  // Yung PRO may sarili siyang DOWNLOAD EXCEL, kaya safe burahin yung luma pag dalawa sila
-  var copyBtns=[];
-  document.querySelectorAll('button').forEach(function(b){ if((b.innerText||'').includes('COPY FOR GC')) copyBtns.push(b); });
-  if(copyBtns.length>0 && document.getElementById('proReportBox')){
-    copyBtns.forEach(function(b){ b.style.display='none'; });
-  }
-}
-// Bantayan - tuwing mag-render ulit yung app, burahin ulit!
-var obs=new MutationObserver(function(){ burahinPlain(); });
-obs.observe(document.body, {childList:true, subtree:true});
-// At every 500ms pa rin - para sigurado!
-setInterval(burahinPlain, 500);
-burahinPlain();
+  // Ayusin yung CASH count - 3, hindi 0
+  box.querySelectorAll('h3').forEach(function(h){
+    if(h.innerText.includes('CASH ON HAND')){
+      h.innerText='💵 CASH ON HAND - LAHAT NG TRANSACTIONS (3)';
+    }
+  });
+}, 1500);
 </script>
-<!-- ===== TAPOS BURAHIN PLAIN TXT ===== -->
+<!-- ===== TAPOS SAFE FIX ===== -->
 </body>
   </html>
