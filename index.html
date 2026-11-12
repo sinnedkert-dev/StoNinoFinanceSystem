@@ -3,31 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sto. Niño Chapel - Treasury Tracker V7.1</title>
+<title>Sto. Niño Chapel - Treasury Tracker V7.4</title>
 <style>
 *{box-sizing:border-box;font-family:system-ui,Arial,sans-serif}
-body{margin:0;background:#fff7ed;color:#1c1917}
-.top{background:#ea580c;color:#fff;padding:14px;text-align:center}
-.top h1{margin:0;font-size:20px}
-.top p{margin:2px 0 0;font-size:12px;opacity:.9}
+body{margin:0;color:#2b1a0a;background:#fdf3d8;background-image:radial-gradient(circle at 50% 0%, #ffe9a8 0%, #fdf3d8 35%, #fbe3b5 100%);min-height:100vh}
+.top{position:relative;background:linear-gradient(to bottom,#7f1d1d,#991b1b,#b45309);color:#fff;text-align:center;padding:18px 12px 14px;border-bottom:4px solid #d4af37;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.logo-wrap{width:110px;height:110px;margin:0 auto;background:#fff;padding:4px;border-radius:50%;border:4px solid #d4af37;box-shadow:0 4px 16px rgba(0,0,0,.35);overflow:hidden}
+.logo-wrap img{width:100%;height:100%;object-fit:cover;object-position:top center;border-radius:50%;display:block}
+.top h1{margin:10px 0 0;font-size:24px;letter-spacing:.3px;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.top p{margin:2px 0 0;font-size:12px;opacity:.95}
+.top .verse{font-size:11px;font-style:italic;color:#fde68a;margin-top:4px}
 .wrap{max-width:520px;margin:0 auto;padding:12px}
-.card{background:#fff;border:1px solid #fed7aa;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-.kaban{font-size:36px;font-weight:800;color:#ea580c}
+.card{background:rgba(255,255,255,.96);border:1px solid #eab308;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 4px 14px rgba(180,83,9,.15)}
+.kaban{font-size:38px;font-weight:900;color:#b45309;text-shadow:0 1px 0 #fde68a}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mini{background:#fff7ed;border-radius:10px;padding:10px;text-align:center}
-.mini b{display:block;font-size:18px}
+.mini{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:10px;text-align:center}
+.mini b{display:block;font-size:18px;color:#7f1d1d}
 .mini span{font-size:11px;color:#78716c}
-label{font-size:12px;font-weight:700;display:block;margin:10px 0 4px}
+label{font-size:12px;font-weight:700;display:block;margin:10px 0 4px;color:#7f1d1d}
 input,select{width:100%;padding:11px;border:1px solid #d6d3d1;border-radius:10px;font-size:15px;background:#fff}
 button{width:100%;padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
-.btn-orange{background:#ea580c;color:#fff}
+.btn-orange{background:linear-gradient(to bottom,#dc2626,#991b1b);color:#fff;box-shadow:0 3px 0 #7f1d1d}
 .btn-green{background:#16a34a;color:#fff}
 .btn-red{background:#dc2626;color:#fff}
 .btn-gray{background:#e7e5e4;color:#1c1917}
 .tabs{display:flex;gap:8px;margin-bottom:12px}
-.tabs button{flex:1;background:#fff;border:1px solid #fed7aa}
-.tabs button.active{background:#ea580c;color:#fff}
-.tx{border:1px solid #e7e5e4;border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
+.tabs button{flex:1;background:#fff;border:1px solid #f59e0b;color:#7f1d1d}
+.tabs button.active{background:#991b1b;color:#fff}
+.tx{border:1px solid #fde68a;border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
 .tx b{font-size:15px}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
 .pending{background:#fef3c7;color:#92400e}
@@ -42,10 +45,19 @@ small{color:#78716c}
 </style>
 </head>
 <body>
-<div class="top"><h1>⛪ Sto. Niño Chapel</h1><p>Treasury Tracker • V7.1 - WITH CATEGORIES</p></div>
+<div class="top">
+<!-- TUNAY NA PICTURE NI STO. NINO - DAPAT MAY stonino.jpg KATABI NG index.html -->
+<div class="logo-wrap">
+<img src="stonino.jpg" alt="Sto Nino" onerror="this.parentElement.innerHTML='⛪'">
+</div>
+<h1>Sto. Niño Chapel</h1>
+<p>Treasury Tracker • V7.4 - Official Sto. Niño</p>
+<p class="verse">✨ Viva Pit Señor! ✨</p>
+</div>
+
 <div class="wrap">
 <div id="loginBox" class="card">
-<h2 style="margin:0">LOGIN</h2>
+<h2 style="margin:0;color:#7f1d1d">LOGIN</h2>
 <label>Email</label><input id="email" type="email" value="treasurer@stonino.com">
 <label>Password</label><input id="password" type="password" placeholder="Password">
 <div style="height:10px"></div><button class="btn-orange" onclick="doLogin()">LOGIN</button>
@@ -53,11 +65,11 @@ small{color:#78716c}
 </div>
 <div id="dashBox" class="hidden">
 <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><b id="userEmail"></b><br><small id="roleLabel"></small></div><button style="width:auto;padding:8px 12px" class="btn-gray" onclick="doLogout()">Logout</button></div></div>
-<div class="card" style="text-align:center"><small>KABAN - APPROVED LANG</small><div class="kaban" id="kaban">₱0.00</div><small>Approved lang ang binibilang</small></div>
+<div class="card" style="text-align:center;border:2px solid #d4af37"><small>KABAN - APPROVED LANG</small><div class="kaban" id="kaban">₱0.00</div><small>Approved lang ang binibilang • Viva Sto. Niño!</small></div>
 <div class="grid"><div class="mini"><b id="cashIn">₱0</b><span>CASH IN</span></div><div class="mini"><b id="cashOut">₱0</b><span>WITHDRAW</span></div><div class="mini"><b id="membersCount">0</b><span>MEMBERS</span></div><div class="mini"><b id="pendingCount">0</b><span>PENDING</span></div><div class="mini"><b id="txCount">0</b><span>TRANSACTIONS</span></div><div class="mini"><b id="lockedCount">0</b><span>LOCKED</span></div></div>
 <div class="tabs"><button id="tabCash" class="active" onclick="showTab('cash')">Cash</button><button id="tabAudit" onclick="showTab('audit')">Audit</button><button id="tabMembers" onclick="showTab('members')">Members</button></div>
 <div id="cashTab">
-<div class="card" id="addCard"><h3 style="margin:0">Add Transaction</h3>
+<div class="card" id="addCard"><h3 style="margin:0;color:#7f1d1d">Add Transaction</h3>
 <label>Type</label><select id="txType" onchange="updateCategories()"><option value="in">Cash In (+)</option><option value="out">Withdraw (-)</option></select>
 <label>Category</label><select id="txCategory"></select>
 <label>Amount</label><input id="txAmount" type="number" placeholder="500">
@@ -66,8 +78,8 @@ small{color:#78716c}
 <p><small>Treasurer = Add, Auditor = Approve, Admin = Lock / Delete</small></p></div>
 <div class="card"><label>Filter by Category</label><select id="filterCat" onchange="render()"><option value="all">Lahat ng Category</option></select><div id="txList"></div></div>
 </div>
-<div id="auditTab" class="hidden"><div class="card"><h3 style="margin:0">Audit / Approval</h3><p><small>Auditor: Approve o Reject mo dito. Admin: Lock mo dito pag final na.</small></p><div id="auditList"></div></div></div>
-<div id="membersTab" class="hidden"><div class="card"><h3 style="margin:0">Members</h3><label>Name</label><input id="memberName" placeholder="Juan Dela Cruz"><div style="height:10px"></div><button class="btn-orange" onclick="addMember()">Add Member</button><div style="height:12px"></div><div id="memberList"></div></div></div>
+<div id="auditTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Audit / Approval</h3><p><small>Auditor: Approve o Reject mo dito. Admin: Lock mo dito pag final na.</small></p><div id="auditList"></div></div></div>
+<div id="membersTab" class="hidden"><div class="card"><h3 style="margin:0;color:#7f1d1d">Members</h3><label>Name</label><input id="memberName" placeholder="Juan Dela Cruz"><div style="height:10px"></div><button class="btn-orange" onclick="addMember()">Add Member</button><div style="height:12px"></div><div id="memberList"></div></div></div>
 </div></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -179,4 +191,4 @@ onAuthStateChanged(auth,(user)=>{
 updateCategories();
 </script>
 </body>
-                                                                                                                                                                                                                                                                                                                       </html>
+  </html>
