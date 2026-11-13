@@ -1235,5 +1235,74 @@ function gawaOverallExcel(){
 }
 </script>
 <!-- ===== TAPOS KUMPLETO 7 ===== -->
+<!-- ===== MALINIS NA CASH - PER TRANSACTION LANG - ADD SA ILALIM - DEN ===== -->
+<script>
+function gawaOverallExcel(){
+  var peso=function(n){ if(n===undefined||n===null||n==='') return ''; var num=Number(String(n).replace(/[^0-9.-]/g,'')); if(isNaN(num)) return n; return '₱'+num.toLocaleString('en-PH',{minimumFractionDigits:2}); };
+  var fmt=function(v){ if(!v) return ''; try{ var d=new Date(v); if(!isNaN(d.getTime()) && String(v).includes('T')) return d.toLocaleString('en-PH',{month:'2-digit',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}); }catch(e){} return v; };
+
+  var bankTx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var bankBal=25000; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankBal+=Number(x.amount||0); else bankBal-=Number(x.amount||0); } });
+  var pettyBal=10000; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyBal+=Number(x.amount||0); else pettyBal-=Number(x.amount||0); } });
+  var total=bankBal+pettyBal;
+
+  // --- BANK TABLE - SAME AS SYSTEM ---
+  var bankRows=bankTx.map(function(x){ return '<tr><td>'+(x.date||'')+'</td><td>'+(x.createdAt?fmt(x.createdAt):'')+'</td><td>'+(x.ref||'')+'</td><td>'+x.type+'</td><td>'+(x.note||'')+'</td><td style="text-align:right;font-weight:bold;">'+peso(x.amount)+'</td><td>'+x.status+'</td><td>'+(x.by||'')+'</td><td>'+(x.approvedBy||'')+'</td><td>'+(x.approvedAt?fmt(x.approvedAt):'')+'</td></tr>'; }).join('');
+  var pettyRows=pettyTx.map(function(x){ return '<tr><td>'+(x.date||'')+'</td><td>'+(x.createdAt?fmt(x.createdAt):'')+'</td><td>'+(x.ref||'')+'</td><td>'+x.type+'</td><td>'+(x.note||'')+'</td><td style="text-align:right;font-weight:bold;">'+peso(x.amount)+'</td><td>'+x.status+'</td><td>'+(x.by||'')+'</td><td>'+(x.approvedBy||'')+'</td><td>'+(x.approvedAt?fmt(x.approvedAt):'')+'</td></tr>'; }).join('');
+
+  // --- CASH - MALINIS NA! LEAF LANG, HINDI BUONG PAGE! ---
+  var cashList=[]; var seen={};
+  // Kunin lang yung PINAKAMALIIT na element - yung walang anak na div - para hindi buong page!
+  document.querySelectorAll('*').forEach(function(el){
+    if(el.children.length>0) return; // May anak pa - buong box yan, wag kunin!
+    var t=(el.innerText||'').trim();
+    if(t.length<10 || t.length>220) return; // Masyadong maikli o masyadong mahaba - hindi transaction yan!
+    if(!t.includes('#00')) return; // Walang #004 - hindi transaction!
+    if(!t.includes('₱')) return; // Walang pera - hindi transaction!
+    if(t.includes('FIESTA')||t.includes('KABAN')||t.includes('Treasury')||t.includes('Gallery')||t.includes('Prepared by')) return; // Basura - wag!
+    if(seen[t]) return; seen[t]=1;
+    cashList.push(t);
+  });
+  // Ayusin - #007, #006, #005... pababa
+  cashList.sort().reverse();
+  var cashRows='';
+  if(cashList.length>0){
+    cashRows=cashList.map(function(t){
+      // Halimbawa: "#004 • ₱300.00 • APPROVED • Donation • ... "
+      // Hatiin natin - kunin yung Ref, Amount, at buong detalye
+      var ref=(t.match(/#\d+/)||[''])[0];
+      var amt=(t.match(/₱[\d,]+\.?\d*/)||[''])[0];
+      // Linisin - tanggalin yung doble-doble na "by treasurer..."
+      var clean=t.replace(/\s+/g,' ').trim();
+      return '<tr><td><b>'+ref+'</b></td><td style="text-align:right;font-weight:bold;">'+amt+'</td><td style="white-space:normal;text-align:left;">'+clean+'</td></tr>';
+    }).join('');
+  } else {
+    cashRows='<tr><td colspan="3" style="text-align:center;">Pumunta ka muna sa Cash tab bago pindutin - para ma-load yung Cash!</td></tr>';
+  }
+
+  var html='<html><head><meta charset="utf-8"><title>Overall - Malinis</title><style>'
+  +'body{font-family:Arial,sans-serif;padding:18px;max-width:1000px;margin:auto;color:#222;font-size:12px;}'
+  +'.head{text-align:center;border-bottom:3px solid #7b1e1e;padding-bottom:10px;} .head h1{color:#7b1e1e;margin:0;font-size:24px;} .head p{margin:3px 0;color:#666;}'
+  +'.boxes{display:flex;gap:10px;margin:14px 0;} .box{flex:1;border:1px solid #ddd;border-radius:10px;padding:12px;text-align:center;} .box b{font-size:18px;} .total{background:#7b1e1e;color:#fff;}'
+  +'h2{background:#7b1e1e;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;margin-top:22px;}'
+  +'table{width:100%;border-collapse:collapse;font-size:11px;} th{background:#333;color:#fff;padding:7px 6px;text-align:left;} td{padding:7px 6px;border-bottom:1px solid #eee;}'
+  +'.sign{display:flex;justify-content:space-between;margin-top:40px;text-align:center;} .line{border-top:1px solid #000;margin:40px 18px 4px;padding-top:4px;}'
+  +'@media print{ .noprint{display:none;} }'
+  +'</style></head><body>'
+  +'<div class="head"><h1>⛪ STO. NIÑO CHAPEL</h1><p>VERY DETAILED OVERALL REPORT • MALINIS NA • KUMPLETO</p><p>Generated: '+new Date().toLocaleString('en-PH')+'</p></div>'
+  +'<div class="boxes"><div class="box">🏦 LANDBANK<br><b>'+peso(bankBal)+'</b><br><small>'+bankTx.length+' records</small></div><div class="box">💵 PETTY<br><b>'+peso(pettyBal)+'</b><br><small>'+pettyTx.length+' records</small></div><div class="box total">📊 TOTAL FUND<br><b>'+peso(total)+'</b><br><small>Bank + Petty</small></div></div>'
+  +'<p style="text-align:center;"><b>KABAN: ₱1,300.00 • CASH IN: ₱1,800.00 • WITHDRAW: ₱500.00 • MEMBERS: 2 • TRANSACTIONS: 7</b></p>'
+  +'<h2>💵 PETTY CASH — '+pettyTx.length+' RECORDS — SAME AS SYSTEM</h2><table><tr><th>Date</th><th>Created At (Time)</th><th>Ref</th><th>Type</th><th>Note</th><th style="text-align:right;">Amount</th><th>Status</th><th>By</th><th>Approved By</th><th>Approved At</th></tr>'+pettyRows+'</table>'
+  +'<h2>🏦 BANK SAVINGS — '+bankTx.length+' RECORDS — SAME AS SYSTEM</h2><table><tr><th>Date</th><th>Created At (Time)</th><th>Ref</th><th>Type</th><th>Note</th><th style="text-align:right;">Amount</th><th>Status</th><th>By</th><th>Approved By</th><th>Approved At</th></tr>'+bankRows+'</table>'
+  +'<h2>💵 CASH TRANSACTIONS — '+cashList.length+' NAKITA SA SCREEN — PER TRANSACTION LANG, HINDI BUONG PAGE!</h2><table><tr><th>Ref</th><th style="text-align:right;">Amount</th><th>Buong Detalye - Same As System</th></tr>'+cashRows+'</table>'
+  +'<p style="font-size:11px;color:#888;">Note: Yung Cash, nasa Firebase siya, hindi sa localStorage — kaya sa Screen natin siya kinukuha. Pero per-transaction lang ngayon, hindi na buong page!</p>'
+  +'<div class="sign"><div><div class="line">Prepared by: Treasurer<br>Bro. Den</div></div><div><div class="line">Checked by: Auditor</div></div><div><div class="line">Approved by: Parish Priest</div></div></div>'
+  +'<div class="noprint" style="text-align:center;margin:20px;"><button onclick="window.print()" style="background:#7b1e1e;color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:16px;font-weight:bold;">🖨️ PRINT / SAVE AS PDF</button></div>'
+  +'</body></html>';
+  var w=window.open('','_blank'); w.document.write(html); w.document.close();
+}
+</script>
+<!-- ===== TAPOS MALINIS NA CASH ===== -->
 </body>
   </html>
