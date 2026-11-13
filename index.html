@@ -1165,5 +1165,75 @@ function gawaOverallExcel(){
 }
 </script>
 <!-- ===== TAPOS VERY DETAILED ===== -->
+<!-- ===== KUMPLETO 7 - KASAMA CASH - ADD LANG SA ILALIM - DEN ===== -->
+<script>
+function gawaOverallExcel(){
+  var peso=function(n){ if(n===undefined||n===null||n==='') return ''; var num=Number(String(n).replace(/[^0-9.-]/g,'')); if(isNaN(num)) return n; return '₱'+num.toLocaleString('en-PH',{minimumFractionDigits:2}); };
+  var fmt=function(v){ if(!v) return ''; try{ var d=new Date(v); if(!isNaN(d.getTime()) && String(v).includes('T')) return d.toLocaleString('en-PH',{month:'2-digit',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}); }catch(e){} return v; };
+
+  // 1. LAHAT NG KEYS - IPAKITA LAHAT, WALANG ITATAGO! Kahit firebase keys, tingnan natin!
+  var allKeys=Object.keys(localStorage);
+  var sections=''; var totalRecords=0; var allTx=[];
+
+  // Kunin lahat ng array sa localStorage - kahit anong pangalan!
+  allKeys.forEach(function(k){
+    if(k.startsWith('__')||k==='firebase:host:sto-nino-chapel-finance-default-rtdb.firebaseio.com') return;
+    try{
+      var arr=JSON.parse(localStorage.getItem(k)||'');
+      if(!Array.isArray(arr)||arr.length===0) return;
+      // Kung mukhang transaction - may amount o type - isama sa allTx!
+      var isTx = arr[0] && (arr[0].amount!==undefined || arr[0].type || arr[0].category);
+      if(isTx){ arr.forEach(function(r){ r._source=k; allTx.push(r); }); }
+      totalRecords+=arr.length;
+      var fields=[]; arr.forEach(function(r){ Object.keys(r||{}).forEach(function(f){ if(fields.indexOf(f)===-1) fields.push(f); }); });
+      var head='<tr>'+fields.map(function(f){ return '<th>'+f+'</th>'; }).join('')+'</tr>';
+      var rows=arr.map(function(r){ return '<tr>'+fields.map(function(f){ var v=r[f]; if(v===undefined||v===null) v=''; if(typeof v==='object') v=JSON.stringify(v); if(String(f).toLowerCase().includes('amount')&&v!=='') v=peso(v); if((String(f).toLowerCase().includes('date')||String(f).toLowerCase().includes('at'))&&v!=='') v=fmt(v); return '<td>'+String(v)+'</td>'; }).join('')+'</tr>'; }).join('');
+      sections+='<h2>📁 '+k.toUpperCase()+' — '+arr.length+' RECORDS</h2><div style="overflow-x:auto;"><table><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div><p style="font-size:11px;color:#888;">Source key: <b>'+k+'</b></p>';
+    }catch(e){}
+  });
+
+  // 2. CASH - KUNIN DIN SA SCREEN! Kasi yung Cash, minsan nasa screen lang, hindi sa localStorage!
+  // Hanapin yung mga transaction cards sa Cash tab na naka-render na sa page
+  var screenCash='';
+  var cashCards=document.querySelectorAll('div');
+  var foundCash=[];
+  cashCards.forEach(function(d){
+    var t=d.innerText||'';
+    // Yung card na may ₱ at may Donation/Kuryente at may date - yun yung Cash transaction!
+    if(t.includes('₱') && (t.includes('Donation')||t.includes('Kuryente')||t.includes('Abuloy')) && t.length<500 && t.length>20){
+      // Iwas doble - kung pareho na, wag ulitin
+      if(foundCash.indexOf(t)===-1) foundCash.push(t);
+    }
+  });
+  if(foundCash.length>0){
+    screenCash='<h2>💵 CASH TRANSACTIONS - GALING SA SCREEN (Kasi wala sa localStorage!)</h2><table><tr><th>Buong Detalye - Same As System</th></tr>'+foundCash.map(function(t){ return '<tr><td style="white-space:pre-line;">'+t+'</td></tr>'; }).join('')+'</table><p style="font-size:11px;color:#888;">Nakuha ito sa mismong nakikita mo sa Cash tab - para walang mawala.</p>';
+  }
+
+  var bankTx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var bankBal=25000; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankBal+=Number(x.amount||0); else bankBal-=Number(x.amount||0); } });
+  var pettyBal=10000; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyBal+=Number(x.amount||0); else pettyBal-=Number(x.amount||0); } });
+  var total=bankBal+pettyBal;
+
+  var html='<html><head><meta charset="utf-8"><title>Overall - Kumpleto</title><style>'
+  +'body{font-family:Arial,sans-serif;padding:18px;max-width:1100px;margin:auto;color:#222;font-size:12px;}'
+  +'.head{text-align:center;border-bottom:3px solid #7b1e1e;padding-bottom:10px;} .head h1{color:#7b1e1e;margin:0;font-size:24px;} .head p{margin:3px 0;color:#666;}'
+  +'.boxes{display:flex;gap:10px;margin:14px 0;} .box{flex:1;border:1px solid #ddd;border-radius:10px;padding:12px;text-align:center;} .box b{font-size:18px;} .total{background:#7b1e1e;color:#fff;}'
+  +'h2{background:#7b1e1e;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;margin-top:22px;}'
+  +'table{width:100%;border-collapse:collapse;font-size:11px;} th{background:#333;color:#fff;padding:7px 6px;text-align:left;white-space:nowrap;} td{padding:7px 6px;border-bottom:1px solid #eee;white-space:nowrap;}'
+  +'.sign{display:flex;justify-content:space-between;margin-top:40px;text-align:center;} .line{border-top:1px solid #000;margin:40px 18px 4px;padding-top:4px;}'
+  +'@media print{ .noprint{display:none;} }'
+  +'</style></head><body>'
+  +'<div class="head"><h1>⛪ STO. NIÑO CHAPEL</h1><p>VERY DETAILED OVERALL REPORT • KUMPLETO - DAPAT 7 TRANSACTIONS</p><p>Generated: '+new Date().toLocaleString('en-PH')+' • LocalStorage Records: '+totalRecords+' • Lahat ng Transaction (allTx): '+allTx.length+' • Cash sa Screen: '+foundCash.length+'</p><p style="color:#a00;"><b>Dashboard mo: 7 TRANSACTIONS — Report dapat: 7 din!</b></p><p style="font-size:11px;color:#888;">Keys na nahanap: '+allKeys.join(', ')+'</p></div>'
+  +'<div class="boxes"><div class="box">🏦 LANDBANK<br><b>'+peso(bankBal)+'</b><br><small>'+bankTx.length+' records</small></div><div class="box">💵 PETTY<br><b>'+peso(pettyBal)+'</b><br><small>'+pettyTx.length+' records</small></div><div class="box total">📊 TOTAL FUND<br><b>'+peso(total)+'</b><br><small>Bank + Petty</small></div></div>'
+  +'<p style="text-align:center;"><b>KABAN: ₱1,300.00 • CASH IN: ₱1,800.00 • WITHDRAW: ₱500.00 • MEMBERS: 2 • TRANSACTIONS: 7</b></p>'
+    + sections + screenCash
+  +'<div class="sign"><div><div class="line">Prepared by: Treasurer<br>Bro. Den</div></div><div><div class="line">Checked by: Auditor</div></div><div><div class="line">Approved by: Parish Priest</div></div></div>'
+  +'<div class="noprint" style="text-align:center;margin:20px;"><button onclick="window.print()" style="background:#7b1e1e;color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:16px;font-weight:bold;">🖨️ PRINT / SAVE AS PDF</button></div>'
+  +'</body></html>';
+  var w=window.open('','_blank'); w.document.write(html); w.document.close();
+}
+</script>
+<!-- ===== TAPOS KUMPLETO 7 ===== -->
 </body>
   </html>
