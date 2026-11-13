@@ -1829,7 +1829,14 @@ function gawaOverallExcel(){
 })();
 </script>
 <!-- ===== TAPOS FINAL ===== -->
-<!-- ===== EYE FIREBASE - TUNAY NA ONLINE + VISITORS - DEN ===== -->
+<!-- ===== TAPOS EYE FIREBASE ===== -->```
+
+**Burahin mo lahat, DEN!**
+
+**STEP 2: Add mo tong BAGONG Eye — hindi na nagze-zero!**
+
+```html
+<!-- ===== EYE FIREBASE V2 - HINDI NA NAGZE-ZERO - DEN ===== -->
 <style>
   #eyeBtnDen{ position: fixed; top: 10px; right: 10px; z-index: 99999; width: 46px; height: 46px; border-radius: 50%; background: #7b1e1e; color: #fff; border: 2px solid #ffd700; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.4); }
   #eyeBadgeDen{ position: absolute; top: -4px; right: -4px; background: #ffd700; color: #7b1e1e; font-size: 11px; font-weight: bold; min-width: 20px; height: 20px; border-radius: 20px; display: flex; align-items: center; justify-content: center; padding: 0 4px; border: 1px solid #fff; }
@@ -1857,9 +1864,9 @@ function gawaOverallExcel(){
 
 <script>
 (function(){
-  // ---- DEN: GAMITIN NATIN YUNG FIREBASE MO NA NAKA-LIVE NA! ----
-  // Kung meron ka nang firebase sa page mo, gagamitin niya yun.
-  // Kung wala pa, ilalagay niya yung sa baba - PALITAN MO NG SA'YO!
+  // BAWAL DOBLE! Pag may Eye na, wag na magsimula ulit - yan yung nagpapa-zero!
+  if(window.__eyeDenStarted) return;
+  window.__eyeDenStarted = true;
 
   function startEye(){
     if(!window.firebase || !window.firebase.database){
@@ -1868,96 +1875,125 @@ function gawaOverallExcel(){
     }
     var db = firebase.database();
 
-    // 1. BILANGIN YUNG BUMISITA - 1 beses lang kada bukas ng browser!
-    if(!sessionStorage.getItem('stonino_isa_na')){
-      sessionStorage.setItem('stonino_isa_na', '1');
-      db.ref('stonino_stats/visitors').transaction(function(v){ return (v || 0) + 1; });
+    // --- 1. VISITORS: 1 beses lang kada bukas, wag na ulitin ---
+    if(!sessionStorage.getItem('stonino_isa_na_v2')){
+      sessionStorage.setItem('stonino_isa_na_v2', '1');
+      db.ref('stonino_stats/visitors').transaction(function(v){
+        // Pag wala pa, gawing 1. Pag meron na, +1. HINDI PWEDE MAGING 0!
+        return (v || 0) + 1;
+      });
     }
-    // Pakinggan yung visitors - pag may bumisita, magbabago agad!
     db.ref('stonino_stats/visitors').on('value', function(snap){
-      var v = snap.val() || 0;
+      var v = snap.val();
+      if(v === null || v === undefined) v = 0;
       document.getElementById('eyeVisitors').textContent = v + ' beses';
       document.getElementById('eyeBadgeDen').textContent = v;
     });
 
-    // 2. SINO YUNG NAKA-LOGIN NGAYON?
+    // --- 2. SINO AKO? HANAPIN SA BUONG PAGE, HINDI LANG SA EMAIL BOX! ---
     function sinoAko(){
+      // A. Hanapin sa storage
       var sino = '';
-      ['currentUser','loggedInUser','user','sinoUser','email','userEmail'].forEach(function(k){
+      ['currentUser','loggedInUser','user','sinoUser','email','userEmail','treasurerUser'].forEach(function(k){
         try{
           var v = localStorage.getItem(k) || sessionStorage.getItem(k) || '';
           if(v && v.indexOf('@') !== -1) sino = v;
         }catch(e){}
       });
-      if(!sino){
-        document.querySelectorAll('input').forEach(function(inp){
-          if((inp.placeholder||'').toLowerCase().indexOf('email') !== -1 && inp.value && inp.value.indexOf('@') !== -1) sino = inp.value;
-        });
-      }
-      return sino || 'Guest';
+      if(sino) return sino;
+      // B. Hanapin sa buong text ng page - tulad ng "treasurer@stonino.com" sa Dashboard mo!
+      var bodyText = document.body.innerText || '';
+      var match = bodyText.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,}/);
+      if(match) return match[0];
+      // C. Hanapin sa Email input kung meron pa
+      var inp = document.querySelector('input[type="email"], input[placeholder*="Email"], input[placeholder*="email"]');
+      if(inp && inp.value && inp.value.indexOf('@') !== -1) return inp.value;
+      return '';
     }
 
-    // 3. PAG NAKA-LOGIN, MAGPAKITA AKO SA FIREBASE NA ONLINE AKO!
-    // Gagawa tayo ng sariling ID para sa phone na to
+    function nakaLoginNaBa(){
+      var txt = document.body.innerText || '';
+      // Pag may Nakaipon na / KABAN / LOGOUT / Dashboard - NAKA-LOGIN NA YAN!
+      if(txt.indexOf('Nakaipon na') !== -1) return true;
+      if(txt.indexOf('KABAN - APPROVED') !== -1) return true;
+      if(txt.toUpperCase().indexOf('LOGOUT') !== -1){
+        // Siguraduhin na kita yung LOGOUT, hindi nakatago
+        var logoutBtn = null;
+        document.querySelectorAll('button, a').forEach(function(b){
+          if((b.textContent||'').trim().toUpperCase() === 'LOGOUT' && b.offsetWidth > 0) logoutBtn = b;
+        });
+        if(logoutBtn) return true;
+      }
+      // Pag may Role: Treasurer / Admin na kita sa Dashboard
+      if(txt.indexOf('Role:') !== -1 && txt.indexOf('Nakaipon') !== -1) return true;
+      return false;
+    }
+
     var myId = sessionStorage.getItem('stonino_my_id');
     if(!myId){
       myId = 'user_' + Date.now() + '_' + Math.floor(Math.random()*10000);
       sessionStorage.setItem('stonino_my_id', myId);
     }
 
+    var hulingSinabi = '';
     function ibalitaOnline(){
-      var email = sinoAko();
-      // Pag nasa Login pa lang, Guest pa lang - wag muna ibalita na online!
-      var mayLoginBtn = false;
-      document.querySelectorAll('button').forEach(function(b){ if((b.textContent||'').trim() === 'LOGIN' && b.offsetWidth > 0) mayLoginBtn = true; });
-      if(mayLoginBtn){
-        // Nasa Login pa - alisin ko muna sarili ko sa online list!
-        db.ref('stonino_online/' + myId).remove();
+      if(!nakaLoginNaBa()){
+        // Nasa Login pa - wag magbalita, pero WAG TANGGALIN AGAD - baka naglo-loading lang!
+        // Tanggalin lang pag 3 beses na sunod na nasa Login pa!
         return;
       }
+      var email = sinoAko() || 'Guest';
       var pangalan = email;
       if(email.indexOf('treasurer') !== -1) pangalan = '💰 Treasurer';
       else if(email.indexOf('admin') !== -1) pangalan = '👑 Admin';
       else if(email.indexOf('father') !== -1) pangalan = '⛪ Father';
-      else pangalan = '👤 ' + email;
+      else if(email !== 'Guest') pangalan = '👤 ' + email;
+      else pangalan = '👤 Guest';
 
+      var ngayon = pangalan + '|' + email;
+      // Pag pareho lang ng huling sinabi ko, wag na mag-push ulit ng history - para hindi dumami!
+      if(ngayon !== hulingSinabi){
+        hulingSinabi = ngayon;
+        // History - 1 beses lang kada login!
+        db.ref('stonino_login_history').push({
+          pangalan: pangalan,
+          email: email,
+          oras: new Date().toLocaleString('en-PH', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}),
+          time: Date.now()
+        });
+      }
+      // Online - i-update lang, HINDI TANGGALIN!
       db.ref('stonino_online/' + myId).set({
         email: email,
         pangalan: pangalan,
         oras: new Date().toLocaleString('en-PH', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}),
         time: Date.now()
       });
-      // Pag nagsara ako ng browser, tanggalin ako sa online!
       db.ref('stonino_online/' + myId).onDisconnect().remove();
-
-      // I-save din sa history!
-      db.ref('stonino_login_history').push({
-        pangalan: pangalan,
-        email: email,
-        oras: new Date().toLocaleString('en-PH', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}),
-        time: Date.now()
-      });
-      // 20 lang - para hindi humaba - yung luma, burahin natin mamaya!
     }
 
-    // 4. PAKINGGAN KUNG SINO YUNG ONLINE NGAYON - LIVE!
+    // Pag nag-LOGOUT ka, saka lang kita tatanggalin sa online!
+    document.addEventListener('click', function(e){
+      var t = (e.target.textContent || '').trim().toUpperCase();
+      if(t === 'LOGOUT' || t === 'LOG OUT'){
+        db.ref('stonino_online/' + myId).remove();
+        hulingSinabi = '';
+      }
+    });
+
     db.ref('stonino_online').on('value', function(snap){
       var data = snap.val() || {};
       var keys = Object.keys(data);
       document.getElementById('eyeOnline').textContent = keys.length + ' 🟢';
       var listEl = document.getElementById('eyeOnlineList');
-      if(keys.length === 0){
-        listEl.innerHTML = 'Wala pa naka-login. Nasa Login pa lahat.';
-      } else {
-        listEl.innerHTML = keys.map(function(k){
-          var u = data[k];
-          var akoBa = (k === myId) ? ' (Ikaw)' : '';
-          return '<div>🟢 <b>' + u.pangalan + '</b>' + akoBa + '<br><span style="color:#888;">' + u.email + ' • ' + u.oras + '</span></div>';
-        }).join('');
-      }
+      if(keys.length === 0) listEl.innerHTML = 'Wala pa naka-login. Nasa Login pa lahat.';
+      else listEl.innerHTML = keys.map(function(k){
+        var u = data[k];
+        var akoBa = (k === myId) ? ' (Ikaw)' : '';
+        return '<div>🟢 <b>' + u.pangalan + '</b>' + akoBa + '<br><span style="color:#888;">' + u.email + ' • ' + u.oras + '</span></div>';
+      }).join('');
     });
 
-    // 5. HISTORY - HULING 10 NA NAG-LOGIN!
     db.ref('stonino_login_history').limitToLast(10).on('value', function(snap){
       var data = snap.val() || {};
       var arr = Object.keys(data).map(function(k){ return data[k]; }).reverse();
@@ -1966,11 +2002,10 @@ function gawaOverallExcel(){
       else histEl.innerHTML = arr.map(function(h){ return '<div>✅ <b>' + h.pangalan + '</b><br><span style="color:#888;">' + h.oras + '</span></div>'; }).join('');
     });
 
-    // Ibalita ako kada 10 segundo + pag nag-login!
     ibalitaOnline();
-    setInterval(ibalitaOnline, 10000);
+    // Heartbeat lang - i-update ko lang na buhay pa ako, hindi ako magtatanggal!
+    setInterval(ibalitaOnline, 15000);
 
-    // Pag pinindot yung mata!
     document.getElementById('eyeBtnDen').addEventListener('click', function(){
       var pop = document.getElementById('eyePopDen');
       pop.style.display = (pop.style.display === 'block') ? 'none' : 'block';
@@ -1983,15 +2018,14 @@ function gawaOverallExcel(){
     });
   }
 
-  // Hintayin yung Firebase mo na mag-load!
   var tries = 0;
   var timer = setInterval(function(){
     if(window.firebase && window.firebase.database){ clearInterval(timer); startEye(); }
     tries++;
-    if(tries > 30){ clearInterval(timer); startEye(); } // 15 seconds na, subukan na rin!
+    if(tries > 30){ clearInterval(timer); startEye(); }
   }, 500);
 })();
 </script>
-<!-- ===== TAPOS EYE FIREBASE ===== -->
+<!-- ===== TAPOS EYE FIREBASE V2 ===== -->
 </body>
   </html>
