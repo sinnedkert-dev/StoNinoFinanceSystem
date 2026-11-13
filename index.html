@@ -1914,5 +1914,40 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   if(window.render) window.render();
 })();
 </script>
+<!-- ===== FIX RACE CONDITION v10.1 - Huwag pagsabayin ang Approve ===== -->
+<script>
+(function(){
+  // Gawing pila ang pag-save - isa-isa lang, hindi sabay
+  var saveQueue = Promise.resolve();
+  function queueSave(fn){
+    saveQueue = saveQueue.then(function(){ return fn(); }).catch(function(){});
+    return saveQueue;
+  }
+  // Kung may approve function, balutan natin ng pila
+  ['approveTx','approveTransaction','approve','approveItem'].forEach(function(fnName){
+    if(typeof window[fnName]==='function'){
+      var orig = window[fnName];
+      window[fnName] = function(){
+        var args = arguments;
+        var self = this;
+        return queueSave(function(){ return orig.apply(self, args); });
+      };
+    }
+  });
+  // Pag nag-Report ka - hintayin muna matapos lahat ng naka-pila bago mag-print
+  ['generateReport','showReport','printReport','openReport'].forEach(function(fnName){
+    if(typeof window[fnName]==='function'){
+      var origR = window[fnName];
+      window[fnName] = function(){
+        var args = arguments;
+        var self = this;
+        // Hintayin 800ms para matapos yung huling Approve bago mag-Report
+        setTimeout(function(){ origR.apply(self, args); }, 800);
+      };
+    }
+  });
+  console.log("Race fix loaded - Approve ay isa-isa na lang");
+})();
+</script>
 </body>
   </html>
