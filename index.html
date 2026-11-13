@@ -1476,149 +1476,74 @@ function gawaOverallExcel(){
 })();
 </script>
 <!-- ===== TAPOS HIDE DALAWA ===== -->
-<!-- ===== HIDE MONTHLY #3 + CATEGORY SA OVERALL - MONTHLY / ANNUAL - ADD SA ILALIM - DEN ===== -->
+<!-- ===== FIX - IBALIK LAHAT + HIDE MONTHLY LANG NG SAFE - DEN ===== -->
 <script>
 (function(){
-  // ---- 1. HIDE YUNG MONTHLY REPORT - #3 ----
-  function tagoMonthly(){
-    var lahat = Array.from(document.querySelectorAll('div, section, article, main'));
+  // 1. IBALIK MUNA LAHAT NG NATAGO NG MALI!
+  document.querySelectorAll('*').forEach(function(el){
+    if(el.style && el.style.display === 'none'){
+      // Wag mo ibalik yung dalawang gusto mo talaga itago dati - Treasury at Bank Level
+      var t = el.textContent || '';
+      var isTreasury = t.indexOf('Treasury Report - NOVEMBER') !== -1 && t.indexOf('FIESTA FUND TARGET') !== -1;
+      var isBankLevel = t.indexOf('BANK LEVEL - BUONG SYSTEM') !== -1;
+      // Kung hindi Treasury at hindi Bank Level - IBALIK!
+      if(!isTreasury && !isBankLevel){
+        el.style.display = '';
+        el.style.removeProperty('display');
+      }
+    }
+  });
+
+  // 2. HIDE MONTHLY #3 LANG - HINDI PARENT - YUNG BOX LANG!
+  function tagoMonthlySafe(){
+    var lahat = Array.from(document.querySelectorAll('div, section, article'));
+    // Pinakamaliit muna - para yung box lang!
     lahat.sort(function(a,b){ return (a.textContent||'').length - (b.textContent||'').length; });
-    lahat.forEach(function(el){
+    for(var i=0; i<lahat.length; i++){
+      var el = lahat[i];
       var t = el.textContent || '';
       var isMonthly = t.indexOf('Monthly Report - #3') !== -1 && t.indexOf('COPY FOR GC') !== -1;
-      if(!isMonthly) return;
-      if(t.indexOf('OVERALL SYSTEM REPORT') !== -1) return;
-      if(t.length > 2000) return;
+      if(!isMonthly) continue;
+      if(t.indexOf('OVERALL SYSTEM REPORT') !== -1) continue;
+      if(t.length > 1200) continue; // pag sobrang laki, hindi yan yung box - baka buong page na yan!
+      // Ito na - yung box lang - WALANG PARENT!
       el.style.display = 'none';
-      el.style.setProperty('display','none','important');
-      var p = el.parentElement;
-      if(p && (p.textContent||'').length < 2200 && (p.textContent||'').indexOf('OVERALL SYSTEM REPORT') === -1){
-        p.style.display = 'none';
-        p.style.setProperty('display','none','important');
-      }
-    });
+      break; // isa lang - tigil na!
+    }
   }
 
-  // ---- 2. LAGYAN NG CATEGORY YUNG OVERALL SYSTEM REPORT ----
-  function lagayCategory(){
-    // Hanapin yung Overall box
-    var overallBtn = null;
+  // 3. LAGAY ULIT YUNG CATEGORY - PERO WALANG HIDE NG PARENT!
+  function lagayCategorySafe(){
+    if(document.getElementById('overallCategory')) return;
+    var btn = null;
     document.querySelectorAll('button').forEach(function(b){
-      if((b.textContent||'').indexOf('DOWNLOAD OVERALL EXCEL') !== -1) overallBtn = b;
+      if((b.textContent||'').indexOf('DOWNLOAD OVERALL EXCEL') !== -1) btn = b;
     });
-    if(!overallBtn) return;
-    if(document.getElementById('overallCategory')) return; // nandun na, wag ulitin!
-    var box = overallBtn.parentElement;
+    if(!btn) return;
     var wrap = document.createElement('div');
     wrap.style.cssText = 'background:#fff;border-radius:10px;padding:12px;margin:10px 0;color:#222;text-align:left;';
-    wrap.innerHTML =
-      '<div style="font-weight:bold;font-size:13px;margin-bottom:6px;color:#7b1e1e;">📂 Piliin ang Category:</div>'
+    wrap.innerHTML = '<div style="font-weight:bold;font-size:13px;margin-bottom:6px;color:#7b1e1e;">📂 Piliin ang Category:</div>'
       + '<select id="overallCategory" style="width:100%;padding:10px;border:2px solid #7b1e1e;border-radius:8px;font-weight:bold;margin-bottom:8px;">'
-      + '<option value="monthly">📅 MONTHLY REPORT</option>'
-      + '<option value="annual">📆 ANNUAL REPORT</option>'
-      + '</select>'
+      + '<option value="monthly">📅 MONTHLY REPORT</option><option value="annual">📆 ANNUAL REPORT</option></select>'
       + '<div id="overallMonthWrap"><select id="overallMonth" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;margin-bottom:8px;">'
-      + '<option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10" selected>November</option><option value="11">December</option>'
-      + '</select></div>'
-      + '<select id="overallYear" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;">'
-      + '<option>2025</option><option selected>2026</option><option>2027</option>'
-      + '</select>'
+      + '<option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10" selected>November</option><option value="11">December</option></select></div>'
+      + '<select id="overallYear" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;"><option>2025</option><option selected>2026</option><option>2027</option></select>'
       + '<div id="overallHint" style="font-size:11px;color:#666;margin-top:6px;text-align:center;">Monthly = November 2026 lang ang lalabas</div>';
-    box.insertBefore(wrap, overallBtn);
-    // Pag Annual, tago yung Buwan - Taon lang!
+    btn.parentElement.insertBefore(wrap, btn);
     document.getElementById('overallCategory').addEventListener('change', function(){
       var isAnnual = this.value === 'annual';
       document.getElementById('overallMonthWrap').style.display = isAnnual ? 'none' : 'block';
       document.getElementById('overallHint').textContent = isAnnual ? 'Annual = Buong taon ng 2026 ang lalabas' : 'Monthly = Isang buwan lang ang lalabas';
     });
-    // Auto-set sa November 2026 - base sa Buwan mo sa Monthly #3 kung meron pa!
-    try{
-      var sel = document.querySelector('select');
-      if(sel && sel.value) {}
-    }catch(e){}
   }
 
-  tagoMonthly();
-  lagayCategory();
-  setTimeout(tagoMonthly, 500);
-  setTimeout(lagayCategory, 500);
-  setTimeout(tagoMonthly, 1500);
-  setTimeout(lagayCategory, 1500);
-  var obs = new MutationObserver(function(){ tagoMonthly(); lagayCategory(); });
-  obs.observe(document.body, {childList:true, subtree:true});
-
-  // ---- 3. PALITAN YUNG gawaOverallExcel PARA SUMUNOD SA CATEGORY ----
-  var lumangGawa = window.gawaOverallExcel;
-  window.gawaOverallExcel = function(){
-    var cat = document.getElementById('overallCategory') ? document.getElementById('overallCategory').value : 'monthly';
-    var mon = document.getElementById('overallMonth') ? Number(document.getElementById('overallMonth').value) : 10;
-    var yr = document.getElementById('overallYear') ? Number(document.getElementById('overallYear').value) : 2026;
-    var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-    // I-save muna para mabasa ng lumang function kung kailangan - pero dito natin i-filter!
-    // Gagawa tayo ng sariling report na naka-filter!
-    var peso=function(n){ if(n===undefined||n===null||n==='') return ''; var num=Number(String(n).replace(/[^0-9.-]/g,'')); if(isNaN(num)) return n; return '₱'+num.toLocaleString('en-PH',{minimumFractionDigits:2}); };
-    var fmt=function(v){ if(!v) return ''; try{ var d=new Date(v); if(!isNaN(d.getTime()) && String(v).includes('T')) return d.toLocaleString('en-PH',{month:'2-digit',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}); }catch(e){} return v; };
-    var pasokBa = function(dateStr, createdAt){
-      var d = null;
-      if(dateStr){ d = new Date(dateStr); if(isNaN(d.getTime())) d = null; }
-      if(!d && createdAt){ d = new Date(createdAt); if(isNaN(d.getTime())) d = null; }
-      if(!d) return true; // pag walang date, isama na lang
-      if(cat === 'annual') return d.getFullYear() === yr;
-      return d.getFullYear() === yr && d.getMonth() === mon;
-    };
-    var bankAll = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
-    var pettyAll = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
-    var bankTx = bankAll.filter(function(x){ return pasokBa(x.date, x.createdAt); });
-    var pettyTx = pettyAll.filter(function(x){ return pasokBa(x.date, x.createdAt); });
-
-    var bankIn=0,bankOut=0; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankIn+=Number(x.amount||0); else bankOut+=Number(x.amount||0); } });
-    var bankBal = (cat==='annual'?25000:25000) + bankIn - bankOut;
-    // Pag Monthly, ang opening - kung November, 25000 pa rin kasi yun yung simula mo - tama lang!
-    var pettyIn=0,pettyOut=0; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyIn+=Number(x.amount||0); else pettyOut+=Number(x.amount||0); } });
-    var pettyBal = 10000 + pettyIn - pettyOut;
-
-    // CASH - gamitin textContent kahit naka-hide
-    var byRef={};
-    document.querySelectorAll('*').forEach(function(el){
-      if(el.children.length>0) return;
-      var t=(el.textContent||'').replace(/\s+/g,' ').trim();
-      if(t.length<10||t.length>300) return; if(t.indexOf('#00')===-1) return; if(t.indexOf('₱')===-1) return;
-      if(t.indexOf('FIESTA')!==-1||t.indexOf('KABAN')!==-1||t.indexOf('Treasury')!==-1||t.indexOf('Gallery')!==-1) return;
-      var ref=(t.match(/#\d+/)||[''])[0]; if(!ref) return;
-      if(!byRef[ref]||t.length>byRef[ref].length) byRef[ref]=t;
-    });
-    var cashRefs=Object.keys(byRef).sort().reverse();
-    var cashIn=0,cashOut=0;
-    cashRefs.forEach(function(ref){ var t=byRef[ref]; var m=t.match(/₱([\d,]+\.?\d*)/); var amt=m?Number(m[1].replace(/,/g,'')):0; var low=t.toLowerCase(); if(low.indexOf('kuryente')!==-1||low.indexOf('withdraw')!==-1||low.indexOf('expense')!==-1||low.indexOf('tubig')!==-1) cashOut+=amt; else cashIn+=amt; });
-    if(cashRefs.length===0){ cashIn=1800; cashOut=500; }
-    var kaban=cashIn-cashOut;
-    var grandTotal=bankBal+pettyBal+kaban;
-    var title = cat==='annual' ? 'ANNUAL REPORT - TAONG '+yr : 'MONTHLY REPORT - '+monthNames[mon].toUpperCase()+' '+yr;
-    var bankRows=bankTx.map(function(x){ return '<tr><td>'+(x.date||'')+'</td><td>'+(x.createdAt?fmt(x.createdAt):'')+'</td><td>'+(x.ref||'')+'</td><td>'+x.type+'</td><td>'+(x.note||'')+'</td><td style="text-align:right;font-weight:bold;">'+peso(x.amount)+'</td><td>'+x.status+'</td><td>'+(x.approvedBy||'')+'</td><td>'+(x.approvedAt?fmt(x.approvedAt):'')+'</td></tr>'; }).join('');
-    var pettyRows=pettyTx.map(function(x){ return '<tr><td>'+(x.date||'')+'</td><td>'+(x.createdAt?fmt(x.createdAt):'')+'</td><td>'+(x.ref||'')+'</td><td>'+x.type+'</td><td>'+(x.note||'')+'</td><td style="text-align:right;font-weight:bold;">'+peso(x.amount)+'</td><td>'+x.status+'</td><td>'+(x.approvedBy||'')+'</td><td>'+(x.approvedAt?fmt(x.approvedAt):'')+'</td></tr>'; }).join('');
-    var cashRows=cashRefs.map(function(ref){ var t=byRef[ref].replace(/\s+/g,' ').trim(); var amt=(t.match(/₱[\d,]+\.?\d*/)||[''])[0]; var detail=t.replace(ref,'').replace(/^[\s•\-]+/,'').trim(); return '<tr><td><b>'+ref+'</b></td><td style="text-align:right;font-weight:bold;">'+amt+'</td><td style="white-space:normal;text-align:left;">'+detail+'</td></tr>'; }).join('');
-    var html='<html><head><meta charset="utf-8"><title>Overall Report</title><style>'
-    +'body{font-family:Arial,sans-serif;padding:18px;max-width:1000px;margin:auto;color:#222;font-size:12px;}'
-    +'.head{text-align:center;border-bottom:3px solid #7b1e1e;padding-bottom:10px;} .head h1{color:#7b1e1e;margin:0;font-size:24px;} .head p{margin:3px 0;color:#666;}'
-    +'.boxes{display:flex;gap:10px;margin:14px 0;} .box{flex:1;border:1px solid #ddd;border-radius:10px;padding:12px;text-align:center;} .box b{font-size:18px;} .total{background:#7b1e1e;color:#fff;}'
-    +'h2{background:#7b1e1e;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;margin-top:22px;}'
-    +'table{width:100%;border-collapse:collapse;font-size:11px;} th{background:#333;color:#fff;padding:7px 6px;text-align:left;} td{padding:7px 6px;border-bottom:1px solid #eee;}'
-    +'.sign{display:flex;justify-content:space-between;margin-top:40px;text-align:center;} .line{border-top:1px solid #000;margin:40px 18px 4px;padding-top:4px;}'
-    +'@media print{ .noprint{display:none;} }'
-    +'</style></head><body>'
-    +'<div class="head"><h1>⛪ STO. NIÑO CHAPEL</h1><p>'+title+'</p><p>Generated: '+new Date().toLocaleString('en-PH')+'</p></div>'
-    +'<div class="boxes"><div class="box">💵 KABAN<br><b>'+peso(kaban)+'</b></div><div class="box">🏦 LANDBANK<br><b>'+peso(bankBal)+'</b></div><div class="box">💵 PETTY<br><b>'+peso(pettyBal)+'</b></div><div class="box total">📊 GRAND TOTAL<br><b>'+peso(grandTotal)+'</b></div></div>'
-    +'<h2>💵 PETTY CASH — '+pettyTx.length+' RECORDS</h2><table><tr><th>Date</th><th>Created At</th><th>Ref</th><th>Type</th><th>Note</th><th style="text-align:right;">Amount</th><th>Status</th><th>Approved By</th><th>Approved At</th></tr>'+pettyRows+'</table>'
-    +'<h2>🏦 BANK SAVINGS — '+bankTx.length+' RECORDS</h2><table><tr><th>Date</th><th>Created At</th><th>Ref</th><th>Type</th><th>Note</th><th style="text-align:right;">Amount</th><th>Status</th><th>Approved By</th><th>Approved At</th></tr>'+bankRows+'</table>'
-    +'<h2>💵 CASH TRANSACTIONS — '+cashRefs.length+' TRANSACTIONS</h2><table><tr><th>Ref</th><th style="text-align:right;">Amount</th><th>Buong Detalye</th></tr>'+cashRows+'</table>'
-    +'<div class="sign"><div><div class="line">Prepared by: Treasurer<br>Bro. Den</div></div><div><div class="line">Checked by: Auditor</div></div><div><div class="line">Approved by: Parish Priest</div></div></div>'
-    +'<div class="noprint" style="text-align:center;margin:20px;"><button onclick="window.print()" style="background:#7b1e1e;color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:16px;font-weight:bold;">🖨️ PRINT / SAVE AS PDF</button></div>'
-    +'</body></html>';
-    var w=window.open('','_blank'); w.document.write(html); w.document.close();
-  };
+  tagoMonthlySafe();
+  lagayCategorySafe();
+  setTimeout(tagoMonthlySafe, 800);
+  setTimeout(lagayCategorySafe, 800);
+  setTimeout(tagoMonthlySafe, 2000);
 })();
 </script>
-<!-- ===== TAPOS HIDE MONTHLY + CATEGORY ===== -->
+<!-- ===== TAPOS FIX ===== -->
 </body>
   </html>
