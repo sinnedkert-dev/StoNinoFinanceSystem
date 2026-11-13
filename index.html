@@ -1634,5 +1634,117 @@ function gawaOverallExcel(){
 })();
 </script>
 <!-- ===== TAPOS CATEGORY LANG ===== -->
+<!-- ===== LOCK OVERALL - ADMIN / TREASURER / FATHER LANG - DEN ===== -->
+<script>
+(function(){
+  // ---- DITO MO PALITAN YUNG PIN, DEN! ----
+  var PINS = {
+    'Admin': '1111',
+    'Treasurer': '2222',
+    'Father': '3333'
+  };
+  // Admin = 1111, Treasurer = 2222, Father = 3333
+  // Gusto mo palitan? Palitan mo lang yung number dito!
+
+  function lagayLock(){
+    if(document.getElementById('overallLockWrap')) return true;
+    var btn = null;
+    document.querySelectorAll('button').forEach(function(b){
+      if((b.textContent||'').indexOf('DOWNLOAD OVERALL EXCEL') !== -1) btn = b;
+    });
+    if(!btn) return false;
+
+    // 1. I-LOCK MUNA YUNG BUTTON!
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.pointerEvents = 'none';
+    btn.textContent = '🔒 NAKA-LOCK - ADMIN / TREASURER / FATHER LANG';
+
+    // 2. GUMAWA NG LOCK BOX SA TAAS NIYA!
+    var wrap = document.createElement('div');
+    wrap.id = 'overallLockWrap';
+    wrap.style.cssText = 'background:#fff3cd;border:2px solid #d4a017;border-radius:10px;padding:12px;margin:10px 0;color:#222;text-align:left;';
+    wrap.innerHTML = '<div style="font-weight:bold;font-size:13px;margin-bottom:6px;color:#7b1e1e;">🔒 RESTRICTED - Sino ka?</div>'
+      + '<select id="overallRole" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;margin-bottom:8px;font-weight:bold;">'
+      + '<option value="">-- Piliin ang Role Mo --</option>'
+      + '<option value="Admin">👑 Admin</option>'
+      + '<option value="Treasurer" selected>💰 Treasurer</option>'
+      + '<option value="Father">⛪ Father</option>'
+      + '<option value="Member">👤 Member / Iba</option>'
+      + '</select>'
+      + '<input id="overallPIN" type="password" inputmode="numeric" placeholder="🔑 Ilagay ang PIN mo" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;margin-bottom:8px;box-sizing:border-box;">'
+      + '<button id="overallUnlockBtn" type="button" style="width:100%;padding:11px;background:#7b1e1e;color:#fff;border:none;border-radius:8px;font-weight:bold;font-size:14px;">🔓 UNLOCK DOWNLOAD</button>'
+      + '<div id="overallLockMsg" style="font-size:12px;text-align:center;margin-top:6px;color:#7b1e1e;font-weight:bold;"></div>';
+    btn.parentElement.insertBefore(wrap, btn);
+
+    // 3. PAG PININDOT YUNG UNLOCK!
+    document.getElementById('overallUnlockBtn').addEventListener('click', function(){
+      var role = document.getElementById('overallRole').value;
+      var pin = document.getElementById('overallPIN').value.trim();
+      var msg = document.getElementById('overallLockMsg');
+      if(!role){ msg.textContent = '⚠️ Piliin mo muna kung sino ka!'; return; }
+      if(role === 'Member'){ msg.textContent = '⛔ BAWAL KA! Admin / Treasurer / Father lang ang pwede!'; msg.style.color = 'red'; return; }
+      if(PINS[role] && pin === PINS[role]){
+        // TAMA!
+        msg.textContent = '✅ Welcome, ' + role + '! Naka-unlock na!';
+        msg.style.color = 'green';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+        btn.textContent = '📥 DOWNLOAD OVERALL EXCEL (Isang Print Lang)';
+        // Itago yung PIN box, palitan ng naka-unlock!
+        wrap.style.background = '#d4edda';
+        wrap.style.borderColor = '#28a745';
+        document.getElementById('overallPIN').style.display = 'none';
+        this.textContent = '✅ NAKA-UNLOCK NA - Pwede Ka Na Mag-Download';
+        this.disabled = true;
+        // Save na naka-unlock na sya para hindi ulit-ulit!
+        sessionStorage.setItem('overallUnlocked', role);
+      } else {
+        msg.textContent = '❌ Mali ang PIN! Subukan mo ulit!';
+        msg.style.color = 'red';
+        document.getElementById('overallPIN').value = '';
+      }
+    });
+
+    // 4. PAG NAKA-UNLOCK NA DATI - BUKAS PA RIN SA SESSION NA TO!
+    var dati = sessionStorage.getItem('overallUnlocked');
+    if(dati && PINS[dati]){
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+      btn.textContent = '📥 DOWNLOAD OVERALL EXCEL (Isang Print Lang)';
+      document.getElementById('overallLockMsg').textContent = '✅ Naka-unlock ka na bilang ' + dati;
+      document.getElementById('overallPIN').style.display = 'none';
+      document.getElementById('overallUnlockBtn').textContent = '✅ NAKA-UNLOCK NA';
+      document.getElementById('overallUnlockBtn').disabled = true;
+    }
+    return true;
+  }
+
+  // 5. BANTAYAN YUNG DOWNLOAD BUTTON - KAHIT I-CLICK NG PILIT, HARANGIN!
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    // Hanapin kung yung pinindot ay yung Download Overall button
+    while(t && t.tagName !== 'BUTTON') t = t.parentElement;
+    if(!t) return;
+    if((t.textContent||'').indexOf('DOWNLOAD OVERALL EXCEL') === -1 && (t.textContent||'').indexOf('NAKA-LOCK') === -1) return;
+    if(t.disabled || sessionStorage.getItem('overallUnlocked') == null){
+      e.preventDefault(); e.stopPropagation();
+      alert('🔒 RESTRICTED!\n\nAdmin / Treasurer / Father lang ang pwede mag-download ng Overall System Report!\n\nPiliin mo muna ang Role mo at ilagay ang PIN sa taas!');
+      var pinBox = document.getElementById('overallPIN');
+      if(pinBox) pinBox.focus();
+      return false;
+    }
+  }, true);
+
+  lagayLock();
+  var tries = 0;
+  var timer = setInterval(function(){ if(lagayLock() || tries > 30) clearInterval(timer); tries++; }, 500);
+  var obs = new MutationObserver(function(){ lagayLock(); });
+  obs.observe(document.body, {childList:true, subtree:true});
+})();
+</script>
+<!-- ===== TAPOS LOCK OVERALL ===== -->
 </body>
   </html>
