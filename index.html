@@ -1746,5 +1746,86 @@ function gawaOverallExcel(){
 })();
 </script>
 <!-- ===== TAPOS LOCK OVERALL ===== -->
+<!-- ===== FIX - ITAGO OVERALL PAG HINDI PA NAKA-LOGIN + TANGGALIN MEMBER - DEN ===== -->
+<script>
+(function(){
+  function ayosOverall(){
+    // 1. TANGGALIN YUNG MEMBER NA OPTION!
+    var roleSel = document.getElementById('overallRole');
+    if(roleSel){
+      Array.from(roleSel.options).forEach(function(opt){
+        if(opt.value === 'Member' || (opt.textContent||'').indexOf('Member') !== -1){
+          opt.remove();
+        }
+      });
+      // Pag walang napili o Member yung natira, gawing Treasurer!
+      if(!roleSel.value || roleSel.value === 'Member') roleSel.value = 'Treasurer';
+    }
+
+    // 2. HANAPIN YUNG OVERALL BOX!
+    var overallBox = null;
+    document.querySelectorAll('div, section').forEach(function(el){
+      var t = el.textContent || '';
+      if(t.indexOf('OVERALL SYSTEM REPORT - BUONG SYSTEM') !== -1 && t.indexOf('DOWNLOAD OVERALL EXCEL') !== -1){
+        if(!overallBox || t.length < overallBox.textContent.length) overallBox = el;
+      }
+    });
+    if(!overallBox) return;
+
+    // 3. NAKA-LOGIN NA BA? CHECK NATIN!
+    // Pag may LOGIN form na nakikita pa - ibig sabihin HINDI PA NAKA-LOGIN!
+    var loginNakikita = false;
+    // Hanapin yung LOGIN heading + Email + Password na visible
+    document.querySelectorAll('h1, h2, h3, div, button').forEach(function(el){
+      if((el.textContent||'').trim() === 'LOGIN' || (el.textContent||'').trim() === 'LOGIN'){
+        // Check kung visible ba sya - hindi naka-display:none
+        var s = window.getComputedStyle(el);
+        if(s.display !== 'none' && s.visibility !== 'hidden'){
+          // Check kung malapit sya sa Email / Password
+          loginNakikita = true;
+        }
+      }
+    });
+    // Mas sigurado: pag may input na type=password na visible at may LOGIN button na visible
+    var mayPasswordInput = false;
+    document.querySelectorAll('input[type="password"]').forEach(function(inp){
+      var s = window.getComputedStyle(inp);
+      if(s.display !== 'none' && inp.offsetParent !== null) mayPasswordInput = true;
+    });
+    var mayLoginBtn = false;
+    document.querySelectorAll('button').forEach(function(b){
+      if((b.textContent||'').trim() === 'LOGIN'){
+        var s = window.getComputedStyle(b);
+        if(s.display !== 'none' && b.offsetParent !== null) mayLoginBtn = true;
+      }
+    });
+
+    // Pag may LOGIN pa - HINDI PA NAKA-LOGIN - ITAGO YUNG OVERALL!
+    if(mayPasswordInput && mayLoginBtn){
+      overallBox.style.display = 'none';
+      overallBox.style.setProperty('display','none','important');
+      // Itago rin yung lock wrap kung nasa labas sya
+      var lockWrap = document.getElementById('overallLockWrap');
+      if(lockWrap){ lockWrap.style.display = 'none'; }
+      var catWrap = document.getElementById('overallCategoryWrap');
+      if(catWrap){ catWrap.style.display = 'none'; }
+    } else {
+      // NAKA-LOGIN NA - IPAKITA ULIT!
+      overallBox.style.display = '';
+      overallBox.style.removeProperty('display');
+      var lockWrap2 = document.getElementById('overallLockWrap');
+      if(lockWrap2){ lockWrap2.style.display = ''; lockWrap2.style.removeProperty('display'); }
+      var catWrap2 = document.getElementById('overallCategoryWrap');
+      if(catWrap2){ catWrap2.style.display = ''; catWrap2.style.removeProperty('display'); }
+    }
+  }
+
+  ayosOverall();
+  setInterval(ayosOverall, 1000); // check kada 1 segundo - para pag nag-login ka, lalabas agad!
+  var obs = new MutationObserver(function(){ ayosOverall(); });
+  obs.observe(document.body, {childList:true, subtree:true, attributes:true, attributeFilter:['style']});
+})();
+</script>
+<!-- ===== TAPOS FIX LOGIN + MEMBER ===== -->
 </body>
   </html>
