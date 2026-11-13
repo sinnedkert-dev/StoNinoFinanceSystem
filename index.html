@@ -1829,6 +1829,122 @@ function gawaOverallExcel(){
 })();
 </script>
 <!-- ===== TAPOS FINAL ===== -->
-
+<!-- EYE V4 - DEN -->
+<style>
+#eyeBtnDen{position:fixed;top:10px;right:10px;z-index:99999;width:46px;height:46px;border-radius:50%;background:#7b1e1e;color:#fff;border:2px solid #ffd700;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4)}
+#eyeBadgeDen{position:absolute;top:-4px;right:-4px;background:#ffd700;color:#7b1e1e;font-size:11px;font-weight:bold;min-width:20px;height:20px;border-radius:20px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:1px solid #fff}
+#eyePopDen{position:fixed;top:62px;right:10px;z-index:99999;width:300px;max-width:calc(100vw - 20px);background:#fff;color:#222;border-radius:14px;border:2px solid #7b1e1e;box-shadow:0 5px 20px rgba(0,0,0,0.35);padding:14px;display:none;font-size:13px}
+#eyePopDen h3{margin:0 0 8px 0;color:#7b1e1e;font-size:15px;text-align:center}
+#eyePopDen .rowDen{display:flex;justify-content:space-between;background:#fff8e1;padding:8px 10px;border-radius:8px;margin-bottom:6px}
+#eyePopDen .rowDen b{color:#7b1e1e}
+#eyePopDen .listDen{max-height:160px;overflow:auto;background:#f9f9f9;padding:8px;border-radius:8px;font-size:12px}
+#eyePopDen .listDen div{padding:5px 0;border-bottom:1px solid #eee}
+</style>
+<div id="eyeBtnDen">👀<span id="eyeBadgeDen">0</span></div>
+<div id="eyePopDen">
+<h3>👀 Sino Naka-Login? (Live)</h3>
+<div class="rowDen"><span>👁️ Bumisita sa website:</span><b id="eyeVisitors">...</b></div>
+<div class="rowDen"><span>🟢 Naka-login ngayon:</span><b id="eyeOnline">...</b></div>
+<div style="font-weight:bold;margin:8px 0 4px 0;color:#7b1e1e;">👤 Sino sila ngayon:</div>
+<div class="listDen" id="eyeOnlineList">Naglo-loading...</div>
+<div style="font-weight:bold;margin:8px 0 4px 0;color:#7b1e1e;">📜 Huling nag-login:</div>
+<div class="listDen" id="eyeHistory">Naglo-loading...</div>
+<button onclick="document.getElementById('eyePopDen').style.display='none'" style="width:100%;margin-top:10px;padding:9px;background:#7b1e1e;color:#fff;border:none;border-radius:8px;font-weight:bold;">SARA</button>
+</div>
+<script>
+(function(){
+if(window.__eyeV4) return; window.__eyeV4 = true;
+function getFS(){
+if(window.firebase && window.firebase.firestore) return window.firebase.firestore();
+if(window.db && window.db.collection) return window.db;
+if(window.firestoreDb && window.firestoreDb.collection) return window.firestoreDb;
+return null;
+}
+function start(){
+var fs = getFS();
+var myId = localStorage.getItem('stonino_my_id_v4') || ('user_'+Date.now()+'_'+Math.floor(Math.random()*10000));
+localStorage.setItem('stonino_my_id_v4', myId);
+function sinoAko(){
+var t = document.body.innerText || '';
+var m = t.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,}/);
+return m ? m[0] : 'Guest';
+}
+function nakaLogin(){
+var t = document.body.innerText || '';
+return t.indexOf('Nakaipon na') !== -1 || t.indexOf('KABAN - APPROVED') !== -1;
+}
+function showLocal(){
+var v = parseInt(localStorage.getItem('stonino_visitors_local') || '0');
+if(!sessionStorage.getItem('stonino_v4')){
+sessionStorage.setItem('stonino_v4','1');
+v = v + 1; localStorage.setItem('stonino_visitors_local', v);
+}
+document.getElementById('eyeVisitors').textContent = v + ' beses';
+document.getElementById('eyeBadgeDen').textContent = v;
+if(nakaLogin()){
+var email = sinoAko();
+var pang = email.indexOf('treasurer')!==-1 ? '💰 Treasurer' : email.indexOf('admin')!==-1 ? '👑 Admin' : '👤 '+email;
+document.getElementById('eyeOnline').textContent = '1 🟢';
+document.getElementById('eyeOnlineList').innerHTML = '<div>🟢 <b>'+pang+'</b> (Ikaw)<br><span style="color:#888;">'+email+'</span></div>';
+document.getElementById('eyeHistory').innerHTML = '<div>✅ <b>'+pang+'</b><br><span style="color:#888;">Ngayon lang</span></div>';
+} else {
+document.getElementById('eyeOnline').textContent = '0 🟢';
+document.getElementById('eyeOnlineList').innerHTML = 'Wala pa naka-login. Nasa Login pa lahat.';
+document.getElementById('eyeHistory').innerHTML = 'Wala pa.';
+}
+}
+if(!fs){ showLocal(); setInterval(showLocal, 5000); }
+else {
+try{
+var FieldValue = window.firebase.firestore.FieldValue;
+var statsRef = fs.collection('stonino_stats').doc('eye');
+if(!sessionStorage.getItem('stonino_v4')){
+sessionStorage.setItem('stonino_v4','1');
+statsRef.set({visitors: FieldValue.increment(1)}, {merge:true});
+}
+statsRef.onSnapshot(function(d){
+var v = d.exists ? (d.data().visitors || 0) : 0;
+document.getElementById('eyeVisitors').textContent = v + ' beses';
+document.getElementById('eyeBadgeDen').textContent = v;
+});
+var lastSay = '';
+function update(){
+if(!nakaLogin()) return;
+var email = sinoAko();
+var pang = email.indexOf('treasurer')!==-1 ? '💰 Treasurer' : email.indexOf('admin')!==-1 ? '👑 Admin' : email.indexOf('father')!==-1 ? '⛪ Father' : '👤 '+email;
+var oras = new Date().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+fs.collection('stonino_online').doc(myId).set({email:email,pangalan:pang,oras:oras,lastSeen:Date.now()},{merge:true});
+if(lastSay !== pang){
+lastSay = pang;
+fs.collection('stonino_login_history').add({pangalan:pang,email:email,oras:oras,time:Date.now()});
+}
+fs.collection('stonino_online').get().then(function(snap){
+var list = [];
+snap.forEach(function(d){ var data=d.data(); if(Date.now()-(data.lastSeen||0)<2*60*1000) list.push({id:d.id,data:data}); });
+document.getElementById('eyeOnline').textContent = list.length + ' 🟢';
+document.getElementById('eyeOnlineList').innerHTML = list.length===0 ? 'Wala pa naka-login.' : list.map(function(it){return '<div>🟢 <b>'+it.data.pangalan+'</b>'+(it.id===myId?' (Ikaw)':'')+'<br><span style="color:#888;">'+it.data.email+' • '+it.data.oras+'</span></div>';}).join('');
+});
+fs.collection('stonino_login_history').orderBy('time','desc').limit(10).get().then(function(snap){
+if(snap.empty){document.getElementById('eyeHistory').innerHTML='Wala pa.'; return;}
+var h=''; snap.forEach(function(d){var x=d.data(); h+='<div>✅ <b>'+x.pangalan+'</b><br><span style="color:#888;">'+x.oras+'</span></div>';});
+document.getElementById('eyeHistory').innerHTML=h;
+});
+}
+update(); setInterval(update, 15000);
+document.addEventListener('click', function(e){
+var t=(e.target.textContent||'').trim().toUpperCase();
+if(t==='LOGOUT' || t==='LOG OUT'){ fs.collection('stonino_online').doc(myId).delete(); }
+});
+}catch(e){ showLocal(); }
+}
+document.getElementById('eyeBtnDen').addEventListener('click', function(){
+var p=document.getElementById('eyePopDen');
+p.style.display = p.style.display==='block' ? 'none' : 'block';
+});
+}
+var t=0; var timer=setInterval(function(){ t++; if(window.firebase || t>10){ clearInterval(timer); start(); } }, 500);
+})();
+</script>
+<!-- TAPOS EYE V4 -->
 </body>
   </html>
