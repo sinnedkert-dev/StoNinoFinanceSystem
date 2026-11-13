@@ -1075,5 +1075,95 @@ setTimeout(function(){
   document.body.appendChild(btn);
 }, 1500);
 </script>
-<!-- ===== TAPOS OVERALL SYSTEM REPORT ===== --> </body>
+<!-- ===== TAPOS OVERALL SYSTEM REPORT ===== --> 
+<!-- ===== VERY DETAILED - SAME AS SYSTEM - DEN ===== -->
+<script>
+function gawaOverallExcel(){
+  var peso=function(n){ if(n===undefined||n===null||n==='') return ''; var num=Number(String(n).replace(/[^0-9.-]/g,'')); if(isNaN(num)) return n; return '₱'+num.toLocaleString('en-PH',{minimumFractionDigits:2}); };
+  var fmtDate=function(v){
+    if(!v) return '';
+    // Kung Firebase timestamp o ISO - gawing parehong format sa system
+    try{
+      var d=new Date(v);
+      if(!isNaN(d.getTime())){
+        // Kung may oras, isama yung oras - tulad sa system!
+        return d.toLocaleString('en-PH',{month:'2-digit',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+      }
+    }catch(e){}
+    return v;
+  };
+  // 1. KUNIN LAHAT - WALANG ITATAPON! LAHAT NG NASA localStorage!
+  var keys=Object.keys(localStorage).filter(function(k){
+    // Tanggalin lang yung Firebase settings - hindi yan transaction!
+    if(k.includes('firebase')||k.includes('FIREBASE')||k.includes('host')||k.includes('__')) return false;
+    return true;
+  });
+  var sections='';
+  var totalRecords=0;
+  keys.forEach(function(k){
+    var raw=localStorage.getItem(k);
+    var arr=null;
+    try{ arr=JSON.parse(raw); }catch(e){ return; }
+    if(!Array.isArray(arr) || arr.length===0) return;
+    totalRecords+=arr.length;
+    // Kunin LAHAT ng field names na meron sa buong listahan - para walang mawala!
+    var allFields=[];
+    arr.forEach(function(r){ Object.keys(r||{}).forEach(function(f){ if(allFields.indexOf(f)===-1) allFields.push(f); }); });
+    // Ayusin order - Date/Time muna, tapos Ref, Type, Amount, etc - tulad sa system!
+    var order=['date','createdAt','approvedAt','time','timestamp','ref','id','type','category','note','detail','details','description','amount','status','by','approvedBy','approvedby','name','member'];
+    allFields.sort(function(a,b){
+      var ia=order.indexOf(a), ib=order.indexOf(b);
+      if(ia===-1 && ib===-1) return a.localeCompare(b);
+      if(ia===-1) return 1; if(ib===-1) return -1; return ia-ib;
+    });
+    var head='<tr>'+allFields.map(function(f){ return '<th>'+f+'</th>'; }).join('')+'</tr>';
+    var rows=arr.map(function(r){
+      return '<tr>'+allFields.map(function(f){
+        var v=r[f];
+        if(v===undefined||v===null) v='';
+        if(typeof v==='object') v=JSON.stringify(v);
+        // Kung amount - lagyan ng ₱
+        if(f.toLowerCase().includes('amount') && v!=='') v=peso(v);
+        // Kung date/time - ipakita yung totoong oras!
+        if((f.toLowerCase().includes('date')||f.toLowerCase().includes('time')||f.toLowerCase().includes('at')) && v!==''){
+          // Kung mukhang date, format - pero kung 11/12/2026 lang, wag galawin
+          if(String(v).includes('T') || String(v).includes(':')) v=fmtDate(v);
+        }
+        return '<td>'+String(v)+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    sections+='<h2>📁 '+k.toUpperCase()+' — '+arr.length+' RECORDS — SAME AS SYSTEM</h2><div style="overflow-x:auto;"><table><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div><p style="font-size:11px;color:#888;">Source: localStorage key = <b>'+k+'</b> • Walang binago, walang binawas.</p>';
+  });
+
+  // 2. SUMMARY - galing sa totoong data, hindi hula!
+  var bankTx=JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx=JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var bankBal=25000; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankBal+=Number(x.amount||0); else bankBal-=Number(x.amount||0); } });
+  var pettyBal=10000; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyBal+=Number(x.amount||0); else pettyBal-=Number(x.amount||0); } });
+  var total=bankBal+pettyBal;
+
+  var html='<html><head><meta charset="utf-8"><title>Sto Nino - Very Detailed Overall Report</title><style>'
+  +'body{font-family:Arial,sans-serif;padding:18px;max-width:1100px;margin:auto;color:#222;font-size:12px;}'
+  +'.head{text-align:center;border-bottom:3px solid #7b1e1e;padding-bottom:10px;} .head h1{color:#7b1e1e;margin:0;font-size:24px;} .head p{margin:3px 0;color:#666;}'
+  +'.boxes{display:flex;gap:10px;margin:14px 0;} .box{flex:1;border:1px solid #ddd;border-radius:10px;padding:12px;text-align:center;} .box b{font-size:18px;} .total{background:#7b1e1e;color:#fff;}'
+  +'h2{background:#7b1e1e;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;margin-top:22px;}'
+  +'table{width:100%;border-collapse:collapse;font-size:11px;} th{background:#333;color:#fff;padding:7px 6px;text-align:left;white-space:nowrap;} td{padding:7px 6px;border-bottom:1px solid #eee;white-space:nowrap;} tr:nth-child(even) td{background:#fafafa;}'
+  +'.sign{display:flex;justify-content:space-between;margin-top:40px;text-align:center;} .line{border-top:1px solid #000;margin:40px 18px 4px;padding-top:4px;}'
+  +'@media print{ .noprint{display:none;} body{max-width:none;} }'
+  +'</style></head><body>'
+  +'<div class="head"><h1>⛪ STO. NIÑO CHAPEL</h1><p>Finance System Online • VERY DETAILED OVERALL SYSTEM REPORT</p><p>Generated: '+new Date().toLocaleString('en-PH',{month:"2-digit",day:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:true})+' • Total Records: '+totalRecords+' • Lahat ng Tab</p><p style="color:#a00;"><b>Kung ano ang nasa System — yun din ang nasa Report. Walang binago.</b></p></div>'
+  +'<div class="boxes"><div class="box">🏦 LANDBANK<br><b>'+peso(bankBal)+'</b><br><small>Starting ₱25,000 • '+bankTx.length+' records</small></div>'
+  +'<div class="box">💵 PETTY CASH<br><b>'+peso(pettyBal)+'</b><br><small>Starting ₱10,000 • '+pettyTx.length+' records</small></div>'
+  +'<div class="box total">📊 TOTAL FUND<br><b>'+peso(total)+'</b><br><small>Bank + Petty • Reconciliation</small></div></div>'
+  +'<p style="text-align:center;color:#555;">Reconciliation: Bank '+peso(bankBal)+' + Petty '+peso(pettyBal)+' = <b>TOTAL FUND: '+peso(total)+'</b></p>'
+    + sections
+  +'<div class="sign"><div><div class="line">Prepared by: Treasurer<br>Bro. Den<br>'+new Date().toLocaleString('en-PH')+'</div></div><div><div class="line">Checked by: Auditor</div></div><div><div class="line">Approved by: Parish Priest</div></div></div>'
+  +'<p style="text-align:center;font-size:11px;color:#888;margin-top:16px;">Sto. Niño Chapel • Finance System Online • System Created By: Bro. Den • Viva Pit Señor!</p>'
+  +'<div class="noprint" style="text-align:center;margin:20px;"><button onclick="window.print()" style="background:#7b1e1e;color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:16px;font-weight:bold;">🖨️ PRINT / SAVE AS PDF - ISANG PRINT LANG</button></div>'
+  +'</body></html>';
+  var w=window.open('','_blank'); w.document.write(html); w.document.close();
+}
+</script>
+<!-- ===== TAPOS VERY DETAILED ===== -->
+</body>
   </html>
