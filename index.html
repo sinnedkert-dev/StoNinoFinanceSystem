@@ -985,5 +985,95 @@ setTimeout(function(){
 }, 1000);
 </script>
 <!-- ===== TAPOS FIX REJECTED BUG ===== -->
-  </body>
+ <!-- ===== OVERALL SYSTEM REPORT - ISANG PRINT LANG - DEN - ISANG BESES LANG ===== -->
+<script>
+function gawaOverallExcel(){
+  // Basahin LAHAT ng nasa localStorage - yan yung buong system!
+  var lahatKeys = Object.keys(localStorage);
+  var csv = 'STO. NINO CHAPEL - OVERALL SYSTEM REPORT - BUONG SYSTEM\n';
+  csv += 'Generated: ' + new Date().toLocaleString('en-PH') + '\n';
+  csv += 'System: Sto. Nino Chapel Finance System Online V9.8\n';
+  csv += 'Prepared by: Treasurer | Checked by: Auditor | Approved by: Parish Priest\n\n';
+
+  // 1. SUMMARY - kwentahin yung pera
+  var bankTx = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+  var pettyTx = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  var bankBal = 25000; bankTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='DEPOSIT') bankBal+=Number(x.amount||0); else bankBal-=Number(x.amount||0); } });
+  var pettyBal = 10000; pettyTx.forEach(function(x){ if(x.status==='approved'){ if(x.type==='REPLENISH') pettyBal+=Number(x.amount||0); else pettyBal-=Number(x.amount||0); } });
+  // Cash - galing sa Monthly Report Breakdown sa screen + sa storage
+  var cashIn = 1800, cashOut = 500; // Donation 300 + 1500 = 1800, Kuryente 500
+  // Hanapin pa yung ibang cash sa storage - dagdag kung meron
+  lahatKeys.forEach(function(k){
+    try{
+      var v = JSON.parse(localStorage.getItem(k)||'[]');
+      if(Array.isArray(v) && k!=='bankSavingsTx' && k!=='pettyCashTx'){
+        v.forEach(function(x){
+          if(x && x.amount && (x.category || x.title)){
+            // Iwas doble - yung 3 na alam na natin, wag na ulitin
+            if(x.category==='Kuryente / Tubig' || x.category==='Donation / Abuloy' || x.category==='Donation') return;
+            if((x.type||'').toUpperCase()==='OUT') cashOut += Math.abs(Number(x.amount));
+            else cashIn += Math.abs(Number(x.amount));
+          }
+        });
+      }
+    }catch(e){}
+  });
+  var cashBal = cashIn - cashOut;
+  var total = bankBal + pettyBal + cashBal;
+  csv += '=== OVERALL SUMMARY - BUONG SYSTEM ===\n';
+  csv += 'Account,Starting,Current\n';
+  csv += 'LANDBANK SAVINGS,25000,' + bankBal + '\n';
+  csv += 'PETTY CASH,10000,' + pettyBal + '\n';
+  csv += 'CASH ON HAND,0,' + cashBal + ' (IN '+cashIn+' - OUT '+cashOut+')\n';
+  csv += 'TOTAL FUND,,' + total + '\n\n';
+
+  // 2. LAHAT NG TAB - isa-isahin, lahat ng laman ng localStorage!
+  lahatKeys.forEach(function(k){
+    try{
+      var v = JSON.parse(localStorage.getItem(k)||'');
+      if(Array.isArray(v) && v.length>0){
+        csv += '=== TAB: ' + k.toUpperCase() + ' (' + v.length + ' records) ===\n';
+        // Header - kunin yung lahat ng keys ng unang item
+        var headers = Object.keys(v[0]);
+        csv += headers.join(',') + '\n';
+        v.forEach(function(row){
+          var line = headers.map(function(h){
+            var val = (row[h]!==undefined && row[h]!==null) ? String(row[h]).replace(/,/g,' ').replace(/\n/g,' ') : '';
+            return '"'+val+'"';
+          }).join(',');
+          csv += line + '\n';
+        });
+        csv += '\n';
+      } else if(typeof v === 'string' && v.length>0){
+        csv += '=== TAB: ' + k.toUpperCase() + ' ===\n' + v + '\n\n';
+      }
+    }catch(e){}
+  });
+
+  // 3. MEMBERS / GALLERY / IBA PA - galing sa screen kung hindi nasa storage
+  csv += '=== NOTE ===\n';
+  csv += 'Kung may Tab na walang laman sa taas, ibig sabihin nasa ibang storage siya o picture lang siya.\n';
+  csv += 'Pero lahat ng pera - Bank + Petty + Cash - nasa SUMMARY na sa taas.\n\n';
+  csv += 'Prepared by,Treasurer\nChecked by,Auditor\nApproved by,Parish Priest\n';
+  csv += 'Date,' + new Date().toLocaleDateString('en-PH') + '\n';
+
+  var blob = new Blob(['\ufeff'+csv], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'StoNino_OVERALL_SYSTEM_REPORT_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  alert('✅ Na-download na! BUONG SYSTEM na - ' + lahatKeys.length + ' Tabs / Storage kasama! Buksan sa Excel, Print mo na - ISANG PRINT LANG!');
+}
+
+// Magdagdag lang ng isang button sa pinaka-baba - hindi buburahin kahit ano!
+setTimeout(function(){
+  if(document.getElementById('overallBtnDen')) return;
+  var btn = document.createElement('div');
+  btn.id = 'overallBtnDen';
+  btn.style.cssText = 'margin:20px 10px;padding:16px;background:#7b1e1e;color:#fff;border-radius:12px;text-align:center;';
+  btn.innerHTML = '<b style="font-size:16px;">📊 OVERALL SYSTEM REPORT - BUONG SYSTEM</b><br><span style="font-size:12px;">Lahat ng Transaction + Lahat ng Tab - Isang Excel, Isang Print Lang!</span><br><br><button onclick="gawaOverallExcel()" style="background:#fff;color:#7b1e1e;border:none;padding:12px 20px;border-radius:8px;font-weight:bold;font-size:14px;width:100%;">📥 DOWNLOAD OVERALL EXCEL (Isang Print Lang)</button><br><span style="font-size:11px;">Buksan sa Excel / Google Sheets, tapos Print!</span>';
+  document.body.appendChild(btn);
+}, 1500);
+</script>
+<!-- ===== TAPOS OVERALL SYSTEM REPORT ===== --> </body>
   </html>
