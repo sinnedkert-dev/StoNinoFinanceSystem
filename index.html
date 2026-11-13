@@ -1438,5 +1438,43 @@ function gawaOverallExcel(){
 }
 </script>
 <!-- ===== TAPOS MALINIS - WALANG GREEN ===== -->
+<!-- ===== HIDE DALAWA - TREASURY + BANK LEVEL - TAGO LANG - ADD SA ILALIM - DEN ===== -->
+<script>
+(function(){
+  function tagoDalawa(){
+    // Kunin lahat - maliit muna, para yung mismong box lang yung matago, hindi buong page!
+    var lahat = Array.from(document.querySelectorAll('div, pre, section, article, main'));
+    // Ayusin - pinakamaliit muna
+    lahat.sort(function(a,b){ return (a.textContent||'').length - (b.textContent||'').length; });
+    lahat.forEach(function(el){
+      var t = el.textContent || '';
+      var isTreasury = t.indexOf('Treasury Report - NOVEMBER') !== -1 && t.indexOf('FIESTA FUND TARGET') !== -1;
+      var isBankLevel = t.indexOf('BANK LEVEL - BUONG SYSTEM') !== -1 && t.indexOf('LANDBANK SAVINGS') !== -1;
+      if(!isTreasury && !isBankLevel) return;
+      // Wag itago kung buong page na - pag may COPY FOR GC sa loob, ibig sabihin buong page na yan!
+      if(t.indexOf('COPY FOR GC') !== -1 && t.indexOf('PRINT / PDF') !== -1) return;
+      // Wag itago kung sobrang laki - baka buong container na yan!
+      if(t.length > 2000) return;
+      // Ito na yung box - TAGO!
+      el.style.display = 'none';
+      el.style.setProperty('display','none','important');
+      // Kung may parent na card na manipis lang din, tago na rin - para walang puting bakante!
+      var p = el.parentElement;
+      if(p && (p.textContent||'').length < 2200 && (p.textContent||'').indexOf('COPY FOR GC') === -1){
+        p.style.display = 'none';
+        p.style.setProperty('display','none','important');
+      }
+    });
+  }
+  tagoDalawa();
+  setTimeout(tagoDalawa, 500);
+  setTimeout(tagoDalawa, 1500);
+  setTimeout(tagoDalawa, 3000);
+  setTimeout(tagoDalawa, 5000);
+  var obs = new MutationObserver(function(){ tagoDalawa(); });
+  obs.observe(document.body, {childList:true, subtree:true, characterData:true});
+})();
+</script>
+<!-- ===== TAPOS HIDE DALAWA ===== -->
 </body>
   </html>
