@@ -1875,7 +1875,6 @@ get('history').then(function(data){ data=data||{}; var keys=Object.keys(data).sl
 }
 var lastSay='';
 function update(){
-if(!nakaLogin()) return;
 var email=sinoAko();
 var pang=email.indexOf('treasurer')!==-1?'💰 Treasurer':email.indexOf('admin')!==-1?'👑 Admin':email.indexOf('viewer')!==-1?'👀 Viewer':email.indexOf('father')!==-1?'⛪ Father':'👤 '+email;
 var oras=new Date().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
