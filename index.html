@@ -1949,57 +1949,57 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   console.log("Race fix loaded - Approve ay isa-isa na lang");
 })();
 </script>
-<!-- ===== FIX #010 TUNAY v11 - Report galing sa allTx, hindi sa Screen ===== -->
+<!-- ===== FIX OVERALL LAHAT FIREBASE v14 ===== -->
 <script>
 (function(){
   function peso(n){ return "₱"+Number(n||0).toLocaleString("en-PH",{minimumFractionDigits:2}); }
-  function fmtNo(n){ return "#"+String(n).padStart(3,"0"); }
-
-  function gawaTunayNaReport(){
-    // 1. Kunin sa DATABASE mismo - hindi sa screen!
-    var cash = (window.allTx || []).slice().sort(function(a,b){ return (b.displayNo||0)-(a.displayNo||0); });
-    var bankTx = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
-    var pettyTx = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+  function kuhaLahat(namelist, lsKey){
+    for(var i=0;i<namelist.length;i++){
+      var v = window[namelist[i]];
+      if(Array.isArray(v) && v.length>0) return v;
+      if(Array.isArray(v) && v.length===0) return v;
+    }
+    try{ return JSON.parse(localStorage.getItem(lsKey)||'[]'); }catch(e){ return []; }
+  }
+  function gawaOverallLahat(){
+    // CASH - Firebase via allTx
+    var cash = kuhaLahat(['allTx','cashTx','transactions','allTransactions'], 'cashTx');
+    cash = cash.slice().sort(function(a,b){ return (b.displayNo||b.no||0)-(a.displayNo||a.no||0); });
+    // BANK - hanapin sa Firebase variable, kung wala, localStorage muna
+    var bankTx = kuhaLahat(['bankSavingsTx','allBankTx','bankTx','bankTransactions'], 'bankSavingsTx');
+    // PETTY - hanapin sa Firebase variable, kung wala, localStorage muna
+    var pettyTx = kuhaLahat(['pettyCashTx','allPettyTx','pettyTx','pettyTransactions'], 'pettyCashTx');
 
     var cashIn=0, cashOut=0;
     cash.forEach(function(t){ if(t.status!=='approved') return; if(t.type==='in') cashIn+=Number(t.amount||0); else cashOut+=Number(t.amount||0); });
     var kaban = cashIn - cashOut;
-
     var bankBal=25000, pettyBal=10000;
     bankTx.forEach(function(x){ if(x.status!=='approved') return; if(x.type==='DEPOSIT') bankBal+=Number(x.amount||0); else bankBal-=Number(x.amount||0); });
     pettyTx.forEach(function(x){ if(x.status!=='approved') return; if(x.type==='REPLENISH') pettyBal+=Number(x.amount||0); else pettyBal-=Number(x.amount||0); });
 
-    var cashRows = cash.map(function(t){
-      return '<tr><td><b>'+fmtNo(t.displayNo)+'</b></td><td style="text-align:right;font-weight:bold;">'+peso(t.amount)+'</td><td>'+(t.type==='in'?'+':'-')+peso(t.amount)+' - '+(t.category||'')+' - '+(t.note||'')+' • '+(t.status||'')+'</td></tr>';
-    }).join('');
-
+    var cashRows = cash.map(function(t){ return '<tr><td><b>#'+String(t.displayNo||t.no||'').padStart(3,"0")+'</b></td><td style="text-align:right;font-weight:bold;">'+peso(t.amount)+'</td><td>'+(t.type==='in'?'+':'-')+peso(t.amount)+' - '+(t.category||'')+' - '+(t.note||'')+' • '+(t.status||'')+'</td></tr>'; }).join('');
     var bankRows = bankTx.map(function(x){ return '<tr><td>'+(x.date||'')+'</td><td>'+(x.ref||'')+'</td><td>'+x.type+'</td><td>'+(x.note||'')+'</td><td style="text-align:right;">'+peso(x.amount)+'</td><td>'+x.status+'</td></tr>'; }).join('');
-    var pettyRows = pettyTx.map(function(x){ return '<tr><td>'+(x.date||'')+'</td><td>'+(x.ref||'')+'</td><td>'+x.type+'</td><td>'+(x.note||'')+'</td><td style="text-align:right;">'+peso(x.amount)+'</td><td>'+x.status+'</td></tr>'; }).join('');
+    var pettyRows = pettyTx.map(function(x){ return '<tr><td>'+(x.date||'')+'</td><td>'+(x.ref||'')+'</td><td>'+(x.type||'')+'</td><td>'+(x.note||'')+'</td><td style="text-align:right;">'+peso(x.amount)+'</td><td>'+x.status+'</td></tr>'; }).join('');
 
-    var html = '<html><head><meta charset="utf-8"><title>Overall - Tunay</title><style>body{font-family:Arial;padding:18px;max-width:1000px;margin:auto;} table{width:100%;border-collapse:collapse;font-size:11px;} th{background:#333;color:#fff;padding:7px;text-align:left;} td{padding:7px;border-bottom:1px solid #eee;} h2{background:#7b1e1e;color:#fff;padding:8px;border-radius:8px;font-size:13px;}</style></head><body>'
-      + '<h1 style="text-align:center;color:#7b1e1e;">⛪ STO. NIÑO CHAPEL</h1><p style="text-align:center;">OVERALL FINANCIAL REPORT • Galing sa Database - Hindi sa Screen</p><p style="text-align:center;">Generated: '+new Date().toLocaleString('en-PH')+'</p>'
+    var html = '<html><head><meta charset="utf-8"><title>OVERALL LAHAT FIREBASE</title><style>body{font-family:Arial;padding:18px;max-width:1000px;margin:auto;} table{width:100%;border-collapse:collapse;font-size:11px;} th{background:#333;color:#fff;padding:7px;text-align:left;} td{padding:7px;border-bottom:1px solid #eee;} h2{background:#7b1e1e;color:#fff;padding:8px;border-radius:8px;font-size:13px;}</style></head><body>'
+      + '<h1 style="text-align:center;color:#7b1e1e;">⛪ STO. NIÑO CHAPEL</h1><p style="text-align:center;">OVERALL SYSTEM REPORT - LAHAT FIREBASE • '+new Date().toLocaleString('en-PH')+'</p>'
       + '<p style="text-align:center;"><b>KABAN: '+peso(kaban)+' • LANDBANK: '+peso(bankBal)+' • PETTY: '+peso(pettyBal)+'</b></p>'
-      + '<h2>💵 PETTY CASH — '+pettyTx.length+' RECORDS</h2><table><tr><th>Date</th><th>Ref</th><th>Type</th><th>Note</th><th>Amount</th><th>Status</th></tr>'+pettyRows+'</table>'
-      + '<h2>🏦 BANK SAVINGS — '+bankTx.length+' RECORDS</h2><table><tr><th>Date</th><th>Ref</th><th>Type</th><th>Note</th><th>Amount</th><th>Status</th></tr>'+bankRows+'</table>'
-      + '<h2>💵 CASH TRANSACTIONS — '+cash.length+' TRANSACTIONS</h2><table><tr><th>Ref</th><th>Amount</th><th>Buong Detalye</th></tr>'+cashRows+'</table>'
-      + '<div style="text-align:center;margin:20px;"><button onclick="window.print()" style="background:#7b1e1e;color:#fff;border:none;padding:14px 28px;border-radius:10px;font-weight:bold;">🖨️ PRINT / SAVE AS PDF</button></div></body></html>';
+      + '<h2>PETTY CASH — '+pettyTx.length+' RECORDS</h2><table><tr><th>Date</th><th>Ref</th><th>Type</th><th>Note</th><th>Amount</th><th>Status</th></tr>'+pettyRows+'</table>'
+      + '<h2>BANK SAVINGS — '+bankTx.length+' RECORDS</h2><table><tr><th>Date</th><th>Ref</th><th>Type</th><th>Note</th><th>Amount</th><th>Status</th></tr>'+bankRows+'</table>'
+      + '<h2>CASH TRANSACTIONS — '+cash.length+' TRANSACTIONS</h2><table><tr><th>Ref</th><th>Amount</th><th>Buong Detalye</th></tr>'+cashRows+'</table>'
+      + '<div style="text-align:center;margin:20px;"><button onclick="window.print()" style="background:#7b1e1e;color:#fff;border:none;padding:14px 28px;border-radius:10px;font-weight:bold;">PRINT / SAVE AS PDF</button></div></body></html>';
     var w = window.open('','_blank'); w.document.write(html); w.document.close();
   }
-
-  // I-override LAHAT ng lumang Report - kahit anong pangalan nila!
-  window.gawaOverallExcel = gawaTunayNaReport;
-
-  // Hulihin yung click sa kahit anong Report button - bago pa tumakbo yung luma!
   document.addEventListener('click', function(e){
     var btn = e.target.closest('button, a, div');
     if(!btn) return;
     var txt = (btn.innerText||btn.textContent||'').toUpperCase();
-    if(txt.indexOf('OVERALL')!==-1 || txt.indexOf('DOWNLOAD OVERALL')!==-1){
+    if(txt.indexOf('OVERALL SYSTEM REPORT')!==-1){
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-      gawaTunayNaReport();
+      gawaOverallLahat();
     }
   }, true);
-  console.log("Tunay na Report loaded - galing sa allTx na!");
+  window.gawaOverallExcel = gawaOverallLahat;
 })();
 </script>
 </body>
