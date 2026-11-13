@@ -1888,5 +1888,31 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
 </script>
 <!-- TAPOS EYE V6 -->
 </script>
+<!-- ===== FIX PENDING BUG v9.9 - BILANGIN LAHAT: CASH + BANK + PETTY ===== -->
+<script>
+(function(){
+  var origRender = window.render;
+  if(!origRender) return;
+  window.render = function(){
+    origRender();
+    try{
+      var cashPending = 0;
+      if(window.allTx) allTx.forEach(function(t){ if(t.status==="pending") cashPending++; });
+      var bankTx = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+      var pettyTx = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+      var bankPending = bankTx.filter(function(x){ return x.status==="pending"; }).length;
+      var pettyPending = pettyTx.filter(function(x){ return x.status==="pending"; }).length;
+      var totalPending = cashPending + bankPending + pettyPending;
+      var el = document.getElementById("pendingCount");
+      if(el) el.innerText = totalPending;
+      // Ayusin din yung TRANSACTIONS - para tugma lahat
+      var txEl = document.getElementById("txCount");
+      if(txEl && window.allTx) txEl.innerText = allTx.length + bankTx.length + pettyTx.length;
+    }catch(e){}
+  };
+  // I-refresh agad para mag-3 na
+  if(window.render) window.render();
+})();
+</script>
 </body>
   </html>
