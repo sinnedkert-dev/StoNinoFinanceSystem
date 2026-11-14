@@ -1987,133 +1987,37 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   window.gawaOverallExcel = gawaExcelTunay;
 })();
 </script>
-<!-- ===== BANK + PETTY PURE FIREBASE FINAL - OVERRIDE LAHAT ===== -->
+<!-- ===== SA BABA LANG TO DEN - ISANG PASTE LANG - WAG KA NA MAGHANAP ===== -->
 <script>
 (function(){
-  function hintay(cb){
-    if(window.firebase && firebase.database) return cb();
-    setTimeout(function(){ hintay(cb); }, 500);
-  }
-  hintay(function(){
-    var db = firebase.database();
-    var bankRef = db.ref('bankSavings');
-    var pettyRef = db.ref('pettyCash');
+  // Gagawa ako ng button - kusa - hindi mo na hahanapin
+  setTimeout(function(){
+    // 1. Gawa ng dilaw na box - sa ibaba ng screen - kusa
+    var box = document.createElement('div');
+    box.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;background:#fff3cd;border:2px solid #ff9800;padding:12px;border-radius:12px;z-index:99999;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+    box.innerHTML = '<b style="color:#e65100;">🔧 TEST FIREBASE - DEN</b><br><span id="fbStatusPhone" style="font-size:12px;color:#333;">Handa na ako, DEN - Pindutin mo yung button sa baba</span><br><br><button id="btnTestFirebasePhone" style="background:#ff9800;color:white;border:none;padding:12px;border-radius:8px;font-weight:bold;width:100%;font-size:15px;">👉 PININDUTIN MO AKO - GAWIN YUNG bankSavings + pettyCash</button><br><button id="btnHideTestPhone" style="background:none;border:none;color:#888;font-size:11px;margin-top:6px;">Itago mo ako pag tapos na</button>';
+    document.body.appendChild(box);
 
-    // 1. MIGRATE LUMA - ISANG BESES LANG - KUNG WALANG LAMAN SA FIREBASE PERO MERON SA PHONE
-    var bankLocal = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
-    var pettyLocal = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+    document.getElementById('btnHideTestPhone').onclick = function(){ box.style.display='none'; };
 
-    bankRef.once('value').then(function(snap){
-      if(!snap.exists() && bankLocal.length > 0){
-        bankLocal.forEach(function(x){ bankRef.push(x); });
-        console.log('BANK LUMA INAKYAT:', bankLocal.length);
-      }
-      // Kung totally walang laman kahit sa phone - lagay yung starting na nasa code mo
-      if(!snap.exists() && bankLocal.length === 0){
-        bankRef.push({type:'OPENING', amount:25000, note:'Starting Landbank - galing sa code', date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'BANK-000', status:'approved', createdAt:Date.now()});
-      }
-    });
-    pettyRef.once('value').then(function(snap){
-      if(!snap.exists() && pettyLocal.length > 0){
-        pettyLocal.forEach(function(x){ pettyRef.push(x); });
-        console.log('PETTY LUMA INAKYAT:', pettyLocal.length);
-      }
-      if(!snap.exists() && pettyLocal.length === 0){
-        pettyRef.push({type:'OPENING', amount:10000, note:'Starting Petty - galing sa code', date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'PCV-000', status:'approved', createdAt:Date.now()});
-      }
-    });
-
-    // 2. GAWING FIREBASE YUNG SOURCE - HINDI NA PHONE
-    // Pag may bago sa Firebase - palitan yung bankTx / pettyTx na binabasa ng screen
-    bankRef.on('value', function(snap){
-      var arr = [];
-      snap.forEach(function(c){ var v=c.val(); v._fbKey=c.key; arr.push(v); });
-      window.bankTx = arr;
-      // I-update din yung global na bankTx na ginagamit ng renderBP
-      try{ bankTx = arr; }catch(e){}
-      console.log('BANK FIREBASE LIVE:', arr.length);
-      if(window.renderBP) window.renderBP();
-    });
-    pettyRef.on('value', function(snap){
-      var arr = [];
-      snap.forEach(function(c){ var v=c.val(); v._fbKey=c.key; arr.push(v); });
-      window.pettyTx = arr;
-      try{ pettyTx = arr; }catch(e){}
-      console.log('PETTY FIREBASE LIVE:', arr.length);
-      if(window.renderBP) window.renderBP();
-    });
-
-    // 3. OVERRIDE bankBal / pettyBal - APPROVED LANG - GALING SA FIREBASE ARRAYS
-    window.bankBal = function(){
-      var tx = window.bankTx || [];
-      var b = 0;
-      // Kung may OPENING - yun na yung simula - wag na +25000 ulit
-      var mayOpening = tx.some(function(x){ return x.type==='OPENING'; });
-      b = mayOpening ? 0 : 25000;
-      tx.forEach(function(x){
-        if(x.status==='rejected' || x.status==='pending') return;
-        if(x.type==='OPENING') b += parseFloat(x.amount||0);
-        else if(x.type==='DEPOSIT') b += parseFloat(x.amount||0);
-        else b -= parseFloat(x.amount||0); // WITHDRAW + REPLENISH_OUT
+    document.getElementById('btnTestFirebasePhone').onclick = function(){
+      var el = document.getElementById('fbStatusPhone');
+      if(!window.firebase){ el.textContent='WALANG FIREBASE ❌'; alert('WALANG FIREBASE, DEN!'); return; }
+      if(!firebase.apps || firebase.apps.length===0){ el.textContent='HINDI PA INITIALIZE ❌'; alert('HINDI PA INITIALIZE, DEN!'); return; }
+      el.textContent = 'Gising si Firebase ✅ - Gumagawa na ako... hintay lang...';
+      var db = firebase.database();
+      db.ref('bankSavings').push({type:'OPENING', amount:25000, note:'Starting Landbank - galing sa phone', date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'BANK-000', status:'approved', createdAt:Date.now()}).then(function(){
+        el.textContent = 'Nagawa ko na yung bankSavings ✅ - Sunod pettyCash...';
+        return db.ref('pettyCash').push({type:'OPENING', amount:10000, note:'Starting Petty - galing sa phone', date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'PCV-000', status:'approved', createdAt:Date.now()});
+      }).then(function(){
+        el.textContent = 'TAPOS NA, DEN! ✅✅ Check mo na sa Firebase!';
+        alert('TAPOS NA, DEN! ✅✅\nNagawa ko na yung bankSavings at pettyCash!\nBalik ka sa Firebase - Refresh mo - dapat 6 na yung folder!');
+      }).catch(function(e){
+        el.textContent = 'ERROR: ' + e.message;
+        alert('ERROR, DEN: ' + e.message);
       });
-      return b;
     };
-    window.pettyBal = function(){
-      var tx = window.pettyTx || [];
-      var p = 0;
-      var mayOpening = tx.some(function(x){ return x.type==='OPENING'; });
-      p = mayOpening ? 0 : 10000;
-      tx.forEach(function(x){
-        if(x.status==='rejected' || x.status==='pending') return;
-        if(x.type==='OPENING') p += parseFloat(x.amount||0);
-        else if(x.type==='REPLENISH') p += parseFloat(x.amount||0);
-        else p -= parseFloat(x.amount||0); // EXPENSE / GASTOS
-      });
-      return p;
-    };
-    // Para yung ibang code na bankBalApproved() - Firebase na rin
-    window.bankBalApproved = window.bankBal;
-    window.pettyBalApproved = window.pettyBal;
-
-    // 4. OVERRIDE saveBP - WALA NANG localStorage - FIREBASE LANG
-    window.saveBP = function(){ /* wala na - Firebase na nagse-save */ };
-
-    // 5. OVERRIDE addBank - FIREBASE LANG
-    window.addBank = function(type){
-      var amt = Number(document.getElementById('bankAmt').value);
-      var note = document.getElementById('bankNote').value || 'Bank';
-      if(!amt) return alert('Lagyan ng Amount!');
-      if(type==='WITHDRAW' && amt > window.bankBal()) return alert('Kulang Bank! Bank mo: ₱' + window.bankBal().toLocaleString());
-      var ref = 'BANK-' + String((window.bankTx||[]).length + 1).padStart(3,'0');
-      bankRef.push({type:type, amount:amt, note:note, date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:ref, status:'approved', createdAt:Date.now()});
-      alert('Na-save sa Bank - Firebase na! ✅');
-    };
-
-    // 6. OVERRIDE addPetty - REPLENISH GALING SA BANK - FIREBASE LANG
-    window.addPetty = function(type){
-      var amt = Number(document.getElementById('pettyAmt').value);
-      var note = document.getElementById('pettyNote').value || 'Petty';
-      if(!amt) return alert('Lagyan ng Amount!');
-      if(type==='EXPENSE' && amt > window.pettyBal()) return alert('Kulang Petty! Petty mo: ₱' + window.pettyBal().toLocaleString());
-
-      if(type==='REPLENISH'){
-        // DITO YUNG GUSTO MO, DEN - GALING SA BANK!
-        if(amt > window.bankBal()) return alert('Kulang yung Bank mo, DEN! Bank: ₱' + window.bankBal().toLocaleString() + ' lang. Gusto mo kunin: ₱' + amt.toLocaleString());
-        if(!confirm('Kukuha ka ng ₱' + amt.toLocaleString() + ' galing sa BANK SAVINGS papuntang PETTY CASH?\n\nBank: ₱' + window.bankBal().toLocaleString() + ' -> ₱' + (window.bankBal()-amt).toLocaleString() + '\nPetty: + ₱' + amt.toLocaleString())) return;
-        // 1. Bawas sa Bank
-        bankRef.push({type:'WITHDRAW', amount:amt, note:'Replenish to Petty Cash - ' + note, date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'BANK-R-'+Date.now(), status:'approved', createdAt:Date.now()});
-        // 2. Dagdag sa Petty
-        pettyRef.push({type:'REPLENISH', amount:amt, note:'Replenish galing sa Bank Savings - ' + note, date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'PCV-' + String((window.pettyTx||[]).length + 1).padStart(3,'0'), status:'approved', createdAt:Date.now()});
-        alert('OK NA, DEN! ✅ ₱' + amt.toLocaleString() + ' galing sa BANK napunta na sa PETTY!');
-        return;
-      }
-      // Kung EXPENSE lang
-      pettyRef.push({type:type, amount:amt, note:note, date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'PCV-' + String((window.pettyTx||[]).length + 1).padStart(3,'0'), status:'approved', createdAt:Date.now()});
-      alert('Na-save sa Petty - Firebase na! ✅');
-    };
-
-    console.log('BANK + PETTY PURE FIREBASE FINAL READY - WALANG LOCALSTORAGE');
-  });
+  }, 1500);
 })();
 </script>
 </body>
