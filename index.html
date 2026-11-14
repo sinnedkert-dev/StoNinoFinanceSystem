@@ -2125,5 +2125,85 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }
 })();
 </script>
+<!-- ===== AYUSIN APPROVE DEN - BANK AT PETTY - FIREBASE NA - SA BABA LANG ===== -->
+<script>
+(function(){
+  // Hulihin ko lahat ng pindot sa Approve / Reject - kahit sa Bank o Petty
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    var txt = (btn.textContent||'').toUpperCase();
+    if(txt.indexOf('APPROVE') === -1 && txt.indexOf('REJECT') === -1) return;
+
+    // Hanapin ko kung Bank o Petty ba yung katabi ng button na to
+    var card = btn.closest('div');
+    // Umakyat ako hanggang makita ko yung BANK- o PCV-
+    for(var i=0; i<6 && card; i++){
+      var all = card.textContent||'';
+      var m = all.match(/(BANK-\d+|PCV-\d+)/);
+      if(m) break;
+      card = card.parentElement;
+    }
+    if(!card) return;
+    var m2 = (card.textContent||'').match(/(BANK-\d+|PCV-\d+)/);
+    if(!m2) return; // Kung Cash yan (#012) - hayaan ko yung dating code - gumagana naman yun
+
+    var refCode = m2[1];
+    var isBank = refCode.indexOf('BANK-') === 0;
+    var newStatus = (txt.indexOf('REJECT') > -1) ? 'rejected' : 'approved';
+    var node = isBank ? 'bankSavings' : 'pettyCash';
+    var keyName = isBank ? 'bankSavingsTx' : 'pettyCashTx';
+
+    // Pigilan ko yung lumang code - ako na bahala
+    e.preventDefault();
+    e.stopPropagation();
+
+    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
+    var db = firebase.database();
+
+    // 1. Ayusin ko sa Firebase - hanapin ko yung ref - palitan ko status
+    db.ref(node).once('value').then(function(snap){
+      snap.forEach(function(child){
+        var v = child.val();
+        if(v && v.ref === refCode){
+          db.ref(node + '/' + child.key).update({ status: newStatus });
+        }
+      });
+    });
+
+    // 2. Ayusin ko rin sa phone - para hindi bumalik sa PENDING pag ni-refresh mo
+    try{
+      var list = JSON.parse(localStorage.getItem(keyName)||'[]');
+      list.forEach(function(x){ if(x.ref===refCode) x.status = newStatus; });
+      localStorage.setItem(keyName, JSON.stringify(list));
+      var list2 = JSON.parse(localStorage.getItem(isBank?'bankSavings':'pettyCash')||'[]');
+      list2.forEach(function(x){ if(x.ref===refCode) x.status = newStatus; });
+      localStorage.setItem(isBank?'bankSavings':'pettyCash', JSON.stringify(list2));
+    }catch(err){}
+
+    // 3. Ayusin ko agad yung itsura - walang hintay
+    var badge = card.querySelector('*');
+    // Palitan ko yung PENDING badge sa card na to
+    var allEls = card.querySelectorAll('*');
+    allEls.forEach(function(el){
+      if(el.textContent && el.textContent.toUpperCase().indexOf('PENDING') > -1 && el.children.length===0){
+        el.textContent = newStatus === 'approved' ? '✅ APPROVED' : '❌ REJECTED';
+        el.style.background = newStatus === 'approved' ? '#16a34a' : '#dc2626';
+        el.style.color = '#fff';
+        el.style.padding = '4px 10px';
+        el.style.borderRadius = '20px';
+      }
+    });
+    // Itago ko yung Approve/Reject - tapos na kasi
+    var btns = card.querySelectorAll('button');
+    btns.forEach(function(b){
+      var t = (b.textContent||'').toUpperCase();
+      if(t.indexOf('APPROVE')>-1 || t.indexOf('REJECT')>-1) b.style.display='none';
+    });
+    // Update ko rin yung PENDING count sa taas - bawas 1
+    setTimeout(function(){ window.location.reload(); }, 800);
+  }, true); // true = unahin ako bago yung lumang code
+})();
+    </script>
 </body>
   </html>
