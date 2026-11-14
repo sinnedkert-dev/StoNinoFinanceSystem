@@ -2125,43 +2125,5 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }
 })();
 </script>
-<!-- ===== AYUSIN PENDING DEN - BANK-004 AT PCV-003 - APPROVED NA DATI - ISANG BESES LANG ===== -->
-<script>
-(function(){
-  setTimeout(function(){
-    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
-    var db = firebase.database();
-
-    // BANK-004 - hanapin ko sa Firebase - gawing approved
-    db.ref('bankSavings').once('value').then(function(snap){
-      snap.forEach(function(child){
-        var v = child.val();
-        if(v && v.ref === 'BANK-004'){
-          db.ref('bankSavings/' + child.key).update({ status: 'approved' });
-        }
-      });
-    });
-    // PCV-003 - ganun din
-    db.ref('pettyCash').once('value').then(function(snap){
-      snap.forEach(function(child){
-        var v = child.val();
-        if(v && v.ref === 'PCV-003'){
-          db.ref('pettyCash/' + child.key).update({ status: 'approved' });
-        }
-      });
-    });
-
-    // Ayusin ko rin yung phone - para hindi na bumalik sa PENDING pag ni-refresh mo
-    try{
-      var b = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
-      b.forEach(function(x){ if(x.ref==='BANK-004') x.status='approved'; });
-      localStorage.setItem('bankSavingsTx', JSON.stringify(b));
-      var p = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
-      p.forEach(function(x){ if(x.ref==='PCV-003') x.status='approved'; });
-      localStorage.setItem('pettyCashTx', JSON.stringify(p));
-    }catch(e){}
-  }, 1500);
-})();
-      </script>
 </body>
   </html>
