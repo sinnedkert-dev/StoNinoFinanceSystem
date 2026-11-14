@@ -1987,5 +1987,67 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   window.gawaOverallExcel = gawaExcelTunay;
 })();
 </script>
+<!-- ===== FIREBASE BANK + PETTY v16 - IAAKYAT SA FIREBASE ===== -->
+<script>
+(function(){
+  function hintayFirebase(cb){
+    if(window.firebase && firebase.database) return cb();
+    setTimeout(function(){ hintayFirebase(cb); }, 500);
+  }
+  hintayFirebase(function(){
+    var db = firebase.database();
+    var bankRef = db.ref('bankSavings');
+    var pettyRef = db.ref('pettyCash');
+
+    // 1. I-AAKYAT YUNG LUMANG BANK AT PETTY MULA SA PHONE PAPUNTANG FIREBASE
+    function iakyat(){
+      var bankLocal = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]');
+      var pettyLocal = JSON.parse(localStorage.getItem('pettyCashTx')||'[]');
+      bankRef.once('value').then(function(snap){
+        if(!snap.exists() && bankLocal.length>0){
+          bankLocal.forEach(function(x){ bankRef.push(x); });
+          console.log('BANK INAKYAT:', bankLocal.length);
+        }
+      });
+      pettyRef.once('value').then(function(snap){
+        if(!snap.exists() && pettyLocal.length>0){
+          pettyLocal.forEach(function(x){ pettyRef.push(x); });
+          console.log('PETTY INAKYAT:', pettyLocal.length);
+        }
+      });
+    }
+    iakyat();
+
+    // 2. MAKINIG SA FIREBASE - PAG MAY BAGO SA BANK/PETTY - UPDATE AGAD
+    bankRef.on('value', function(snap){
+      var arr = [];
+      snap.forEach(function(child){ var v = child.val(); v._key = child.key; arr.push(v); });
+      window.bankSavingsTx = arr;
+      localStorage.setItem('bankSavingsTx', JSON.stringify(arr));
+      console.log('BANK FIREBASE LIVE:', arr.length);
+      if(window.renderBank) window.renderBank();
+      if(typeof renderAll === 'function') try{ renderAll(); }catch(e){}
+    });
+    pettyRef.on('value', function(snap){
+      var arr = [];
+      snap.forEach(function(child){ var v = child.val(); v._key = child.key; arr.push(v); });
+      window.pettyCashTx = arr;
+      localStorage.setItem('pettyCashTx', JSON.stringify(arr));
+      console.log('PETTY FIREBASE LIVE:', arr.length);
+      if(window.renderPetty) window.renderPetty();
+      if(typeof renderAll === 'function') try{ renderAll(); }catch(e){}
+    });
+
+    // 3. BAGONG SAVE - SA FIREBASE NA - HINDI NA SA PHONE LANG
+    window.saveBankToFirebase = function(data){
+      return bankRef.push(data);
+    };
+    window.savePettyToFirebase = function(data){
+      return pettyRef.push(data);
+    };
+    console.log('BANK + PETTY FIREBASE READY');
+  });
+})();
+  </script>
 </body>
   </html>
