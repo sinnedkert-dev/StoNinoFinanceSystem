@@ -2125,114 +2125,105 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }
 })();
 </script>
-<!-- ===== HULIHIN PININDOT DEN - BANK/PETTY - LAHAT NG LAGAYAN - SA BABA LANG ===== -->
+<!-- ===== FIREBASE LANG DEN - ISAHAN LANG - WALA NANG LOCALSTORAGE - SA BABA LANG ===== -->
 <script>
 (function(){
-  // Tulong - hanapin ko yung susunod na number - BANK-005, BANK-006...
-  function nextRef(prefix, list){
-    var max = 0;
-    list.forEach(function(x){
-      var r = x.ref || x.id || '';
-      var m = r.match(/(\d+)$/);
-      if(m) max = Math.max(max, parseInt(m[1]));
+  // 1. SINO KA? - Admin, Father, Auditor = pwede - Treasurer = bawal
+  function sinoKa(){
+    var txt = '';
+    try{
+      for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); var v=localStorage.getItem(k); if(v) txt+=' '+k+':'+v; }
+      txt+=' '+(document.body.innerText||'');
+    }catch(e){}
+    txt=txt.toUpperCase();
+    if(txt.indexOf('ADMIN@STONINO.COM')>-1) return 'AUDITOR';
+    if(txt.indexOf('ADMIN@')>-1) return 'AUDITOR';
+    if(txt.indexOf('ADMIN')>-1) return 'AUDITOR';
+    if(txt.indexOf('AUDITOR')>-1) return 'AUDITOR';
+    if(txt.indexOf('FATHER')>-1) return 'AUDITOR';
+    if(txt.indexOf('PARE')>-1) return 'AUDITOR';
+    if(txt.indexOf('PRESIDENT')>-1) return 'AUDITOR';
+    return 'TREASURER';
+  }
+
+  // 2. ILIPAT KO MUNA YUNG LUMA SA FIREBASE - PARA HINDI MAWALA - ISANG BESES LANG
+  function ilipatLuma(){
+    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
+    if(localStorage.getItem('nalipatNaSaFirebase')==='yes') return;
+    var db = firebase.database();
+    ['bankSavings','pettyCash'].forEach(function(node){
+      var k = node==='bankSavings' ? 'bankSavingsTx' : 'pettyCashTx';
+      try{
+        var list = JSON.parse(localStorage.getItem(k)||'[]');
+        list.forEach(function(x){
+          if(x && (x.ref||x.id) && x.type!=='OPENING') db.ref(node).push(x);
+        });
+      }catch(e){}
     });
-    return prefix + '-' + String(max+1).padStart(3,'0');
+    // Pagkatapos ilipat - burahin ko na yung sa phone - Firebase na lang
+    ['bankSavingsTx','pettyCashTx','bankSavings','pettyCash','audit','auditList'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    localStorage.setItem('nalipatNaSaFirebase','yes');
+    console.log('NALIPAT NA DEN - FIREBASE NA LANG');
   }
-  function getAllKeys(){
-    var out = [];
-    for(var i=0;i<localStorage.length;i++){ out.push(localStorage.key(i)); }
-    return out;
+
+  // 3. FIREBASE NA LANG YUNG BOSS - YUNG PHONE - COPY LANG - HINDI SIYA MASUSUNOD
+  function syncFirebaseToPhone(){
+    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
+    ['bankSavings','pettyCash'].forEach(function(node){
+      var k = node==='bankSavings' ? 'bankSavingsTx' : 'pettyCashTx';
+      firebase.database().ref(node).once('value').then(function(snap){
+        var fb=[];
+        snap.forEach(function(c){ var v=c.val(); if(v && (v.ref||v.id) && v.type!=='OPENING' && v.ref!=='BANK-000' && v.ref!=='PCV-000') fb.push(v); });
+        // Yung Firebase - yun yung ilalagay ko sa phone - para makabasa yung lumang render mo - pero Firebase pa rin yung totoo
+        try{ localStorage.setItem(k, JSON.stringify(fb)); localStorage.setItem(node, JSON.stringify(fb)); }catch(e){}
+        // Tawagin ko ulit yung render mo - para mag-update yung Dashboard, Audit, Report
+        ['renderBank','renderPetty','renderBankSavings','renderPettyCash','renderDashboard','renderReport','updateDashboard','renderAudit','loadData'].forEach(function(fn){ try{ if(typeof window[fn]==='function') window[fn](); }catch(e){} });
+      });
+    });
   }
-  // 1. HULIHIN KO YUNG DEPOSIT / WITHDRAW SA BANK AT PETTY
+
+  // 4. HULIHIN KO YUNG DEPOSIT / WITHDRAW / GASTOS - SA FIREBASE KO LANG ILALAGAY - HINDI SA PHONE
   document.addEventListener('click', function(e){
     var btn = e.target.closest('button');
     if(!btn) return;
     var t = (btn.textContent||'').toUpperCase();
     var isBankBtn = t.indexOf('DEPOSIT')>-1 || t.indexOf('WITHDRAW')>-1;
-    var isPettyBtn = t.indexOf('GASTOS')>-1 || t.indexOf('REPLENISH')>-1 || t.indexOf('ADD EXPENSE')>-1;
+    var isPettyBtn = t.indexOf('GASTOS')>-1 || t.indexOf('REPLENISH')>-1;
     if(!isBankBtn && !isPettyBtn) return;
-
-    // Hanapin ko yung Amount at Note sa tabi ng button na pinindot mo
     var card = btn.closest('div');
     for(var i=0;i<5 && card;i++){ if(card.querySelector('input')) break; card=card.parentElement; }
     if(!card) return;
     var inputs = card.querySelectorAll('input');
     if(inputs.length===0) return;
-    var amt = parseFloat((inputs[0].value||'').replace(/[^0-9.]/g,'')) || 0;
-    if(amt<=0) return; // Kung walang amount - hayaan ko yung lumang code - mag-aalert siya ng error
+    var amt = parseFloat((inputs[0].value||'').replace(/[^0-9.]/g,''))||0;
+    if(amt<=0) return;
     var note = inputs.length>1 ? (inputs[1].value||'') : '';
     var isBank = isBankBtn;
-    // Alamin ko kung Bank ba talaga o Petty - tignan ko yung titulo sa taas
     var cardTxt = (card.textContent||'').toUpperCase();
-    if(cardTxt.indexOf('LANDBANK')>-1) isBank = true;
-    if(cardTxt.indexOf('PETTY')>-1) isBank = false;
-
-    var type = 'DEPOSIT';
+    if(cardTxt.indexOf('LANDBANK')>-1) isBank=true;
+    if(cardTxt.indexOf('PETTY')>-1) isBank=false;
+    var type='DEPOSIT';
     if(t.indexOf('WITHDRAW')>-1) type='WITHDRAW';
-    if(t.indexOf('GASTOS')>-1 || t.indexOf('EXPENSE')>-1) type='GASTOS';
+    if(t.indexOf('GASTOS')>-1) type='GASTOS';
     if(t.indexOf('REPLENISH')>-1) type='REPLENISH';
-
     var node = isBank ? 'bankSavings' : 'pettyCash';
     var prefix = isBank ? 'BANK' : 'PCV';
-    var localKey = isBank ? 'bankSavingsTx' : 'pettyCashTx';
-
-    // Kunin ko yung luma para malaman ko yung susunod na number
-    var oldList = [];
-    try{ oldList = JSON.parse(localStorage.getItem(localKey)||'[]'); }catch(e){}
-    var refCode = nextRef(prefix, oldList);
-    var entry = {
-      ref: refCode, id: refCode,
-      type: type, amount: amt, note: note || type,
-      status: 'pending', date: new Date().toLocaleString('en-PH'),
-      timestamp: Date.now(), createdAt: Date.now()
-    };
-
-    // Ilagay ko sa LAHAT ng lagayan - para kahit saan tumingin yung Audit - makikita niya
-    if(window.firebase && firebase.apps.length>0){
+    // Kunin ko yung number - galing sa Firebase - hindi sa phone
+    firebase.database().ref(node).once('value').then(function(snap){
+      var max=0;
+      snap.forEach(function(c){ var v=c.val(); var r=v.ref||v.id||''; var m=r.match(/(\d+)$/); if(m) max=Math.max(max, parseInt(m[1])); });
+      var refCode = prefix+'-'+String(max+1).padStart(3,'0');
+      var entry = { ref:refCode, id:refCode, type:type, amount:amt, note:note||type, status:'pending', date:new Date().toLocaleString('en-PH'), timestamp:Date.now() };
       firebase.database().ref(node).push(entry);
-      firebase.database().ref('audit').push(entry); // waiting room din
-      firebase.database().ref('auditList').push(entry);
-    }
-    try{
-      oldList.push(entry);
-      localStorage.setItem(localKey, JSON.stringify(oldList));
-      localStorage.setItem(isBank?'bankSavings':'pettyCash', JSON.stringify(oldList));
-      // Lagay ko rin sa audit na lagayan sa phone
-      ['audit','auditList','pendingTx','pendingTransactions'].forEach(function(k){
-        try{
-          var a = JSON.parse(localStorage.getItem(k)||'[]');
-          a.push(entry);
-          localStorage.setItem(k, JSON.stringify(a));
-        }catch(e){}
-      });
-    }catch(e){}
-    // Huwag ko pigilan yung lumang alert - hayaan ko siya - pero naka-save na tayo
-    setTimeout(function(){ window.location.reload(); }, 1200);
+      firebase.database().ref('audit').push(entry);
+      setTimeout(function(){ syncFirebaseToPhone(); }, 500);
+      setTimeout(function(){ window.location.reload(); }, 1000);
+    });
+    // Pigilan ko yung lumang code - para hindi siya mag-save sa phone - Firebase lang
+    e.preventDefault(); e.stopPropagation();
   }, true);
 
-  // 2. SYNC - Firebase -> Phone - para yung galing sa Auditor - makita rin sa Main
-  function syncFB(){
-    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
-    ['bankSavings','pettyCash'].forEach(function(node){
-      var k = node==='bankSavings' ? 'bankSavingsTx' : 'pettyCashTx';
-      firebase.database().ref(node).once('value').then(function(snap){
-        var fb = [];
-        snap.forEach(function(c){ var v=c.val(); if(v && (v.ref||v.id) && v.type!=='OPENING') fb.push(v); });
-        var local = [];
-        try{ local = JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){}
-        var map = {};
-        fb.concat(local).forEach(function(x){ var r=x.ref||x.id; if(r) map[r]=x; });
-        // Kung may approved sa Firebase - yun yung mananaig
-        fb.forEach(function(x){ var r=x.ref||x.id; if(x.status==='approved') map[r]=x; });
-        var merged = Object.values(map);
-        try{
-          localStorage.setItem(k, JSON.stringify(merged));
-          localStorage.setItem(node, JSON.stringify(merged));
-        }catch(e){}
-      });
-    });
-  }
-  // 3. APPROVE / REJECT - sa Bank at Petty - Firebase + Phone
+  // 5. APPROVE / REJECT - FIREBASE LANG - AT FATHER / ADMIN / AUDITOR LANG
   document.addEventListener('click', function(e){
     var btn = e.target.closest('button');
     if(!btn) return;
@@ -2243,28 +2234,43 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
     if(!card) return;
     var m = (card.textContent||'').match(/(BANK-\d+|PCV-\d+)/);
     if(!m) return;
-    var refCode = m[1];
+    var role = sinoKa();
+    if(role!=='AUDITOR'){
+      e.preventDefault(); e.stopPropagation();
+      alert('⛔ BAWAL KA MAG-APPROVE!\n\nTreasurer ka - ikaw yung gumagawa.\nSi Admin / Father / Auditor lang yung pwede mag-Approve.');
+      return false;
+    }
+    var refCode=m[1];
     var isBank = refCode.indexOf('BANK-')===0;
     var newStatus = txt.indexOf('REJECT')>-1 ? 'rejected' : 'approved';
     var node = isBank ? 'bankSavings' : 'pettyCash';
     e.preventDefault(); e.stopPropagation();
     firebase.database().ref(node).once('value').then(function(snap){
-      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode || v.id===refCode)) firebase.database().ref(node+'/'+c.key).update({status:newStatus}); });
+      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode||v.id===refCode)) firebase.database().ref(node+'/'+c.key).update({status:newStatus}); });
     });
     firebase.database().ref('audit').once('value').then(function(snap){
-      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode || v.id===refCode)) firebase.database().ref('audit/'+c.key).update({status:newStatus}); });
+      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode||v.id===refCode)) firebase.database().ref('audit/'+c.key).update({status:newStatus}); });
     });
-    try{
-      var kk = isBank ? 'bankSavingsTx' : 'pettyCashTx';
-      var ll = JSON.parse(localStorage.getItem(kk)||'[]');
-      ll.forEach(function(x){ if(x.ref===refCode || x.id===refCode) x.status=newStatus; });
-      localStorage.setItem(kk, JSON.stringify(ll));
-    }catch(e){}
-    setTimeout(function(){ window.location.reload(); }, 1000);
+    setTimeout(function(){ syncFirebaseToPhone(); }, 600);
+    setTimeout(function(){ window.location.reload(); }, 1200);
   }, true);
 
-  setTimeout(syncFB, 1500);
-  setInterval(syncFB, 5000);
+  // 6. LOCK - pag Treasurer ka - itago ko yung APPROVE
+  function lockBtn(){
+    if(sinoKa()==='AUDITOR') return;
+    document.querySelectorAll('button').forEach(function(btn){
+      var t=(btn.textContent||'').toUpperCase();
+      if(t.indexOf('APPROVE')>-1 || t.indexOf('REJECT')>-1){
+        var card=btn.closest('div'); var all=card?(card.textContent||''):''; 
+        if(/BANK-\d+|PCV-\d+/.test(all)) btn.style.display='none';
+      }
+    });
+  }
+
+  setTimeout(function(){ ilipatLuma(); }, 1000);
+  setTimeout(syncFirebaseToPhone, 1500);
+  setInterval(syncFirebaseToPhone, 5000);
+  setInterval(lockBtn, 2000);
 })();
 </script>
 </body>
