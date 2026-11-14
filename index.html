@@ -2036,7 +2036,7 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   // 1. SINO KA NGAYON? - SA NAKA-DISPLAY SA TAAS LANG - HINDI SA LUMA
   function sinoKa(){
     var topText = '';
-    try{ topText = (document.body.innerText||'').slice(0,300); }catch(e){}
+    try{ topText = (document.body.innerText||'').slice(0,100000); }catch(e){}
     var m = topText.match(/[A-Z0-9._%+-]+@STONINO\.COM/i);
     var emailNow = m ? m[0].toUpperCase() : '';
     if(emailNow.indexOf('TREASURER@')>-1) return 'TREASURER';
