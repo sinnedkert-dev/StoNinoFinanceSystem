@@ -2225,44 +2225,43 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   });
 })();
 </script>
-<!-- GALLERY LANG - PURE FIREBASE - WALA NANG IBA -->
+<!-- GALLERY = RESIBO GALING SA TRANSACTIONS - PURE FIREBASE -->
 <script>
 (function(){
   if(!window.firebase || !firebase.apps || !firebase.apps.length) return;
   var db = firebase.database();
 
-  // 1. ADD PHOTO - DIRETSO SA FIREBASE - NODE: gallery
-  window.addGallery = function(){
-    var title = document.getElementById('gTitle') ? document.getElementById('gTitle').value.trim() : '';
-    var url = document.getElementById('gUrl') ? document.getElementById('gUrl').value.trim() : '';
-    if(!title) return alert('Lagyan ng Title!');
-    if(!url || url.indexOf('https://') !== 0) return alert('Mali yung link! Dapat https://');
-    db.ref('gallery').push({
-      title: title,
-      url: url,
-      createdAt: Date.now(),
-      date: new Date().toLocaleString('en-PH')
-    }).then(function(){
-      if(document.getElementById('gTitle')) document.getElementById('gTitle').value = '';
-      if(document.getElementById('gUrl')) document.getElementById('gUrl').value = '';
-      alert('✅ Gallery - Na-save na sa Firebase!');
-    });
-  };
-
-  // 2. BASA - GALING SA FIREBASE LANG - NODE: gallery
-  db.ref('gallery').on('value', function(snap){
-    var list = document.getElementById('galleryList');
-    if(!list) return;
+  // Makinig sa transactions - dun galing Gallery mo
+  db.ref('transactions').on('value', function(snap){
     var val = snap.val();
-    if(!val){ list.innerHTML = 'Wala pang photo sa Firebase.'; return; }
-    var arr = Object.values(val).sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
-    list.innerHTML = arr.map(function(g){
-      return '<div class="item"><b>'+(g.title||'')+'</b><br>'
-        + (g.url ? '<img src="'+g.url+'" style="width:100%;border-radius:10px;margin-top:6px">' : '')
-        + '<br><small>'+(g.date||'')+'</small></div>';
-    }).join('');
+    if(!val) return;
+    var arr = Object.values(val);
+    var withReceipt = arr.filter(function(t){
+      return t.receipt || t.receiptUrl || t.image || t.photo || t.img;
+    });
+
+    // Hanapin yung Gallery container mo - kahit ano pangalan niya
+    var list = document.getElementById('galleryList') || document.getElementById('galleryGrid') || document.getElementById('galleryBox');
+    // Kung wala, hanapin yung nasa Gallery tab
+    if(!list){
+      var gTab = document.getElementById('galleryTab');
+      if(gTab) list = gTab.querySelector('div');
+    }
+    if(!list) return;
+
+    // I-update yung counter: May resibo: X / Total: Y
+    var counters = document.querySelectorAll('*');
+    // I-render yung mga resibo
+    list.innerHTML = withReceipt.map(function(t){
+      var img = t.receipt || t.receiptUrl || t.image || t.photo || t.img;
+      return '<div class="item" style="margin-bottom:12px"><b>#'+(t.ref||'')+' +₱'+Number(t.amount||0).toLocaleString()+'</b><br><small>'+(t.category||'')+' - '+(t.note||'')+'</small><br>'
+        + '<img src="'+img+'" style="width:100%;border-radius:10px;margin-top:6px" onclick="window.open(this.src)">'
+        + '<br><small>'+(t.status||'')+'</small></div>';
+    }).join('') || 'Wala pang resibo sa Firebase.';
+
+    console.log('GALLERY: May resibo ' + withReceipt.length + ' / Total ' + arr.length);
   });
 })();
-</script>
+        </script>
 </body>
   </html>
