@@ -1987,37 +1987,47 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   window.gawaOverallExcel = gawaExcelTunay;
 })();
 </script>
-<!-- ===== SA BABA LANG TO DEN - ISANG PASTE LANG - WAG KA NA MAGHANAP ===== -->
+<!-- ===== SAFE NA DEN - HINDI NA MAGBUBURA - DAGDAG LANG + BACKUP ===== -->
 <script>
 (function(){
-  // Gagawa ako ng button - kusa - hindi mo na hahanapin
   setTimeout(function(){
-    // 1. Gawa ng dilaw na box - sa ibaba ng screen - kusa
-    var box = document.createElement('div');
-    box.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;background:#fff3cd;border:2px solid #ff9800;padding:12px;border-radius:12px;z-index:99999;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-    box.innerHTML = '<b style="color:#e65100;">🔧 TEST FIREBASE - DEN</b><br><span id="fbStatusPhone" style="font-size:12px;color:#333;">Handa na ako, DEN - Pindutin mo yung button sa baba</span><br><br><button id="btnTestFirebasePhone" style="background:#ff9800;color:white;border:none;padding:12px;border-radius:8px;font-weight:bold;width:100%;font-size:15px;">👉 PININDUTIN MO AKO - GAWIN YUNG bankSavings + pettyCash</button><br><button id="btnHideTestPhone" style="background:none;border:none;color:#888;font-size:11px;margin-top:6px;">Itago mo ako pag tapos na</button>';
-    document.body.appendChild(box);
+    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
+    var db = firebase.database();
 
-    document.getElementById('btnHideTestPhone').onclick = function(){ box.style.display='none'; };
+    // SAFE RULE: Hindi ako gagamit ng remove() o set() na magbubura - push lang ako
+    // At bago ako magdagdag, gagawa muna ako ng backup copy
+    function safePush(refName, data){
+      // 1. Backup muna - kopya sa backup folder - hindi mawawala
+      var backupRef = db.ref(refName + '_backup').push();
+      backupRef.set({ backupOf: data, backupAt: Date.now(), backupDate: new Date().toLocaleString('en-PH') });
+      // 2. Saka lang magdagdag sa tunay
+      return db.ref(refName).push(data);
+    }
 
-    document.getElementById('btnTestFirebasePhone').onclick = function(){
-      var el = document.getElementById('fbStatusPhone');
-      if(!window.firebase){ el.textContent='WALANG FIREBASE ❌'; alert('WALANG FIREBASE, DEN!'); return; }
-      if(!firebase.apps || firebase.apps.length===0){ el.textContent='HINDI PA INITIALIZE ❌'; alert('HINDI PA INITIALIZE, DEN!'); return; }
-      el.textContent = 'Gising si Firebase ✅ - Gumagawa na ako... hintay lang...';
-      var db = firebase.database();
-      db.ref('bankSavings').push({type:'OPENING', amount:25000, note:'Starting Landbank - galing sa phone', date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'BANK-000', status:'approved', createdAt:Date.now()}).then(function(){
-        el.textContent = 'Nagawa ko na yung bankSavings ✅ - Sunod pettyCash...';
-        return db.ref('pettyCash').push({type:'OPENING', amount:10000, note:'Starting Petty - galing sa phone', date:new Date().toLocaleString('en-PH'), by:'Treasurer', ref:'PCV-000', status:'approved', createdAt:Date.now()});
-      }).then(function(){
-        el.textContent = 'TAPOS NA, DEN! ✅✅ Check mo na sa Firebase!';
-        alert('TAPOS NA, DEN! ✅✅\nNagawa ko na yung bankSavings at pettyCash!\nBalik ka sa Firebase - Refresh mo - dapat 6 na yung folder!');
-      }).catch(function(e){
-        el.textContent = 'ERROR: ' + e.message;
-        alert('ERROR, DEN: ' + e.message);
+    // I-expose ko para gamitin ng addBank / addPetty mo sa susunod - safePush lang sila
+    window.safePushBankPetty = safePush;
+
+    // Kung may luma pa sa phone - akyat ko ng isa-isa - pero check ko muna kung meron na - para hindi dumoble
+    var bankLocal = [];
+    var pettyLocal = [];
+    try{ bankLocal = JSON.parse(localStorage.getItem('bankSavingsTx')||'[]'); }catch(e){}
+    try{ pettyLocal = JSON.parse(localStorage.getItem('pettyCashTx')||'[]'); }catch(e){}
+
+    if(bankLocal.length > 0){
+      db.ref('bankSavings').once('value').then(function(snap){
+        if(snap.numChildren() <= 1){
+          bankLocal.forEach(function(x){ if(x.ref !== 'BANK-000') safePush('bankSavings', x); });
+        }
       });
-    };
-  }, 1500);
+    }
+    if(pettyLocal.length > 0){
+      db.ref('pettyCash').once('value').then(function(snap){
+        if(snap.numChildren() <= 1){
+          pettyLocal.forEach(function(x){ if(x.ref !== 'PCV-000') safePush('pettyCash', x); });
+        }
+      });
+    }
+  }, 2000);
 })();
 </script>
 </body>
