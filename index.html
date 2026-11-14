@@ -2030,5 +2030,40 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }, 2000);
 })();
 </script>
+<!-- ===== IBABALIK YUNG LUMA DEN - GALING SA LUMANG PICTURE - TAHIMIK LANG ===== -->
+<script>
+(function(){
+  setTimeout(function(){
+    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
+    var db = firebase.database();
+
+    // Yung luma mo - galing sa lumang screenshot mo
+    var oldBank = [
+      { ref: 'BANK-001', type: 'WITHDRAW', amount: 3000, note: 'Withdraw - mula sa lumang record', status: 'approved', date: '2026-11-10' },
+      { ref: 'BANK-002', type: 'DEPOSIT', amount: 600, note: 'Deposit - mula sa lumang record', status: 'approved', date: '2026-11-10' },
+      { ref: 'BANK-003', type: 'DEPOSIT', amount: 450, note: 'Deposit - mula sa lumang record', status: 'approved', date: '2026-11-11' },
+      { ref: 'BANK-004', type: 'WITHDRAW', amount: 1000, note: 'Withdraw - mula sa lumang record', status: 'pending', date: '2026-11-12' }
+    ];
+    var oldPetty = [
+      { ref: 'PCV-001', type: 'GASTOS', amount: 900, note: 'Gastos - mula sa lumang record', status: 'approved', date: '2026-11-10' },
+      { ref: 'PCV-002', type: 'GASTOS', amount: 750, note: 'Gastos - mula sa lumang record', status: 'approved', date: '2026-11-11' },
+      { ref: 'PCV-003', type: 'GASTOS', amount: 650, note: 'Gastos - mula sa lumang record', status: 'pending', date: '2026-11-12' }
+    ];
+
+    // Bank - kung 1 lang yung nasa Firebase (OPENING lang) - ibalik ko yung luma - hindi dudoble kasi check ko muna
+    db.ref('bankSavings').once('value').then(function(snap){
+      if(snap.numChildren() <= 1){
+        oldBank.forEach(function(x){ db.ref('bankSavings').push(x); });
+      }
+    });
+    // Petty - ganun din
+    db.ref('pettyCash').once('value').then(function(snap){
+      if(snap.numChildren() <= 1){
+        oldPetty.forEach(function(x){ db.ref('pettyCash').push(x); });
+      }
+    });
+  }, 2000);
+})();
+</script>
 </body>
   </html>
