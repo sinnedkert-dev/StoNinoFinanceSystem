@@ -2030,6 +2030,76 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }, 2000);
 })();
 </script>
-          
+ <!-- RESIBO DIRETSYO SA FIREBASE - ISA LANG -->
+<script>
+(function(){
+  if(!window.firebase || !firebase.apps || !firebase.apps.length) return;
+  var db = firebase.database();
+  var pendingReceipt = null;
+  var pendingName = '';
+
+  // 1. PAG PUMILI KA NG PICTURE NG RESIBO - I-COMPRESS AGAD
+  document.addEventListener('change', function(e){
+    var inp = e.target;
+    if(!inp || inp.type !== 'file') return;
+    var file = inp.files && inp.files[0];
+    if(!file) return;
+    pendingName = file.name || 'resibo.jpg';
+
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var img = new Image();
+      img.onload = function(){
+        // Paliitin: max 800px - para hindi mabigat sa Firebase
+        var maxW = 800;
+        var scale = Math.min(1, maxW / img.width);
+        var w = Math.floor(img.width * scale);
+        var h = Math.floor(img.height * scale);
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        // JPEG 0.6 - maliit pero mababasa pa
+        pendingReceipt = canvas.toDataURL('image/jpeg', 0.6);
+        console.log('RESIBO READY: ' + Math.round(pendingReceipt.length/1024) + ' KB - ' + pendingName);
+        alert('✅ Resibo ready: ' + pendingName + ' (' + Math.round(pendingReceipt.length/1024) + ' KB) - Pag nag-Save ka, mapupunta na to sa Firebase!');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // 2. PAG NAG-SAVE KA NG CASH - HANAPIN YUNG PINAKA-BAGONG TRANSACTION SA FIREBASE - LAGYAN NG RESIBO
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    var txt = (btn.innerText || '').trim().toUpperCase();
+    // Kahit ano pangalan ng Save button mo - ADD, SAVE, I-SAVE, IDAGDAG
+    if(txt.indexOf('SAVE') === -1 && txt.indexOf('ADD') === -1 && txt.indexOf('DAGDAG') === -1 && txt.indexOf('I-SAVE') === -1) return;
+    if(!pendingReceipt) return; // Walang resibo - wag galawin
+
+    var receiptToSave = pendingReceipt;
+    // Hintay 2 sec - para ma-save muna ni App mo yung transaction sa Firebase
+    setTimeout(function(){
+      db.ref('transactions').once('value').then(function(snap){
+        var val = snap.val(); if(!val) throw new Error('Walang transactions sa Firebase');
+        var keys = Object.keys(val);
+        // Pinaka-bago = pinaka-huli
+        var lastKey = keys[keys.length - 1];
+        // Kung may resibo na - wag doblehin
+        if(val[lastKey].receipt) { pendingReceipt = null; return; }
+        return db.ref('transactions/' + lastKey).update({ receipt: receiptToSave, receiptName: pendingName });
+      }).then(function(){
+        if(pendingReceipt){
+          pendingReceipt = null;
+          alert('✅ RESIBO NASA FIREBASE NA! Kahit mag-down, nandun pa rin. Check mo sa Firebase > transactions > pinaka-bago > receipt');
+        }
+      }).catch(function(err){
+        alert('❌ Hindi na-save resibo sa Firebase: ' + err.message);
+        console.log(err);
+      });
+    }, 2000);
+  });
+})();
+</script>         
 </body>
   </html>
