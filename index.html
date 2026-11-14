@@ -2225,6 +2225,44 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   });
 })();
 </script>
+<!-- GALLERY LANG - PURE FIREBASE - WALA NANG IBA -->
+<script>
+(function(){
+  if(!window.firebase || !firebase.apps || !firebase.apps.length) return;
+  var db = firebase.database();
 
+  // 1. ADD PHOTO - DIRETSO SA FIREBASE - NODE: gallery
+  window.addGallery = function(){
+    var title = document.getElementById('gTitle') ? document.getElementById('gTitle').value.trim() : '';
+    var url = document.getElementById('gUrl') ? document.getElementById('gUrl').value.trim() : '';
+    if(!title) return alert('Lagyan ng Title!');
+    if(!url || url.indexOf('https://') !== 0) return alert('Mali yung link! Dapat https://');
+    db.ref('gallery').push({
+      title: title,
+      url: url,
+      createdAt: Date.now(),
+      date: new Date().toLocaleString('en-PH')
+    }).then(function(){
+      if(document.getElementById('gTitle')) document.getElementById('gTitle').value = '';
+      if(document.getElementById('gUrl')) document.getElementById('gUrl').value = '';
+      alert('✅ Gallery - Na-save na sa Firebase!');
+    });
+  };
+
+  // 2. BASA - GALING SA FIREBASE LANG - NODE: gallery
+  db.ref('gallery').on('value', function(snap){
+    var list = document.getElementById('galleryList');
+    if(!list) return;
+    var val = snap.val();
+    if(!val){ list.innerHTML = 'Wala pang photo sa Firebase.'; return; }
+    var arr = Object.values(val).sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+    list.innerHTML = arr.map(function(g){
+      return '<div class="item"><b>'+(g.title||'')+'</b><br>'
+        + (g.url ? '<img src="'+g.url+'" style="width:100%;border-radius:10px;margin-top:6px">' : '')
+        + '<br><small>'+(g.date||'')+'</small></div>';
+    }).join('');
+  });
+})();
+</script>
 </body>
   </html>
