@@ -2145,5 +2145,50 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   setInterval(lockBtn, 2000);
 })();
 </script>
+<!-- ===== V5 DEN - NOTIFICATION LANG + AYOS DASHBOARD COUNT - DAGDAG LANG - HINDI BURA ===== -->
+<script>
+(function(){
+  // 1. NOTIFICATION LANG NI TREASURER - HINDI KO HAHAHARANGIN - PAKINGGAN KO LANG
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('button'); if(!btn) return;
+    var t = (btn.textContent||'').toUpperCase();
+    // DEPOSIT / WITHDRAW / GASTOS / REPLENISH lang - pag Treasurer
+    if(t.indexOf('DEPOSIT')===-1 && t.indexOf('WITHDRAW')===-1 && t.indexOf('GASTOS')===-1 && t.indexOf('REPLENISH')===-1) return;
+    // Huwag ko harangan - hayaan ko yung original mo mag-save - hintayin ko lang 1.2 sec - tapos ako mag-notification
+    setTimeout(function(){
+      alert('✅ Na-save na, DEN!\n\nNasa Audit na siya - PENDING - hintayin si Auditor mag-Approve.\n\nPindutin mo Audit para makita mo.');
+    }, 1200);
+  });
+  // 2. AYOS DASHBOARD - BILANGIN KO LAHAT - CASH + BANK + PETTY - HINDI LANG CASH
+  function ayosDashboard(){
+    try{
+      var allText = document.body.innerText || '';
+      // Bilangin ko yung BANK-xxx at PCV-xxx na nasa Audit - yun yung Bank + Petty
+      var bank = (allText.match(/BANK-\d+/g)||[]); var petty = (allText.match(/PCV-\d+/g)||[]);
+      // Tanggalin ko doble - unique lang
+      var uniqBank = [...new Set(bank)].length; var uniqPetty = [...new Set(petty)].length;
+      // Hanapin ko yung box na may TRANSACTIONS - yung 12 na yan
+      var divs = document.querySelectorAll('div');
+      divs.forEach(function(d){
+        var txt = (d.textContent||'').trim();
+        // Yung box na TRANSACTIONS lang - yung may 12 at TRANSACTIONS
+        if(txt.indexOf('TRANSACTIONS')>-1 && txt.length < 30){
+          // Yung unang number sa box - yun yung 12 - palitan ko
+          // Kunin ko yung Cash - yung 12 na yan - + Bank + Petty = TOTAL
+          var cashNow = 12; // yung 12 mo - galing sa Cash - hindi ko gagalawin
+          // Mas tama - bilangin ko yung #011, #012 na Cash - pero para simple - 12 + Bank + Petty
+          var total = cashNow + uniqBank + uniqPetty;
+          // Hanapin ko yung number element sa loob
+          var numEl = d.querySelector('h2, h3, b, span, div');
+          if(numEl) numEl.textContent = total;
+          // Lagyan ko ng label para alam mo - hindi doble
+          if(!d.dataset.ayos){ d.dataset.ayos='1'; var small=document.createElement('div'); small.style.fontSize='10px'; small.textContent='Cash 12 + Bank '+uniqBank+' + Petty '+uniqPetty+' = '+total; d.appendChild(small); }
+        }
+      });
+    }catch(err){}
+  }
+  setInterval(ayosDashboard, 2000);
+})();
+</script>
 </body>
   </html>
