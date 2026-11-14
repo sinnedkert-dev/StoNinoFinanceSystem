@@ -2125,50 +2125,114 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }
 })();
 </script>
-<!-- ===== TUGMA LAHAT DEN - GAWA AT BILANG - FIREBASE NA LAHAT - SA BABA LANG ===== -->
+<!-- ===== HULIHIN PININDOT DEN - BANK/PETTY - LAHAT NG LAGAYAN - SA BABA LANG ===== -->
 <script>
 (function(){
-  function mergeByRef(a, b){
-    var map = {};
-    a.concat(b).forEach(function(x){ if(x && x.ref) map[x.ref] = x; });
-    return Object.values(map);
+  // Tulong - hanapin ko yung susunod na number - BANK-005, BANK-006...
+  function nextRef(prefix, list){
+    var max = 0;
+    list.forEach(function(x){
+      var r = x.ref || x.id || '';
+      var m = r.match(/(\d+)$/);
+      if(m) max = Math.max(max, parseInt(m[1]));
+    });
+    return prefix + '-' + String(max+1).padStart(3,'0');
   }
-  function syncAll(){
-    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
-    var db = firebase.database();
+  function getAllKeys(){
+    var out = [];
+    for(var i=0;i<localStorage.length;i++){ out.push(localStorage.key(i)); }
+    return out;
+  }
+  // 1. HULIHIN KO YUNG DEPOSIT / WITHDRAW SA BANK AT PETTY
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    var t = (btn.textContent||'').toUpperCase();
+    var isBankBtn = t.indexOf('DEPOSIT')>-1 || t.indexOf('WITHDRAW')>-1;
+    var isPettyBtn = t.indexOf('GASTOS')>-1 || t.indexOf('REPLENISH')>-1 || t.indexOf('ADD EXPENSE')>-1;
+    if(!isBankBtn && !isPettyBtn) return;
 
-    ['bankSavings','pettyCash'].forEach(function(node){
-      var key1 = node==='bankSavings' ? 'bankSavingsTx' : 'pettyCashTx';
-      var key2 = node==='bankSavings' ? 'bankSavings' : 'pettyCash';
-      var local = [];
-      try{ local = JSON.parse(localStorage.getItem(key1)||'[]'); }catch(e){}
-      db.ref(node).once('value').then(function(snap){
-        var fromFB = [];
-        var fbMap = {};
-        snap.forEach(function(child){ var v=child.val(); if(v && v.ref && v.ref!=='BANK-000' && v.ref!=='PCV-000' && v.type!=='OPENING'){ fromFB.push(v); fbMap[v.ref]=child.key; } });
-        var merged = mergeByRef(fromFB, local);
-        // 1. Yung nasa phone lang pero wala sa Firebase - ipadala ko sa Firebase (eto yung BANK-005 mo)
-        merged.forEach(function(x){
-          if(!fbMap[x.ref]) db.ref(node).push(x);
-        });
-        // 2. Yung nasa Firebase - ibalik ko sa phone - para mabilang ng Dashboard at Report
-        // Kung may mas bago sa Firebase (approved sa Auditor) - yun yung mananaig
-        var finalMap = {};
-        fromFB.forEach(function(x){ finalMap[x.ref]=x; });
-        local.forEach(function(x){ if(!finalMap[x.ref]) finalMap[x.ref]=x; else { if(finalMap[x.ref].status==='approved') {} else if(x.status==='approved') finalMap[x.ref]=x; } });
-        var finalList = Object.values(finalMap);
+    // Hanapin ko yung Amount at Note sa tabi ng button na pinindot mo
+    var card = btn.closest('div');
+    for(var i=0;i<5 && card;i++){ if(card.querySelector('input')) break; card=card.parentElement; }
+    if(!card) return;
+    var inputs = card.querySelectorAll('input');
+    if(inputs.length===0) return;
+    var amt = parseFloat((inputs[0].value||'').replace(/[^0-9.]/g,'')) || 0;
+    if(amt<=0) return; // Kung walang amount - hayaan ko yung lumang code - mag-aalert siya ng error
+    var note = inputs.length>1 ? (inputs[1].value||'') : '';
+    var isBank = isBankBtn;
+    // Alamin ko kung Bank ba talaga o Petty - tignan ko yung titulo sa taas
+    var cardTxt = (card.textContent||'').toUpperCase();
+    if(cardTxt.indexOf('LANDBANK')>-1) isBank = true;
+    if(cardTxt.indexOf('PETTY')>-1) isBank = false;
+
+    var type = 'DEPOSIT';
+    if(t.indexOf('WITHDRAW')>-1) type='WITHDRAW';
+    if(t.indexOf('GASTOS')>-1 || t.indexOf('EXPENSE')>-1) type='GASTOS';
+    if(t.indexOf('REPLENISH')>-1) type='REPLENISH';
+
+    var node = isBank ? 'bankSavings' : 'pettyCash';
+    var prefix = isBank ? 'BANK' : 'PCV';
+    var localKey = isBank ? 'bankSavingsTx' : 'pettyCashTx';
+
+    // Kunin ko yung luma para malaman ko yung susunod na number
+    var oldList = [];
+    try{ oldList = JSON.parse(localStorage.getItem(localKey)||'[]'); }catch(e){}
+    var refCode = nextRef(prefix, oldList);
+    var entry = {
+      ref: refCode, id: refCode,
+      type: type, amount: amt, note: note || type,
+      status: 'pending', date: new Date().toLocaleString('en-PH'),
+      timestamp: Date.now(), createdAt: Date.now()
+    };
+
+    // Ilagay ko sa LAHAT ng lagayan - para kahit saan tumingin yung Audit - makikita niya
+    if(window.firebase && firebase.apps.length>0){
+      firebase.database().ref(node).push(entry);
+      firebase.database().ref('audit').push(entry); // waiting room din
+      firebase.database().ref('auditList').push(entry);
+    }
+    try{
+      oldList.push(entry);
+      localStorage.setItem(localKey, JSON.stringify(oldList));
+      localStorage.setItem(isBank?'bankSavings':'pettyCash', JSON.stringify(oldList));
+      // Lagay ko rin sa audit na lagayan sa phone
+      ['audit','auditList','pendingTx','pendingTransactions'].forEach(function(k){
         try{
-          localStorage.setItem(key1, JSON.stringify(finalList));
-          localStorage.setItem(key2, JSON.stringify(finalList));
+          var a = JSON.parse(localStorage.getItem(k)||'[]');
+          a.push(entry);
+          localStorage.setItem(k, JSON.stringify(a));
         }catch(e){}
-        // 3. Tawagin ko ulit yung render ng site mo - para mag-update yung Dashboard
-        ['renderBank','renderPetty','renderBankSavings','renderPettyCash','loadBank','loadPetty','renderDashboard','renderReport','updateDashboard'].forEach(function(fn){
-          try{ if(typeof window[fn]==='function') window[fn](); }catch(e){}
-        });
+      });
+    }catch(e){}
+    // Huwag ko pigilan yung lumang alert - hayaan ko siya - pero naka-save na tayo
+    setTimeout(function(){ window.location.reload(); }, 1200);
+  }, true);
+
+  // 2. SYNC - Firebase -> Phone - para yung galing sa Auditor - makita rin sa Main
+  function syncFB(){
+    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
+    ['bankSavings','pettyCash'].forEach(function(node){
+      var k = node==='bankSavings' ? 'bankSavingsTx' : 'pettyCashTx';
+      firebase.database().ref(node).once('value').then(function(snap){
+        var fb = [];
+        snap.forEach(function(c){ var v=c.val(); if(v && (v.ref||v.id) && v.type!=='OPENING') fb.push(v); });
+        var local = [];
+        try{ local = JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){}
+        var map = {};
+        fb.concat(local).forEach(function(x){ var r=x.ref||x.id; if(r) map[r]=x; });
+        // Kung may approved sa Firebase - yun yung mananaig
+        fb.forEach(function(x){ var r=x.ref||x.id; if(x.status==='approved') map[r]=x; });
+        var merged = Object.values(map);
+        try{
+          localStorage.setItem(k, JSON.stringify(merged));
+          localStorage.setItem(node, JSON.stringify(merged));
+        }catch(e){}
       });
     });
   }
-  // Approve / Reject - sa Firebase + sa phone - parehas
+  // 3. APPROVE / REJECT - sa Bank at Petty - Firebase + Phone
   document.addEventListener('click', function(e){
     var btn = e.target.closest('button');
     if(!btn) return;
@@ -2185,20 +2249,22 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
     var node = isBank ? 'bankSavings' : 'pettyCash';
     e.preventDefault(); e.stopPropagation();
     firebase.database().ref(node).once('value').then(function(snap){
-      snap.forEach(function(child){ var v=child.val(); if(v && v.ref===refCode) firebase.database().ref(node+'/'+child.key).update({status:newStatus}); });
+      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode || v.id===refCode)) firebase.database().ref(node+'/'+c.key).update({status:newStatus}); });
+    });
+    firebase.database().ref('audit').once('value').then(function(snap){
+      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode || v.id===refCode)) firebase.database().ref('audit/'+c.key).update({status:newStatus}); });
     });
     try{
-      var k = isBank ? 'bankSavingsTx' : 'pettyCashTx';
-      var l = JSON.parse(localStorage.getItem(k)||'[]');
-      l.forEach(function(x){ if(x.ref===refCode) x.status=newStatus; });
-      localStorage.setItem(k, JSON.stringify(l));
+      var kk = isBank ? 'bankSavingsTx' : 'pettyCashTx';
+      var ll = JSON.parse(localStorage.getItem(kk)||'[]');
+      ll.forEach(function(x){ if(x.ref===refCode || x.id===refCode) x.status=newStatus; });
+      localStorage.setItem(kk, JSON.stringify(ll));
     }catch(e){}
-    setTimeout(function(){ syncAll(); }, 800);
-    setTimeout(function(){ window.location.reload(); }, 1200);
+    setTimeout(function(){ window.location.reload(); }, 1000);
   }, true);
 
-  setTimeout(syncAll, 1500);
-  setInterval(syncAll, 5000); // Titingnan ko every 5 seconds - para kahit sa Auditor ka mag-approve - sa phone mo - updated din
+  setTimeout(syncFB, 1500);
+  setInterval(syncFB, 5000);
 })();
 </script>
 </body>
