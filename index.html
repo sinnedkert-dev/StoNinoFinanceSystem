@@ -2101,5 +2101,66 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   });
 })();
 </script>         
+<!-- AYOS GALLERY - TOTOONG SIRA - RACE + ABOUT:BLANK - ISA LANG -->
+<script>
+(function(){
+  // 1. AYOS RACE: Pag pumili ng resibo, i-lock muna ADD hangga't hindi tapos mag-load
+  var _origPreview = window.previewReceipt;
+  window.previewReceipt = function(e){
+    window._receiptReady = false;
+    var addBtn = document.querySelector('button[onclick="addTx()"]');
+    if(addBtn){ addBtn.disabled = true; addBtn.innerText = '⏳ Naglo-load pa resibo... hintay...'; }
+    // Tawagin yung luma mong previewReceipt - siya mag-fill ng receiptData
+    if(_origPreview) _origPreview(e);
+    // Hintayin matapos si receiptData - check kada 200ms
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if((window.receiptData && window.receiptData.length > 10) || tries > 25){
+        clearInterval(iv);
+        window._receiptReady = true;
+        if(addBtn){ addBtn.disabled = false; addBtn.innerText = '+ ADD'; }
+        if(window.receiptData && window.receiptData.length > 10) console.log('RESIBO READY: ' + Math.round(window.receiptData.length/1024) + 'KB');
+      }
+    }, 200);
+  };
+
+  // 2. AYOS ADD: Kung may file ka pero hindi pa ready, wag i-save na walang resibo
+  var _origAddTx = window.addTx;
+  window.addTx = function(){
+    var fileInp = document.getElementById('txReceipt');
+    var mayFile = fileInp && fileInp.files && fileInp.files.length > 0;
+    var walangReceipt = !window.receiptData || window.receiptData.length < 10;
+    if(mayFile && walangReceipt){
+      alert('⏳ Hintay ka 2 seconds, DEN - naglo-load pa yung resibo! Pag lumabas na yung preview picture, saka mo pindutin ulit yung + ADD.');
+      return;
+    }
+    return _origAddTx();
+  };
+
+  // 3. AYOS GALLERY: Wag ilagay yung buong base64 sa onclick - kaya nag-about:blank
+  // Gamitin natin img + this.src - hindi window.open('mahabang base64')
+  window.renderGallery = function(){
+    var filterEl = document.getElementById('galleryFilter');
+    var filter = filterEl ? filterEl.value : 'all';
+    var withReceipt = (window.allTx || []).filter(function(t){ return t.receipt && t.receipt.length > 10; });
+    var filtered = withReceipt.filter(function(t){ if(filter === 'all') return true; return t.status === filter; });
+    var countEl = document.getElementById('galleryCount');
+    if(countEl) countEl.innerText = 'May resibo: ' + filtered.length + ' / Total: ' + (window.allTx || []).length;
+    var grid = document.getElementById('galleryGrid');
+    if(!grid) return;
+    if(!filtered.length){
+      grid.innerHTML = '<p><small>Wala pang resibo sa Firebase. Mag-add ka ng transaction na may picture - hintayin mo lumabas yung preview bago mag-ADD.</small></p>';
+      return;
+    }
+    grid.innerHTML = filtered.map(function(t){
+      var sign = t.type === 'in' ? '+' : '-';
+      var no = '#' + String(t.displayNo || 0).padStart(3,'0');
+      return '<div class="gallery-item"><img src="' + t.receipt + '" onclick="window.open(this.src,\'_blank\')" style="width:100%;border-radius:10px"><b>' + no + ' ' + sign + '₱' + Number(t.amount||0).toLocaleString() + '</b><small>' + (t.category||'') + '<br>' + (t.note||'') + '<br>' + (t.status||'pending').toUpperCase() + '</small></div>';
+    }).join('');
+    console.log('GALLERY OK: ' + filtered.length + ' may resibo / ' + (window.allTx||[]).length);
+  };
+})();
+</script>
 </body>
   </html>
