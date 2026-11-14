@@ -2030,39 +2030,99 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }, 2000);
 })();
 </script>
-<!-- ===== IBABALIK YUNG LUMA DEN - GALING SA LUMANG PICTURE - TAHIMIK LANG ===== -->
+<!-- ===== PABASAHIN SA FIREBASE DEN - PARA TUGMA NA - SA BABA LANG ===== -->
 <script>
 (function(){
-  setTimeout(function(){
+  function gawingTugma(){
     if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
     var db = firebase.database();
 
-    // Yung luma mo - galing sa lumang screenshot mo
-    var oldBank = [
-      { ref: 'BANK-001', type: 'WITHDRAW', amount: 3000, note: 'Withdraw - mula sa lumang record', status: 'approved', date: '2026-11-10' },
-      { ref: 'BANK-002', type: 'DEPOSIT', amount: 600, note: 'Deposit - mula sa lumang record', status: 'approved', date: '2026-11-10' },
-      { ref: 'BANK-003', type: 'DEPOSIT', amount: 450, note: 'Deposit - mula sa lumang record', status: 'approved', date: '2026-11-11' },
-      { ref: 'BANK-004', type: 'WITHDRAW', amount: 1000, note: 'Withdraw - mula sa lumang record', status: 'pending', date: '2026-11-12' }
-    ];
-    var oldPetty = [
-      { ref: 'PCV-001', type: 'GASTOS', amount: 900, note: 'Gastos - mula sa lumang record', status: 'approved', date: '2026-11-10' },
-      { ref: 'PCV-002', type: 'GASTOS', amount: 750, note: 'Gastos - mula sa lumang record', status: 'approved', date: '2026-11-11' },
-      { ref: 'PCV-003', type: 'GASTOS', amount: 650, note: 'Gastos - mula sa lumang record', status: 'pending', date: '2026-11-12' }
-    ];
-
-    // Bank - kung 1 lang yung nasa Firebase (OPENING lang) - ibalik ko yung luma - hindi dudoble kasi check ko muna
+    // BANK - basahin sa Firebase - ilagay sa phone - para makita ng site mo
     db.ref('bankSavings').once('value').then(function(snap){
-      if(snap.numChildren() <= 1){
-        oldBank.forEach(function(x){ db.ref('bankSavings').push(x); });
-      }
+      var list = [];
+      snap.forEach(function(child){
+        var v = child.val();
+        if(!v) return;
+        // Wag isama yung OPENING sa listahan - balance lang siya
+        if(v.ref === 'BANK-000' || v.type === 'OPENING') return;
+        list.push(v);
+      });
+      // Ilagay ko sa phone - sa parehong pangalan na hinahanap ng site mo
+      try{
+        localStorage.setItem('bankSavingsTx', JSON.stringify(list));
+        localStorage.setItem('bankSavings', JSON.stringify(list));
+        localStorage.setItem('bankTx', JSON.stringify(list));
+      }catch(e){}
+      // Hanapin ko yung "Wala pa" sa Bank - palitan ko ng totoong listahan
+      var els = document.querySelectorAll('div, p, span');
+      els.forEach(function(el){
+        if(el.textContent && el.textContent.indexOf('Wala pa. Starting:') > -1 && el.children.length === 0){
+          var html = list.map(function(x){
+            return '<div style="text-align:left;padding:6px;border-bottom:1px solid #eee;">' + (x.ref||'') + ' - ' + (x.type||'') + ' ₱' + Number(x.amount||0).toLocaleString('en-PH') + ' • ' + (x.status||'') + '</div>';
+          }).join('') || 'Wala pa.';
+          el.innerHTML = html;
+        }
+      });
+      // Ayusin ko yung balance - 25,000 + deposit - withdraw
+      var dep = 0, wd = 0;
+      list.forEach(function(x){ if(x.type==='DEPOSIT' || x.type==='deposit') dep += Number(x.amount||0); if(x.type==='WITHDRAW' || x.type==='withdraw') wd += Number(x.amount||0); });
+      var bal = 25000 + dep - wd;
+      els.forEach(function(el){
+        if(el.textContent && el.textContent.trim() === '₱25,000.00' && el.children.length===0){
+          el.textContent = '₱' + bal.toLocaleString('en-PH') + '.00';
+        }
+      });
     });
-    // Petty - ganun din
+
+    // PETTY - ganun din
     db.ref('pettyCash').once('value').then(function(snap){
-      if(snap.numChildren() <= 1){
-        oldPetty.forEach(function(x){ db.ref('pettyCash').push(x); });
-      }
+      var list = [];
+      snap.forEach(function(child){
+        var v = child.val();
+        if(!v) return;
+        if(v.ref === 'PCV-000' || v.type === 'OPENING') return;
+        list.push(v);
+      });
+      try{
+        localStorage.setItem('pettyCashTx', JSON.stringify(list));
+        localStorage.setItem('pettyCash', JSON.stringify(list));
+        localStorage.setItem('pettyTx', JSON.stringify(list));
+      }catch(e){}
+      var els = document.querySelectorAll('div, p, span');
+      els.forEach(function(el){
+        if(el.textContent && el.textContent.indexOf('Wala pa. Fund:') > -1 && el.children.length === 0){
+          var html = list.map(function(x){
+            return '<div style="text-align:left;padding:6px;border-bottom:1px solid #eee;">' + (x.ref||'') + ' - ' + (x.type||'') + ' ₱' + Number(x.amount||0).toLocaleString('en-PH') + ' • ' + (x.status||'') + '</div>';
+          }).join('') || 'Wala pa.';
+          el.innerHTML = html;
+        }
+      });
+      var gastos = 0, repl = 0;
+      list.forEach(function(x){ if(x.type==='GASTOS') gastos += Number(x.amount||0); if(x.type==='REPLENISH') repl += Number(x.amount||0); });
+      var bal = 10000 - gastos + repl;
+      els.forEach(function(el){
+        if(el.textContent && el.textContent.trim() === '₱10,000.00' && el.children.length===0){
+          el.textContent = '₱' + bal.toLocaleString('en-PH') + '.00';
+        }
+      });
     });
-  }, 2000);
+
+    // Subukan ko rin tawagin yung render ng site mo - kung meron siya
+    setTimeout(function(){
+      if(typeof renderBank === 'function') renderBank();
+      if(typeof renderPetty === 'function') renderPetty();
+      if(typeof renderBankSavings === 'function') renderBankSavings();
+      if(typeof renderPettyCash === 'function') renderPettyCash();
+      if(typeof loadBank === 'function') loadBank();
+      if(typeof loadPetty === 'function') loadPetty();
+    }, 500);
+  }
+  setTimeout(gawingTugma, 1500);
+  // Pag nagbago yung Firebase - update din agad
+  if(window.firebase && firebase.apps.length>0){
+    firebase.database().ref('bankSavings').on('value', function(){ setTimeout(gawingTugma, 300); });
+    firebase.database().ref('pettyCash').on('value', function(){ setTimeout(gawingTugma, 300); });
+  }
 })();
 </script>
 </body>
