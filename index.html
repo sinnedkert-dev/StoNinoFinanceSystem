@@ -2201,5 +2201,28 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }catch(e){}
 })();
 </script>
-</body>
+<!-- ===== V15 DEN - HUWAG IPAKITA LUMA - HINTAYIN FIREBASE - PARA HINDI KUMURAP ===== -->
+<script>
+(function(){
+  // 1. Takpan ko muna Dashboard habang naglo-load si Firebase - para hindi makita yung 12
+  var cover = document.createElement('div');
+  cover.id = 'denLoading';
+  cover.style.cssText = 'position:fixed;inset:0;z-index:999998;background:#fff8e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;text-align:center;padding:20px';
+  cover.textContent = '⏳ Naglo-load galing Firebase... Hintay 2 seconds, DEN...';
+  document.body.appendChild(cover);
+  // 2. Pag dumating na si Firebase - tanggalin ko yung takip - pakita ko na yung tama na 29
+  function alis(){
+    var c = document.getElementById('denLoading'); if(c) c.remove();
+  }
+  // Hintayin ko si Firebase - 2.5 seconds - sapat na para dumating yung 29
+  setTimeout(alis, 2500);
+  // Pag may bagong transaction - hintayin ko ulit ng konti - para hindi kumurap
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    if(/CASH|BANK|PETTY|AUDIT/i.test(b.textContent||'')){
+      setTimeout(alis, 2500);
+    }
+  });
+})();
+</script></body>
   </html>
