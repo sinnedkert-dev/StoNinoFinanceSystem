@@ -2030,232 +2030,106 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   }, 2000);
 })();
 </script>
-<!-- ===== PABASAHIN SA FIREBASE DEN - PARA TUGMA NA - SA BABA LANG ===== -->
+<!-- ===== DIRECT FIREBASE LANG DEN - HINDI NA SA PHONE - SA BABA LANG ===== -->
 <script>
 (function(){
-  function gawingTugma(){
-    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
-    var db = firebase.database();
-
-    // BANK - basahin sa Firebase - ilagay sa phone - para makita ng site mo
-    db.ref('bankSavings').once('value').then(function(snap){
-      var list = [];
-      snap.forEach(function(child){
-        var v = child.val();
-        if(!v) return;
-        // Wag isama yung OPENING sa listahan - balance lang siya
-        if(v.ref === 'BANK-000' || v.type === 'OPENING') return;
-        list.push(v);
-      });
-      // Ilagay ko sa phone - sa parehong pangalan na hinahanap ng site mo
-      try{
-        localStorage.setItem('bankSavingsTx', JSON.stringify(list));
-        localStorage.setItem('bankSavings', JSON.stringify(list));
-        localStorage.setItem('bankTx', JSON.stringify(list));
-      }catch(e){}
-      // Hanapin ko yung "Wala pa" sa Bank - palitan ko ng totoong listahan
-      var els = document.querySelectorAll('div, p, span');
-      els.forEach(function(el){
-        if(el.textContent && el.textContent.indexOf('Wala pa. Starting:') > -1 && el.children.length === 0){
-          var html = list.map(function(x){
-            return '<div style="text-align:left;padding:6px;border-bottom:1px solid #eee;">' + (x.ref||'') + ' - ' + (x.type||'') + ' ₱' + Number(x.amount||0).toLocaleString('en-PH') + ' • ' + (x.status||'') + '</div>';
-          }).join('') || 'Wala pa.';
-          el.innerHTML = html;
-        }
-      });
-      // Ayusin ko yung balance - 25,000 + deposit - withdraw
-      var dep = 0, wd = 0;
-      list.forEach(function(x){ if(x.type==='DEPOSIT' || x.type==='deposit') dep += Number(x.amount||0); if(x.type==='WITHDRAW' || x.type==='withdraw') wd += Number(x.amount||0); });
-      var bal = 25000 + dep - wd;
-      els.forEach(function(el){
-        if(el.textContent && el.textContent.trim() === '₱25,000.00' && el.children.length===0){
-          el.textContent = '₱' + bal.toLocaleString('en-PH') + '.00';
-        }
-      });
-    });
-
-    // PETTY - ganun din
-    db.ref('pettyCash').once('value').then(function(snap){
-      var list = [];
-      snap.forEach(function(child){
-        var v = child.val();
-        if(!v) return;
-        if(v.ref === 'PCV-000' || v.type === 'OPENING') return;
-        list.push(v);
-      });
-      try{
-        localStorage.setItem('pettyCashTx', JSON.stringify(list));
-        localStorage.setItem('pettyCash', JSON.stringify(list));
-        localStorage.setItem('pettyTx', JSON.stringify(list));
-      }catch(e){}
-      var els = document.querySelectorAll('div, p, span');
-      els.forEach(function(el){
-        if(el.textContent && el.textContent.indexOf('Wala pa. Fund:') > -1 && el.children.length === 0){
-          var html = list.map(function(x){
-            return '<div style="text-align:left;padding:6px;border-bottom:1px solid #eee;">' + (x.ref||'') + ' - ' + (x.type||'') + ' ₱' + Number(x.amount||0).toLocaleString('en-PH') + ' • ' + (x.status||'') + '</div>';
-          }).join('') || 'Wala pa.';
-          el.innerHTML = html;
-        }
-      });
-      var gastos = 0, repl = 0;
-      list.forEach(function(x){ if(x.type==='GASTOS') gastos += Number(x.amount||0); if(x.type==='REPLENISH') repl += Number(x.amount||0); });
-      var bal = 10000 - gastos + repl;
-      els.forEach(function(el){
-        if(el.textContent && el.textContent.trim() === '₱10,000.00' && el.children.length===0){
-          el.textContent = '₱' + bal.toLocaleString('en-PH') + '.00';
-        }
-      });
-    });
-
-    // Subukan ko rin tawagin yung render ng site mo - kung meron siya
-    setTimeout(function(){
-      if(typeof renderBank === 'function') renderBank();
-      if(typeof renderPetty === 'function') renderPetty();
-      if(typeof renderBankSavings === 'function') renderBankSavings();
-      if(typeof renderPettyCash === 'function') renderPettyCash();
-      if(typeof loadBank === 'function') loadBank();
-      if(typeof loadPetty === 'function') loadPetty();
-    }, 500);
-  }
-  setTimeout(gawingTugma, 1500);
-  // Pag nagbago yung Firebase - update din agad
-  if(window.firebase && firebase.apps.length>0){
-    firebase.database().ref('bankSavings').on('value', function(){ setTimeout(gawingTugma, 300); });
-    firebase.database().ref('pettyCash').on('value', function(){ setTimeout(gawingTugma, 300); });
-  }
-})();
-</script>
-<!-- ===== FIREBASE LANG DEN - ISAHAN LANG - WALA NANG LOCALSTORAGE - SA BABA LANG ===== -->
-<script>
-(function(){
-  // 1. SINO KA? - Admin, Father, Auditor = pwede - Treasurer = bawal
+  // 1. SINO KA NGAYON? - SA NAKA-DISPLAY SA TAAS LANG - HINDI SA LUMA
   function sinoKa(){
-    var txt = '';
-    try{
-      for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); var v=localStorage.getItem(k); if(v) txt+=' '+k+':'+v; }
-      txt+=' '+(document.body.innerText||'');
-    }catch(e){}
-    txt=txt.toUpperCase();
-    if(txt.indexOf('ADMIN@STONINO.COM')>-1) return 'AUDITOR';
-    if(txt.indexOf('ADMIN@')>-1) return 'AUDITOR';
-    if(txt.indexOf('ADMIN')>-1) return 'AUDITOR';
-    if(txt.indexOf('AUDITOR')>-1) return 'AUDITOR';
-    if(txt.indexOf('FATHER')>-1) return 'AUDITOR';
-    if(txt.indexOf('PARE')>-1) return 'AUDITOR';
-    if(txt.indexOf('PRESIDENT')>-1) return 'AUDITOR';
+    var topText = '';
+    try{ topText = (document.body.innerText||'').slice(0,300); }catch(e){}
+    var m = topText.match(/[A-Z0-9._%+-]+@STONINO\.COM/i);
+    var emailNow = m ? m[0].toUpperCase() : '';
+    if(emailNow.indexOf('TREASURER@')>-1) return 'TREASURER';
+    if(emailNow.indexOf('ADMIN@')>-1) return 'AUDITOR';
+    if(emailNow.indexOf('AUDITOR@')>-1) return 'AUDITOR';
+    if(topText.toUpperCase().indexOf('ROLE: TREASURER')>-1) return 'TREASURER';
+    if(topText.toUpperCase().indexOf('ROLE: AUDITOR')>-1) return 'AUDITOR';
+    if(topText.toUpperCase().indexOf('ROLE: ADMIN')>-1) return 'AUDITOR';
     return 'TREASURER';
   }
-
-  // 2. ILIPAT KO MUNA YUNG LUMA SA FIREBASE - PARA HINDI MAWALA - ISANG BESES LANG
-  function ilipatLuma(){
-    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
-    if(localStorage.getItem('nalipatNaSaFirebase')==='yes') return;
-    var db = firebase.database();
-    ['bankSavings','pettyCash'].forEach(function(node){
-      var k = node==='bankSavings' ? 'bankSavingsTx' : 'pettyCashTx';
-      try{
-        var list = JSON.parse(localStorage.getItem(k)||'[]');
-        list.forEach(function(x){
-          if(x && (x.ref||x.id) && x.type!=='OPENING') db.ref(node).push(x);
-        });
-      }catch(e){}
-    });
-    // Pagkatapos ilipat - burahin ko na yung sa phone - Firebase na lang
-    ['bankSavingsTx','pettyCashTx','bankSavings','pettyCash','audit','auditList'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
-    localStorage.setItem('nalipatNaSaFirebase','yes');
-    console.log('NALIPAT NA DEN - FIREBASE NA LANG');
+  function getFirebase(){
+    if(window.firebase && firebase.apps && firebase.apps.length>0) return firebase.database();
+    return null;
   }
+  // 2. BURAHIN KO YUNG SA PHONE - FIREBASE NA LANG YUNG TOTOO
+  try{ ['bankSavingsTx','pettyCashTx','bankSavings','pettyCash','audit'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){}
 
-  // 3. FIREBASE NA LANG YUNG BOSS - YUNG PHONE - COPY LANG - HINDI SIYA MASUSUNOD
-  function syncFirebaseToPhone(){
-    if(!window.firebase || !firebase.apps || firebase.apps.length===0) return;
+  // 3. BASA - GALING SA FIREBASE LANG - HINDI SA PHONE
+  function basaFirebase(){
+    var db = getFirebase(); if(!db) return;
     ['bankSavings','pettyCash'].forEach(function(node){
       var k = node==='bankSavings' ? 'bankSavingsTx' : 'pettyCashTx';
-      firebase.database().ref(node).once('value').then(function(snap){
-        var fb=[];
-        snap.forEach(function(c){ var v=c.val(); if(v && (v.ref||v.id) && v.type!=='OPENING' && v.ref!=='BANK-000' && v.ref!=='PCV-000') fb.push(v); });
-        // Yung Firebase - yun yung ilalagay ko sa phone - para makabasa yung lumang render mo - pero Firebase pa rin yung totoo
-        try{ localStorage.setItem(k, JSON.stringify(fb)); localStorage.setItem(node, JSON.stringify(fb)); }catch(e){}
-        // Tawagin ko ulit yung render mo - para mag-update yung Dashboard, Audit, Report
-        ['renderBank','renderPetty','renderBankSavings','renderPettyCash','renderDashboard','renderReport','updateDashboard','renderAudit','loadData'].forEach(function(fn){ try{ if(typeof window[fn]==='function') window[fn](); }catch(e){} });
+      db.ref(node).once('value').then(function(snap){
+        var fb=[]; var seen={};
+        snap.forEach(function(c){ var v=c.val(); if(v && (v.ref||v.id) && v.type!=='OPENING'){
+          var key=(v.ref||v.id)+'|'+v.type+'|'+v.amount+'|'+(v.note||'');
+          if(!seen[key]){ seen[key]=true; fb.push(v); }
+        }});
+        // Copy lang sa phone para makabasa yung lumang render mo - pero Firebase pa rin yung boss
+        try{ localStorage.setItem(k, JSON.stringify(fb)); }catch(e){}
+        ['renderBank','renderPetty','renderBankSavings','renderPettyCash','renderDashboard','renderReport','updateDashboard','renderAudit'].forEach(function(fn){ try{ if(typeof window[fn]==='function') window[fn](); }catch(e){} });
       });
     });
   }
 
-  // 4. HULIHIN KO YUNG DEPOSIT / WITHDRAW / GASTOS - SA FIREBASE KO LANG ILALAGAY - HINDI SA PHONE
+  // 4. GAWA - DIRECT SA FIREBASE - HINDI SA PHONE
   document.addEventListener('click', function(e){
-    var btn = e.target.closest('button');
-    if(!btn) return;
-    var t = (btn.textContent||'').toUpperCase();
-    var isBankBtn = t.indexOf('DEPOSIT')>-1 || t.indexOf('WITHDRAW')>-1;
-    var isPettyBtn = t.indexOf('GASTOS')>-1 || t.indexOf('REPLENISH')>-1;
-    if(!isBankBtn && !isPettyBtn) return;
-    var card = btn.closest('div');
-    for(var i=0;i<5 && card;i++){ if(card.querySelector('input')) break; card=card.parentElement; }
-    if(!card) return;
-    var inputs = card.querySelectorAll('input');
-    if(inputs.length===0) return;
-    var amt = parseFloat((inputs[0].value||'').replace(/[^0-9.]/g,''))||0;
-    if(amt<=0) return;
-    var note = inputs.length>1 ? (inputs[1].value||'') : '';
-    var isBank = isBankBtn;
-    var cardTxt = (card.textContent||'').toUpperCase();
-    if(cardTxt.indexOf('LANDBANK')>-1) isBank=true;
-    if(cardTxt.indexOf('PETTY')>-1) isBank=false;
-    var type='DEPOSIT';
-    if(t.indexOf('WITHDRAW')>-1) type='WITHDRAW';
-    if(t.indexOf('GASTOS')>-1) type='GASTOS';
-    if(t.indexOf('REPLENISH')>-1) type='REPLENISH';
-    var node = isBank ? 'bankSavings' : 'pettyCash';
-    var prefix = isBank ? 'BANK' : 'PCV';
-    // Kunin ko yung number - galing sa Firebase - hindi sa phone
-    firebase.database().ref(node).once('value').then(function(snap){
-      var max=0;
-      snap.forEach(function(c){ var v=c.val(); var r=v.ref||v.id||''; var m=r.match(/(\d+)$/); if(m) max=Math.max(max, parseInt(m[1])); });
-      var refCode = prefix+'-'+String(max+1).padStart(3,'0');
-      var entry = { ref:refCode, id:refCode, type:type, amount:amt, note:note||type, status:'pending', date:new Date().toLocaleString('en-PH'), timestamp:Date.now() };
-      firebase.database().ref(node).push(entry);
-      firebase.database().ref('audit').push(entry);
-      setTimeout(function(){ syncFirebaseToPhone(); }, 500);
-      setTimeout(function(){ window.location.reload(); }, 1000);
-    });
-    // Pigilan ko yung lumang code - para hindi siya mag-save sa phone - Firebase lang
+    var btn=e.target.closest('button'); if(!btn) return;
+    var t=(btn.textContent||'').toUpperCase();
+    if(t.indexOf('DEPOSIT')===-1 && t.indexOf('WITHDRAW')===-1 && t.indexOf('GASTOS')===-1 && t.indexOf('REPLENISH')===-1) return;
+    var card=btn.closest('div'); for(var i=0;i<5 && card;i++){ if(card.querySelector('input')) break; card=card.parentElement; } if(!card) return;
+    var inputs=card.querySelectorAll('input'); if(inputs.length===0) return;
+    var amt=parseFloat((inputs[0].value||'').replace(/[^0-9.]/g,''))||0; if(amt<=0) return;
+    var note=inputs.length>1?(inputs[1].value||''):''; 
+    var isBank=t.indexOf('DEPOSIT')>-1||t.indexOf('WITHDRAW')>-1; var cardTxt=(card.textContent||'').toUpperCase();
+    if(cardTxt.indexOf('LANDBANK')>-1) isBank=true; if(cardTxt.indexOf('PETTY')>-1) isBank=false;
+    var type='DEPOSIT'; if(t.indexOf('WITHDRAW')>-1) type='WITHDRAW'; if(t.indexOf('GASTOS')>-1) type='GASTOS'; if(t.indexOf('REPLENISH')>-1) type='REPLENISH';
+    var node=isBank?'bankSavings':'pettyCash'; var prefix=isBank?'BANK':'PCV';
+    var db=getFirebase(); if(!db){ alert('Walang internet / Firebase, DEN - hindi ako makakapag-save ng direct sa Firebase.'); return; }
     e.preventDefault(); e.stopPropagation();
+    // DIRECT SA FIREBASE - kunin ko yung number galing sa Firebase - hindi sa phone
+    db.ref(node).once('value').then(function(snap){
+      var max=0;
+      snap.forEach(function(c){ var v=c.val(); var r=v.ref||v.id||''; var mm=r.match(/(\d+)$/); if(mm) max=Math.max(max, parseInt(mm[1])); });
+      var refCode=prefix+'-'+String(max+1).padStart(3,'0');
+      var entry={ref:refCode,id:refCode,type:type,amount:amt,note:note||type,status:'pending',date:new Date().toLocaleString('en-PH'),timestamp:Date.now(),createdBy:(document.body.innerText||'').slice(0,300).match(/[A-Z0-9._%+-]+@STONINO\.COM/i)?.[0]||'treasurer'};
+      // DIRECT - dito na agad sa Firebase - dalawa - bankSavings at audit - parehas
+      db.ref(node).push(entry).then(function(){
+        return db.ref('audit').push(entry);
+      }).then(function(){
+        alert('✅ Na-save DIRECT sa Firebase, DEN - '+refCode+' - PENDING - hintayin si Auditor mag-Approve.');
+        setTimeout(function(){ basaFirebase(); }, 500);
+        setTimeout(function(){ window.location.reload(); }, 800);
+      });
+    });
   }, true);
 
-  // 5. APPROVE / REJECT - FIREBASE LANG - AT FATHER / ADMIN / AUDITOR LANG
+  // 5. APPROVE - DIRECT SA FIREBASE - ADMIN / AUDITOR LANG - TREASURER BAWAL TALAGA
   document.addEventListener('click', function(e){
-    var btn = e.target.closest('button');
-    if(!btn) return;
-    var txt = (btn.textContent||'').toUpperCase();
+    var btn=e.target.closest('button'); if(!btn) return;
+    var txt=(btn.textContent||'').toUpperCase();
     if(txt.indexOf('APPROVE')===-1 && txt.indexOf('REJECT')===-1) return;
-    var card = btn.closest('div');
-    for(var i=0;i<6 && card;i++){ if(/(BANK-\d+|PCV-\d+)/.test(card.textContent||'')) break; card=card.parentElement; }
-    if(!card) return;
-    var m = (card.textContent||'').match(/(BANK-\d+|PCV-\d+)/);
-    if(!m) return;
-    var role = sinoKa();
-    if(role!=='AUDITOR'){
+    var card=btn.closest('div'); for(var i=0;i<6 && card;i++){ if(/(BANK-\d+|PCV-\d+)/.test(card.textContent||'')) break; card=card.parentElement; } if(!card) return;
+    var m=(card.textContent||'').match(/(BANK-\d+|PCV-\d+)/); if(!m) return;
+    if(sinoKa()!=='AUDITOR'){
       e.preventDefault(); e.stopPropagation();
-      alert('⛔ BAWAL KA MAG-APPROVE!\n\nTreasurer ka - ikaw yung gumagawa.\nSi Admin / Father / Auditor lang yung pwede mag-Approve.');
+      alert('⛔ BAWAL KA MAG-APPROVE!\n\nTreasurer ka - ikaw yung gumagawa.\nSi Admin / Father / Auditor lang yung pwede mag-Approve DIRECT sa Firebase.');
       return false;
     }
-    var refCode=m[1];
-    var isBank = refCode.indexOf('BANK-')===0;
-    var newStatus = txt.indexOf('REJECT')>-1 ? 'rejected' : 'approved';
-    var node = isBank ? 'bankSavings' : 'pettyCash';
+    var refCode=m[1]; var isBank=refCode.indexOf('BANK-')===0; var newStatus=txt.indexOf('REJECT')>-1?'rejected':'approved'; var node=isBank?'bankSavings':'pettyCash';
+    var db=getFirebase(); if(!db) return;
     e.preventDefault(); e.stopPropagation();
-    firebase.database().ref(node).once('value').then(function(snap){
-      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode||v.id===refCode)) firebase.database().ref(node+'/'+c.key).update({status:newStatus}); });
+    // DIRECT SA FIREBASE - i-update ko mismo sa Firebase - hindi sa phone
+    db.ref(node).once('value').then(function(snap){
+      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode||v.id===refCode)) db.ref(node+'/'+c.key).update({status:newStatus, approvedBy:(document.body.innerText||'').slice(0,300).match(/[A-Z0-9._%+-]+@STONINO\.COM/i)?.[0]||'auditor', approvedAt:new Date().toLocaleString('en-PH')}); });
     });
-    firebase.database().ref('audit').once('value').then(function(snap){
-      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode||v.id===refCode)) firebase.database().ref('audit/'+c.key).update({status:newStatus}); });
+    db.ref('audit').once('value').then(function(snap){
+      snap.forEach(function(c){ var v=c.val(); if(v && (v.ref===refCode||v.id===refCode)) db.ref('audit/'+c.key).update({status:newStatus}); });
     });
-    setTimeout(function(){ syncFirebaseToPhone(); }, 600);
+    setTimeout(function(){ basaFirebase(); }, 600);
     setTimeout(function(){ window.location.reload(); }, 1200);
   }, true);
 
-  // 6. LOCK - pag Treasurer ka - itago ko yung APPROVE
   function lockBtn(){
     if(sinoKa()==='AUDITOR') return;
     document.querySelectorAll('button').forEach(function(btn){
@@ -2266,10 +2140,8 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
       }
     });
   }
-
-  setTimeout(function(){ ilipatLuma(); }, 1000);
-  setTimeout(syncFirebaseToPhone, 1500);
-  setInterval(syncFirebaseToPhone, 5000);
+  setTimeout(basaFirebase, 1000);
+  setInterval(basaFirebase, 5000);
   setInterval(lockBtn, 2000);
 })();
 </script>
