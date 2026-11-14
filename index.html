@@ -2145,81 +2145,60 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   setInterval(lockBtn, 2000);
 })();
 </script>
-<!-- ===== V7 DEN - LAHAT FIREBASE - WALANG LOCALSTORAGE - KAHIT ANONG PHONE PWEDE ===== -->
+<!-- ===== V13 DEN - LAHAT FIREBASE - KAHIT ANONG PHONE PWEDE ===== -->
 <script>
 (function(){
-  // ---- BANNER LANG - HINDI NAKA-SAVE SA PHONE - GALING SA FIREBASE ----
-  function showBanner(msg){
-    var old = document.getElementById('denBanner'); if(old) old.remove();
-    var d = document.createElement('div'); d.id='denBanner';
-    d.style.cssText='position:fixed;top:10px;left:10px;right:10px;z-index:99999;background:#1a7a1a;color:#fff;padding:14px;border-radius:10px;font-weight:700;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.3)';
-    d.textContent = msg;
-    document.body.appendChild(d);
+  function banner(m){
+    var o=document.getElementById('denBanner'); if(o) o.remove();
+    var d=document.createElement('div'); d.id='denBanner';
+    d.style.cssText='position:fixed;top:10px;left:10px;right:10px;z-index:999999;background:#1a7a1a;color:#fff;padding:14px;border-radius:10px;font-weight:700;text-align:center';
+    d.textContent=m; document.body.appendChild(d);
     setTimeout(function(){ if(d) d.remove(); }, 8000);
   }
-
-  // ---- NOTIFICATION GALING SA FIREBASE MISMO - KAHIT ANONG PHONE ----
-  // Pag may bagong dumating sa Firebase - Audit - ipakita ko sa LAHAT ng naka-open - Treasurer man o Auditor
   try{
-    if(window.firebase && firebase.apps && firebase.apps.length){
-      var db = firebase.database();
-      // Huli lang yung pakinggan ko - para hindi sabay sabay yung luma
-      var lastTime = Date.now();
-      db.ref('audit').limitToLast(1).on('child_added', function(snap){
-        var v = snap.val(); if(!v) return;
-        // Kung bagong-bago lang - 30 seconds lang - yun lang ipakita ko - para hindi paulit ulit yung luma
-        // At kung ako yung nag-transact - o kahit sino - ipakita ko
-        var now = Date.now();
-        // Hindi ko alam exact time ng Firebase - kaya ipakita ko basta may bago - pero isang beses lang per ref
-        if(window._denShown && window._denShown[v.ref]) return;
-        window._denShown = window._denShown || {};
-        window._denShown[v.ref] = true;
-        // Huwag ko ipakita yung luma na na-load lang pag bukas - hintayin ko lang yung bagong pindot - kaya delay 3 sec bago ako makinig
-        if(now - lastTime < 3000) return;
-        showBanner('✅ Firebase: Bagong transaction - ' + (v.ref||'') + ' - ' + (v.type||'') + ' ₱' + (v.amount||'') + ' - PENDING - Nasa Audit na!');
-      });
-      // Pag nag-click si Treasurer - ipakita ko agad - hindi na hintayin si Firebase - para mabilis
-      document.addEventListener('click', function(e){
-        var btn = e.target.closest('button'); if(!btn) return;
-        var t = (btn.textContent||'').toUpperCase();
-        if(t.indexOf('DEPOSIT')===-1 && t.indexOf('WITHDRAW')===-1 && t.indexOf('GASTOS')===-1 && t.indexOf('REPLENISH')===-1) return;
-        showBanner('✅ Na-process na, DEN! Sine-save na sa Firebase - check mo sa Audit - PENDING na yan!');
-      }, true);
-    }
-  }catch(e){}
-
-  // ---- DASHBOARD - FIREBASE LANG - WALANG LOCALSTORAGE ----
-  function ayosDashboardFirebase(){
-    try{
-      if(!window.firebase || !firebase.apps || !firebase.apps.length) return;
-      var db = firebase.database();
-      Promise.all([db.ref('transactions').once('value'), db.ref('bankSavings').once('value'), db.ref('pettyCash').once('value'), db.ref('audit').once('value')]).then(function(res){
-        var cash = res[0].numChildren();
-        var bank = res[1].numChildren();
-        var petty = res[2].numChildren();
-        if(cash===0){
-          var list=[]; res[3].forEach(function(c){ list.push(c.val()); });
-          cash = list.filter(function(v){ return v && !v.ref; }).length;
-          if(cash===0) cash = 12;
-        }
-        var total = cash + bank + petty;
-        var all = document.querySelectorAll('div');
-        all.forEach(function(d){
-          if((d.textContent||'').indexOf('TRANSACTIONS')>-1 && (d.textContent||'').length < 80){
-            var nums = d.querySelectorAll('h1,h2,h3,b,span,div');
-            for(var i=0;i<nums.length;i++){ if(/^\d+$/.test(nums[i].textContent.trim())){ nums[i].textContent = total; break; } }
-            var lbl = d.querySelector('.denLabel');
-            if(!lbl){ lbl=document.createElement('div'); lbl.className='denLabel'; lbl.style.fontSize='10px'; d.appendChild(lbl); }
-            lbl.textContent = 'Cash '+cash+' + Bank '+bank+' + Petty '+petty+' = '+total+' (Firebase)';
+    if(!window.firebase || !firebase.apps || !firebase.apps.length) return;
+    var db = firebase.database();
+    // 1. LINIS - tanggalin yung pangit na tira ni V7 - isang beses lang
+    setTimeout(function(){
+      document.querySelectorAll('.denLabel').forEach(function(e){ e.remove(); });
+    }, 2000);
+    // 2. NOTIF - FIREBASE LANG - WALANG LOCAL - KAHIT ANONG PHONE
+    // Nakikinig ako sa Firebase Audit - pag may bagong BANK- / PCV- na dumating - sa LAHAT ng naka-open - lalabas to
+    var first = true;
+    setTimeout(function(){ first = false; }, 4000);
+    db.ref('audit').on('child_added', function(s){
+      if(first) return; // huwag ipakita yung luma pag bukas - yung bago lang
+      var v = s.val() || {}; if(!v.ref) return;
+      banner('✅ Firebase: Bagong transaction - ' + v.ref + ' - ' + (v.type||'') + ' ₱' + (v.amount||'') + ' - Nasa Audit na - PENDING!');
+      setTimeout(ibalik, 1000);
+    });
+    // 3. STATEMENT + VOUCHERS - FIREBASE LANG - GALING SA AUDIT - HINDI SA localStorage
+    function ibalik(){
+      db.ref('audit').once('value').then(function(snap){
+        var bank=[], petty=[];
+        snap.forEach(function(c){ var v=c.val(); if(v&&v.ref){ if(v.ref.indexOf('BANK-')===0) bank.push(v); if(v.ref.indexOf('PCV-')===0) petty.push(v); } });
+        document.querySelectorAll('div').forEach(function(d){
+          var t=d.textContent||'';
+          if(t.indexOf('Wala pa. Starting')>-1 && bank.length){
+            d.innerHTML='<div style="font-weight:700">📄 Statement (Firebase Audit)</div>'+bank.map(function(v){ return '<div style="border-bottom:1px solid #eee;padding:6px 0">'+v.ref+' - '+(v.type||'')+' ₱'+(v.amount||'')+' - '+(v.note||'')+' - '+(v.status||'')+'</div>'; }).join('');
+          }
+          if(t.indexOf('Wala pa. Fund')>-1 && petty.length){
+            d.innerHTML='<div style="font-weight:700">📄 Vouchers (Firebase Audit)</div>'+petty.map(function(v){ return '<div style="border-bottom:1px solid #eee;padding:6px 0">'+v.ref+' - '+(v.type||'')+' ₱'+(v.amount||'')+' - '+(v.note||'')+' - '+(v.status||'')+'</div>'; }).join('');
           }
         });
+        // Balance - APPROVED lang - Firebase lang
+        var bBal=25000, pBal=10000;
+        bank.forEach(function(v){ if((v.status||'').toUpperCase().indexOf('APPROV')===-1) return; var a=parseFloat(v.amount||0); if((v.type||'').toUpperCase().indexOf('DEPOSIT')>-1) bBal+=a; if((v.type||'').toUpperCase().indexOf('WITHDRAW')>-1) bBal-=a; });
+        petty.forEach(function(v){ if((v.status||'').toUpperCase().indexOf('APPROV')===-1) return; var a=parseFloat(v.amount||0); if((v.type||'').toUpperCase().indexOf('GASTOS')>-1) pBal-=a; if((v.type||'').toUpperCase().indexOf('REPLENISH')>-1) pBal+=a; });
+        document.querySelectorAll('div').forEach(function(d){ var tt=d.textContent.trim(); if(tt==='₱25,000.00'||tt==='₱25,000') d.textContent='₱'+bBal.toLocaleString('en-PH',{minimumFractionDigits:2}); if(tt==='₱10,000.00'||tt==='₱10,000') d.textContent='₱'+pBal.toLocaleString('en-PH',{minimumFractionDigits:2}); });
       });
-    }catch(e){}
-  }
-  setTimeout(ayosDashboardFirebase, 3000);
-  document.addEventListener('click', function(e){
-    var b=e.target.closest('button'); if(b && /CASH|BANK|PETTY|AUDIT|DASHBOARD/i.test(b.textContent||'')) setTimeout(ayosDashboardFirebase, 2500);
-  });
+    }
+    setTimeout(ibalik, 3000);
+    document.addEventListener('click', function(e){
+      var b=e.target.closest('button'); if(b && /BANK|SAVINGS|PETTY|LANDBANK/i.test(b.textContent||'')) setTimeout(ibalik, 2000);
+    });
+    // 4. HINDI KO NA GAGALAWIN DASHBOARD - hayaan ko original magbilang - para hindi na maging 39 si MEMBERS
+  }catch(e){}
 })();
 </script>
 </body>
