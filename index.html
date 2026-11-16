@@ -2162,7 +2162,7 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
   };
 })();
 </script>
-<!-- V5 - RED BOX + DATE/TIME FIX PARA SA DOWNLOAD OVERALL EXCEL -->
+<!-- V6 - RED BOX + DATE FIX + CASH DOBLE TANGGAL -->
 <script>
 (function(){
   const _open = window.open;
@@ -2178,23 +2178,20 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
         const txt = w.document.body.innerText || '';
         if(!txt.includes('KABAN')) return;
 
-        // 1. RED BOX STYLE - tulad ng dati
-        if(!w.document.getElementById('excel-fix-v5')){
+        if(!w.document.getElementById('excel-fix-v6')){
           const style = w.document.createElement('style');
-          style.id = 'excel-fix-v5';
+          style.id = 'excel-fix-v6';
           style.textContent = `
             body{ font-family:Arial,sans-serif!important; padding:12px!important; background:#fff!important; }
             body > *:nth-child(1){ background:#7f1d1d!important; color:#fff!important; text-align:center!important; padding:18px 12px 6px!important; border-radius:14px 14px 0 0!important; font-size:22px!important; font-weight:900!important; display:block!important; margin:0!important; }
             body > *:nth-child(2){ background:#7f1d1d!important; color:#fbbf24!important; text-align:center!important; padding:0 12px 10px!important; border-radius:0 0 14px 14px!important; font-size:12px!important; font-weight:900!important; display:block!important; margin:0 0 12px!important; }
             body > *:nth-child(3){ background:#7f1d1d!important; color:#fff!important; text-align:center!important; padding:14px 12px!important; border-radius:12px!important; border:2px solid #fbbf24!important; font-size:14px!important; font-weight:900!important; display:block!important; margin:10px 0 14px!important; }
-            table{ width:100%!important; table-layout:fixed!important; }
-            td{ font-size:11px!important; word-break:break-word!important; }
-            td:first-child{ white-space:nowrap!important; }
+            table{ width:100%!important; }
+            td{ font-size:11px!important; }
           `;
           w.document.head.appendChild(style);
         }
 
-        // 2. DATE/TIME FIX - gawing Nov 16, 2026 • 11:25 AM
         const fmtDate = (d)=>{
           try{
             const dt = new Date(d);
@@ -2203,41 +2200,58 @@ document.getElementById('eyeBtnDen').addEventListener('click',function(){var p=d
           }catch(e){ return null; }
         };
 
-        // Ayusin yung header date - yung 11/16/2026, 11:25:53 AM
+        // Header date fix
         w.document.querySelectorAll('div, p, h1, h2, h3').forEach(el=>{
           const t = el.textContent || '';
           if(t.includes('OVERALL SYSTEM REPORT') && t.includes('2026')){
-            // Kunin yung date na nasa dulo - gawing PH format
             const m = t.match(/(\d{1,2}\/\d{1,2}\/\d{4}.*)/);
             if(m){
               const fixed = fmtDate(m[1]);
               if(fixed) el.textContent = t.replace(m[1], fixed + ' (Asia/Manila)');
             }
+            if(t.includes('Nov 16') && !t.includes('Asia/Manila')){
+              el.textContent = t + ' (Asia/Manila)';
+            }
           }
         });
 
-        // Ayusin lahat ng TD na may date - YYYY-MM-DD o may T
+        // PETTY at BANK - date fix
         w.document.querySelectorAll('td').forEach(td=>{
           const t = (td.textContent || '').trim();
-          // Yung may T - tulad ng 2026-11-17T07:50:12 - tanggalin yung T at seconds
           if(t.includes('T') && t.includes('2026')){
             const fixed = fmtDate(t);
             if(fixed) td.textContent = fixed;
-          }
-          // Yung YYYY-MM-DD lang - gawing Nov 10, 2026
-          else if(/^\d{4}-\d{2}-\d{2}$/.test(t)){
+          } else if(/^\d{4}-\d{2}-\d{2}$/.test(t)){
             const fixed = fmtDate(t);
             if(fixed) td.textContent = fixed.split(' • ')[0];
-          }
-          // Yung MM/DD/YYYY, HH:MM:SS AM - gawing Nov 14, 2026 • 10:58 AM
-          else if(/^\d{1,2}\/\d{1,2}\/\d{4},/.test(t)){
+          } else if(/^\d{1,2}\/\d{1,2}\/\d{4},/.test(t)){
             const fixed = fmtDate(t);
             if(fixed) td.textContent = fixed;
           }
-          // Yung Note na may kasamang date sa dulo - tanggalin yung date - iwan lang yung Note
           if(t.includes('2026-11-') && t.length > 40){
             td.textContent = t.split('2026-')[0].trim();
           }
+        });
+
+        // CASH - tanggalin yung doble na ₱500.00 sa Buong Detalye
+        w.document.querySelectorAll('table').forEach(table=>{
+          const head = (table.textContent || '');
+          if(!head.includes('CASH')) return;
+          table.querySelectorAll('tr').forEach((tr, idx)=>{
+            if(idx === 0) return;
+            const cells = tr.querySelectorAll('td');
+            if(cells.length < 3) return;
+            const amount = (cells[1].textContent || '').trim();
+            let detalye = (cells[2].textContent || '').trim();
+            // Tanggalin yung "₱500.00 - " sa unahan - kasi nasa Amount na siya
+            detalye = detalye.replace(/^₱[\d,]+\.\d{2}\s*-\s*/, '');
+            detalye = detalye.replace(/^₱[\d,]+\s*-\s*/, '');
+            // Tanggalin yung " - approved" sa dulo - kasi nasa Status na siya kung meron
+            detalye = detalye.replace(/\s*-\s*approved\s*$/i, '');
+            // Gawing malinis: "Donation • Donate by anonymous"
+            detalye = detalye.replace(/\s*-\s*/g, ' • ');
+            cells[2].textContent = detalye;
+          });
         });
 
         clearInterval(timer);
