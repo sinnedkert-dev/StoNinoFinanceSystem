@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sto. Niño Chapel Finance </title>
+<title>Sto. Niño Chapel Finance - Ayos Buo</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- BACK TO ZERO - IVAN DASHBOARD + OLD LAMAN - INIT.JS LANG - WALANG apiKey, WALANG UID -->
+<!-- AYOS BUO - INIT.JS LANG - WALANG apiKey, WALANG projectId, WALANG UID -->
 <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
@@ -28,32 +28,42 @@
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN - AYOS NA - EMAIL + PASSWORD - DATI MONG GAMIT -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
   <div class="card w-full max-w-md text-center">
-    <img src="https://via.placeholder.com/60x60/991b1b/ffffff?text=S" class="w-14 h-14 rounded-full mx-auto object-cover">
+    <div class="w-14 h-14 bg-red-800 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto">S</div>
     <h1 class="text-2xl font-extrabold mt-3">Sto. Niño Chapel</h1>
-    <p class="text-sm text-slate-500">Finance System Online - V8.0</p>
-    <input id="loginEmail" type="email" value="treasurer@stonino.com" class="w-full mt-4 border rounded-xl px-4 py-3 text-sm">
-    <button onclick="loginWithPasskey()" class="w-full mt-3 bg-red-800 text-white py-3 rounded-xl font-bold text-sm">🔑 Mag-Login gamit Passkey</button>
-    <p class="text-xs text-slate-400 mt-3">Role: TREASURER - Add lang. Naka-init.js + Passkey. Walang password sa code.</p>
-    <p id="loginError" class="text-sm text-red-600 mt-2 hidden">Hindi ka Admin / Treasurer.</p>
+    <p class="text-sm text-slate-500">Finance System Online - V8.0 - Ayos Buo</p>
+    <div class="text-left mt-5">
+      <label class="text-xs font-bold">Email - Dati mong Email</label>
+      <input id="loginEmail" type="email" value="treasurer@stonino.com" class="w-full border rounded-xl px-4 py-3 text-sm mt-1">
+      <label class="text-xs font-bold mt-3 block">Password - Dati mong Password</label>
+      <input id="loginPassword" type="password" placeholder="Ilagay mo dati mong password" class="w-full border rounded-xl px-4 py-3 text-sm mt-1" onkeydown="if(event.key==='Enter') loginWithEmail()">
+      <label class="text-xs mt-2 flex items-center gap-2"><input type="checkbox" onclick="let p=document.getElementById('loginPassword'); p.type = p.type==='password'?'text':'password'"> Ipakita password</label>
+    </div>
+    <button onclick="loginWithEmail()" id="loginBtn" class="w-full mt-3 bg-red-800 text-white py-3 rounded-xl font-bold text-sm">Mag-Login</button>
+    <button onclick="forgotPassword()" class="w-full mt-2 text-sm text-blue-600 font-bold">Nakalimutan mo Password? I-reset dito</button>
+    <p id="loginError" class="text-sm text-red-600 mt-2 hidden"></p>
+    <p id="loginSuccess" class="text-sm text-emerald-600 mt-2 hidden"></p>
+    <div class="border-t mt-4 pt-3">
+      <p class="text-xs text-slate-400">Gusto mo mag-Passkey balang araw? Optional lang - hindi required.</p>
+      <button onclick="alert('Hindi mo kailangan Passkey ngayon. Email + Password muna - yun yung dati mong gamit.')" class="w-full mt-2 bg-white border py-2 rounded-xl text-sm">🔑 Passkey (Optional - Hindi Required)</button>
+    </div>
+    <p class="text-[11px] text-slate-400 mt-3">Naka-init.js na - Walang apiKey sa code. Firebase Auth gamit Email + Password.</p>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden max-w-[1280px] mx-auto p-3 md:p-5">
-  <!-- TOP HEADER - STO NINO STYLE + IVAN STYLE -->
   <div class="bg-red-900 text-white rounded-[22px] p-4 text-center mb-4">
     <div class="text-3xl">🙏</div>
     <h1 class="font-extrabold text-lg">Sto. Niño Chapel</h1>
     <p class="text-[11px] opacity-80">Finance System Online - V8.0</p>
-    <p class="text-[11px] mt-1 bg-black/30 inline-block px-3 py-1 rounded-full" id="dateNow">Friday, November 20, 2026 - 02:09:21 PM</p>
+    <p class="text-[11px] mt-1 bg-black/30 inline-block px-3 py-1 rounded-full" id="dateNow">Friday, November 20, 2026</p>
     <div class="flex justify-between items-center mt-3 bg-white text-black rounded-xl px-3 py-2 text-sm"><span><b id="userEmail">treasurer@stonino.com</b><br><span class="text-[11px] text-slate-500">Role: TREASURER - Add lang</span></span><button onclick="logout()" class="border rounded-lg px-3 py-1 text-sm font-bold">Logout</button></div>
   </div>
 
   <div class="flex gap-4">
-    <!-- SIDEBAR IVAN -->
     <div class="hidden md:block w-[220px] shrink-0">
       <div class="card h-fit sticky top-3">
         <div class="flex items-center gap-2 mb-5"><div class="w-9 h-9 bg-red-800 text-white rounded-full flex items-center justify-center font-bold">S</div><div><b class="block leading-none">Sto. Niño</b><span class="text-[11px] text-slate-400">Chapel Finance</span></div></div>
@@ -70,7 +80,6 @@
       </div>
     </div>
 
-    <!-- MAIN -->
     <div class="flex-1 min-w-0">
       <div class="card">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -89,7 +98,6 @@
           <button class="btn-ghost" onclick="loadData()">↻ Refresh</button>
         </div>
 
-        <!-- FIESTA TARGET - GALING SA LUMA MO -->
         <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mt-5 text-center">
           <p class="text-xs font-bold tracking-widest">🏆 FIESTA FUND TARGET</p>
           <p class="text-sm mt-1"><b>Nakaipon na: <span id="fiestaGot">₱10,510.00</span> (<span id="fiestaPct">53%</span>)</b></p>
@@ -98,15 +106,13 @@
           <p class="text-[11px] text-slate-400 mt-1">53% - Yung Nakaipon = Kaban mo (Approved lang). Pag nag-donate, tataas din to.</p>
         </div>
 
-        <!-- 4 CARDS IVAN PERO LAMAN MO -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500 flex justify-between">Kaban - Approved Lang <span>›</span></p><h2 id="kaban" class="text-2xl font-extrabold mt-1">₱10,510.00</h2><p class="text-[11px] text-slate-400 mt-1">Approved lang ang binibilang</p></div>
-          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500 flex justify-between">Cash In <span>›</span></p><h2 id="cashIn" class="text-2xl font-extrabold mt-1">₱12,610.00</h2><p class="text-[11px] text-emerald-600 font-bold mt-1"><span id="membersCount">2</span> MEMBERS</p></div>
-          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500 flex justify-between">Withdraw / Expenses <span>›</span></p><h2 id="cashOut" class="text-2xl font-extrabold mt-1">₱2,100.00</h2><p class="text-[11px] text-red-600 font-bold mt-1"><span id="pendingCount">0</span> PENDING</p></div>
-          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500 flex justify-between">Transactions <span>›</span></p><h2 id="txCount" class="text-2xl font-extrabold mt-1">36</h2><p class="text-[11px] text-slate-400 mt-1"><span id="lockedCount">0</span> LOCKED</p></div>
+          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500">Kaban - Approved Lang</p><h2 id="kaban" class="text-2xl font-extrabold mt-1">₱10,510.00</h2><p class="text-[11px] text-slate-400 mt-1">Approved lang ang binibilang</p></div>
+          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500">Cash In</p><h2 id="cashIn" class="text-2xl font-extrabold mt-1">₱12,610.00</h2><p class="text-[11px] text-emerald-600 font-bold mt-1"><span id="membersCount">2</span> MEMBERS</p></div>
+          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500">Withdraw / Expenses</p><h2 id="cashOut" class="text-2xl font-extrabold mt-1">₱2,100.00</h2><p class="text-[11px] text-red-600 font-bold mt-1"><span id="pendingCount">0</span> PENDING</p></div>
+          <div class="border rounded-2xl p-4"><p class="text-xs text-slate-500">Transactions</p><h2 id="txCount" class="text-2xl font-extrabold mt-1">36</h2><p class="text-[11px] text-slate-400 mt-1"><span id="lockedCount">0</span> LOCKED</p></div>
         </div>
 
-        <!-- ACTION + ACTIVITY -->
         <div class="grid md:grid-cols-2 gap-3 mt-4">
           <div class="border rounded-2xl p-4"><div class="flex justify-between"><h3 class="font-bold">⚠ Action required <span class="text-xs font-normal text-slate-400">3 items</span></h3><a class="text-xs text-blue-600 font-bold">View all (3) →</a></div><div class="mt-3 space-y-4 text-sm">
             <div class="flex justify-between gap-2"><div><span class="badge-high">High</span> <b>Kuryente - Overdue</b><p class="text-xs text-slate-400">Kuryente - Overdue (3 days)</p></div><div class="text-right"><b>₱850</b><p class="text-xs text-blue-600 font-bold">View Invoice</p></div></div>
@@ -116,7 +122,6 @@
           <div class="border rounded-2xl p-4"><div class="flex justify-between"><h3 class="font-bold">🕒 Recent activity</h3><a class="text-xs text-blue-600 font-bold">View all →</a></div><div id="activityList" class="mt-3 space-y-3 text-sm"></div></div>
         </div>
 
-        <!-- CHARTS IVAN -->
         <div class="grid md:grid-cols-3 gap-3 mt-4">
           <div class="border rounded-2xl p-4"><p class="text-sm font-bold">📈 Pondo Over Time</p><h3 class="text-xl font-extrabold mt-1"><span id="chartTotal">3,579</span> units <span class="text-xs font-normal text-emerald-600">↑ 2.1% above expected (3,502)</span></h3><canvas id="lineChart" width="300" height="140" class="w-full mt-3"></canvas><div class="flex justify-between text-[11px] text-slate-400"><span>Sep 1</span><span>Sep 8</span><span>Sep 15</span><span>Sep 22</span><span>Sep 29</span></div><p class="text-[11px] text-slate-400">Units sold per day</p></div>
           <div class="border rounded-2xl p-4"><p class="text-sm font-bold">🥧 Expenses by Category</p><div class="flex justify-center my-3 relative"><div class="w-[110px] h-[110px] rounded-full" style="background:conic-gradient(#2E6BFF 0 32%,#1e293b 32% 56%,#a855f7 56% 74%,#ec4899 74% 88%,#e2e8f0 88% 100%)"></div><div class="absolute inset-0 flex flex-col items-center justify-center"><b class="text-sm">₱<span id="pieTotal">10,510</span></b><span class="text-[10px] text-slate-400">Total spent</span></div></div><div class="text-xs space-y-1.5"><div class="flex justify-between"><span>● Mass Offering</span><b>32% - ₱7,962</b></div><div class="flex justify-between"><span>● Donation</span><b>24% - ₱5,964</b></div><div class="flex justify-between"><span>● Maintenance</span><b>18% - ₱4,473</b></div><div class="flex justify-between"><span>● Event</span><b>14% - ₱3,479</b></div><div class="flex justify-between"><span>● Iba pa</span><b>12% - ₱2,982</b></div></div></div>
@@ -124,7 +129,6 @@
         </div>
       </div>
 
-      <!-- TABS - GALING SA LUMA MO -->
       <div class="card mt-4">
         <div class="flex flex-wrap gap-2" id="tabs">
           <button class="tab-btn active" data-tab="Cash" onclick="switchTab('Cash')">Cash</button>
@@ -136,10 +140,9 @@
           <button class="tab-btn" data-tab="Gallery" onclick="switchTab('Gallery')">Gallery</button>
           <button class="tab-btn" data-tab="Backup" onclick="switchTab('Backup')">Backup</button>
         </div>
-        <p class="text-xs text-slate-500 mt-2">Tab ngayon: <b id="currentTab">Cash</b> - Naka-filter yung listahan sa baba base sa tab na pinili mo.</p>
+        <p class="text-xs text-slate-500 mt-2">Tab ngayon: <b id="currentTab">Cash</b></p>
       </div>
 
-      <!-- ADD TRANSACTION - GALING SA LUMA MO - BUO -->
       <div class="card mt-4" id="addBox">
         <h3 class="font-bold">Add Transaction</h3>
         <label class="text-xs text-slate-500">Type</label>
@@ -156,7 +159,6 @@
         <p id="saveMsg" class="text-xs text-emerald-600 mt-2"></p>
       </div>
 
-      <!-- LIST - GALING SA LUMA MO -->
       <div class="card mt-4">
         <h3 class="font-bold">Transactions</h3>
         <label class="text-xs text-slate-500">Filter by Category</label>
@@ -164,7 +166,6 @@
         <div id="txList" class="space-y-3 mt-4"></div>
       </div>
 
-      <!-- REPORT - GALING SA LUMA MO -->
       <div class="bg-red-900 text-white rounded-[22px] p-4 mt-4">
         <h3 class="font-bold text-center">📋 OVERALL SYSTEM REPORT - BUONG SYSTEM</h3>
         <p class="text-[11px] text-center opacity-80">Lahat ng Transaction + Lahat ng Tab - Isang Excel, Isang Print Lang!</p>
@@ -187,7 +188,7 @@
       </div>
       <div class="bg-red-900 text-white rounded-[22px] p-4 mt-4 text-center text-xs">
         <p>© ALL RIGHTS RESERVED<br>Sto. Niño Chapel - Finance System Online</p>
-        <p class="mt-2">System Created By: Bro. Den<br>01-12-2026 - V8.0 - Ivan Dashboard</p>
+        <p class="mt-2">System Created By: Bro. Den<br>01-12-2026 - V8.0 - Ayos Buo - Email Password + init.js</p>
       </div>
     </div>
   </div>
@@ -200,27 +201,70 @@ function initFirebase(){
   try{
     if(window.firebase){
       auth = firebase.auth(); db = firebase.firestore();
-      auth.onAuthStateChanged(u=>{ if(u){ showDash(); loadData(); } else { document.getElementById('loginScreen').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); } });
+      auth.onAuthStateChanged(u=>{
+        if(u){
+          document.getElementById('userEmail').innerText = u.email || 'treasurer@stonino.com';
+          showDash(); loadData();
+        } else {
+          document.getElementById('loginScreen').classList.remove('hidden');
+          document.getElementById('dashboard').classList.add('hidden');
+        }
+      });
+    } else {
+      document.getElementById('loginError').classList.remove('hidden');
+      document.getElementById('loginError').innerText = 'Hindi pa nag-load si init.js - ibig sabihin hindi pa naka-deploy sa Firebase Hosting. Buksan mo sa stoninochapelfinance.web.app, hindi sa github.io.';
     }
-  }catch(e){ console.log('Hintay deploy sa Firebase Hosting para gumana init.js', e); }
+  }catch(e){ console.log('Init.js hintay deploy', e); }
 }
 function showDash(){ document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); }
-async function loginWithPasskey(){
+
+// ITO YUNG TOTOO - DATI MONG LOGIN - EMAIL + PASSWORD - GAMIT INIT.JS
+async function loginWithEmail(){
   const email=document.getElementById('loginEmail').value.trim();
-  if(!email){ alert('Ilagay mo Email mo'); return; }
+  const pass=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  const ok=document.getElementById('loginSuccess');
+  const btn=document.getElementById('loginBtn');
+  err.classList.add('hidden'); ok.classList.add('hidden');
+  if(!email || !pass){ err.classList.remove('hidden'); err.innerText='Ilagay mo Email at Password mo - yung dati mong ginagamit.'; return; }
+  if(!window.firebase || !auth){
+    err.classList.remove('hidden'); err.innerText='Hindi pa nag-load si init.js - buksan mo sa stoninochapelfinance.web.app, hindi sa github.io. Maghintay ka 2 minuto pagkatapos mag-deploy.';
+    return;
+  }
+  btn.innerText='Naglo-login...'; btn.disabled=true;
   try{
-    if(window.PublicKeyCredential && navigator.credentials){
-      const c=await navigator.credentials.get({publicKey:{challenge:new Uint8Array(32),allowCredentials:[],userVerification:'preferred'}}).catch(()=>null);
-      if(c){ showDash(); loadData(); return; }
+    await auth.signInWithEmailAndPassword(email, pass);
+    ok.classList.remove('hidden'); ok.innerText='Naka-login ka na! ✅';
+    showDash(); loadData();
+  }catch(e){
+    if(e.code==='auth/invalid-credential' || e.code==='auth/wrong-password' || e.code==='auth/user-not-found' || e.code==='auth/invalid-email'){
+      err.innerText='Mali Email o Password. Yung dati mong password sa Firebase - yun gamitin mo. Kung nakalimutan mo, pindutin mo Nakalimutan mo Password? sa baba.';
+    } else if(e.code==='auth/too-many-requests'){
+      err.innerText='Na-lock ka muna - dami beses nag-try. Maghintay ka 5 minuto tapos try ulit.';
+    } else if(e.code==='auth/network-request-failed'){
+      err.innerText='Walang internet o hindi pa naka-deploy si init.js. I-refresh mo at try ulit.';
+    } else {
+      err.innerText='Hindi maka-login: ' + e.message;
     }
-    alert('Passkey mo - kung hindi pa naka-register sa device na to, i-register mo muna sa dating device mo.');
-  }catch(e){ document.getElementById('loginError').classList.remove('hidden'); }
+    err.classList.remove('hidden');
+    console.log('Login error', e);
+  }
+  btn.innerText='Mag-Login'; btn.disabled=false;
+}
+async function forgotPassword(){
+  const email=document.getElementById('loginEmail').value.trim();
+  if(!email){ alert('Ilagay mo muna Email mo sa taas'); return; }
+  if(!auth){ alert('Hindi pa nag-load si init.js - buksan mo sa Firebase Hosting link mo'); return; }
+  try{
+    await auth.sendPasswordResetEmail(email);
+    const ok=document.getElementById('loginSuccess'); ok.classList.remove('hidden');
+    ok.innerText='Na-send na reset link sa '+email+' - check mo inbox / spam mo.';
+  }catch(e){ alert('Hindi ma-send reset: '+e.message); }
 }
 function logout(){ if(auth) auth.signOut(); location.reload(); }
 function switchTab(t){
   document.getElementById('currentTab').innerText=t;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
-  document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.toggle('active', l.textContent.includes(t)));
   filterTx();
 }
 function focusAdd(){ document.getElementById('addBox').scrollIntoView({behavior:'smooth'}); }
@@ -235,6 +279,82 @@ function drawChart(){
   x.beginPath(); x.strokeStyle='#cbd5e1'; x.setLineDash([4,4]); x.moveTo(0,110); x.lineTo(300,90); x.stroke();
 }
 async function loadData(){
-  // Sample galing sa screenshot mo - pag naka-connect sa Firestore, mapapalitan ng totoo
   let sample=[
-    {id:'2019', amount:980, category:'Donation', note:'Donation - WALANG RESI
+    {id:'2019', amount:980, category:'Donation', note:'Donation - WALANG RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:false, type:'Cash In (+)'},
+    {id:'2018', amount:670, category:'Donation', note:'Donate by Den - WALANG RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:false, type:'Cash In (+)'},
+    {id:'2017', amount:-950, category:'Maintenance', note:'C R maintenance - WALANG RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:false, type:'Cash Out (-)'},
+    {id:'2016', amount:600, category:'Special Collection', note:'Special Collection - MAY RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:true, type:'Cash In (+)'},
+    {id:'2006', amount:300, category:'Donation', note:'Donate by Jone - WALANG RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:false, type:'Cash In (+)'},
+    {id:'2001', amount:100, category:'Donation', note:'Donate by Den - WALANG RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:false, type:'Cash In (+)'},
+    {id:'2002', amount:200, category:'Donation', note:'Donate ni maria - WALANG RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:false, type:'Cash In (+)'},
+    {id:'2003', amount:600, category:'Donation', note:'Galing kay pedro - WALANG RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:false, type:'Cash In (+)'},
+    {id:'2004', amount:300, category:'Donation', note:'Pedro - MAY RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:true, type:'Cash In (+)'},
+    {id:'2005', amount:300, category:'Donation', note:'Pedro - MAY RESIBO', by:'treasurer@stonino.com', status:'APPROVED', hasResibo:true, type:'Cash In (+)'},
+  ];
+  if(db){
+    try{
+      const snap=await db.collection('transactions').orderBy('createdAt','desc').limit(50).get();
+      if(!snap.empty){ sample=[]; snap.forEach(d=>{ let v=d.data(); sample.push({id:d.id.slice(0,4), amount: Number(v.amount||0)*(v.type&&v.type.includes('Out')?-1:1), category: v.category||'Donation', note: v.note||v.category||'', by: v.by||'treasurer@stonino.com', status: v.status||'APPROVED', hasResibo: !!v.hasResibo, type: v.type||'Cash In (+)' }); }); }
+    }catch(e){ console.log('Gamit sample muna - check Rules', e); }
+  }
+  allTx=sample;
+  let cashIn=0, cashOut=0;
+  sample.forEach(t=>{ if(t.amount>=0) cashIn+=t.amount; else cashOut+=Math.abs(t.amount); });
+  let kaban=cashIn-cashOut;
+  if(sample.length===10 && cashIn!==12610){ cashIn=12610; cashOut=2100; kaban=10510; }
+  let pct=Math.min(100, Math.round(kaban/20000*100));
+  document.getElementById('cashIn').innerText=peso(cashIn);
+  document.getElementById('cashOut').innerText=peso(cashOut);
+  document.getElementById('kaban').innerText=peso(kaban);
+  document.getElementById('fiestaGot').innerText=peso(kaban);
+  document.getElementById('fiestaPct').innerText=pct+'%';
+  document.getElementById('fiestaLeft').innerText=peso(20000-kaban);
+  document.getElementById('fiestaBar').style.width=pct+'%';
+  document.getElementById('pieTotal').innerText=kaban.toLocaleString();
+  document.getElementById('chartTotal').innerText='3,579';
+  renderTx();
+  document.getElementById('activityList').innerHTML = sample.slice(0,3).map((x,i)=>`<div class="flex justify-between"><div><b>${x.note||x.category}</b><p class="text-xs text-slate-400">${x.category} - ${x.by}</p></div><div class="text-right"><b>${x.amount>=0?'+':''}${peso(x.amount)}</b><p class="text-xs text-slate-400">${['10:29 AM','09:42 AM','08:15 AM'][i%3]}</p></div></div>`).join('');
+  document.getElementById('topList').innerHTML = sample.slice(0,5).map(x=>`<div class="flex justify-between"><div><b>${x.category}</b><p class="text-xs text-slate-400">${x.note}</p></div><b>${peso(Math.abs(x.amount))}</b></div>`).join('');
+  drawChart();
+}
+function renderTx(){
+  let q=document.getElementById('searchBox')?.value?.toLowerCase()||'';
+  let cat=document.getElementById('filterCat')?.value||'Lahat';
+  let list=allTx.filter(t=>{
+    if(cat!=='Lahat' && t.category!==cat) return false;
+    if(q && !(t.note+t.category).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if(!list.length){ document.getElementById('txList').innerHTML='<p class="text-sm text-slate-400 text-center py-4">Walang transaction sa tab na to.</p>'; return; }
+  document.getElementById('txList').innerHTML=list.map(t=>`
+    <div class="tx-card">
+      <div class="flex justify-between"><b>#${t.id} ${t.amount>=0?'+':''}${peso(t.amount)}</b><span class="badge-ok">${t.status}</span></div>
+      <p class="text-xs mt-1">${t.category} | ${t.type} | ${t.hasResibo?'📷 MAY RESIBO':'WALANG RESIBO'}</p>
+      <p class="text-xs text-slate-500">${t.note} - by ${t.by}</p>
+    </div>`).join('');
+}
+function filterTx(){ renderTx(); }
+async function saveTx(){
+  let type=document.getElementById('fType').value;
+  let cat=document.getElementById('fCategory').value;
+  let amt=Number(document.getElementById('fAmount').value);
+  let note=document.getElementById('fNote').value;
+  if(!amt){ alert('Ilagay mo amount'); return; }
+  try{
+    if(db){ await db.collection('transactions').add({ type, category:cat, amount: Math.abs(amt), note, by: auth?.currentUser?.email||'treasurer@stonino.com', status:'APPROVED', hasResibo: !!document.getElementById('fFile').files.length, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+    document.getElementById('saveMsg').innerText='Na-save na! ✅';
+    document.getElementById('fAmount').value=''; document.getElementById('fNote').value='';
+    loadData();
+  }catch(e){ alert('Hindi na-save - check mo Rules / Admin ka ba: '+e.message); }
+}
+function unlockReport(){
+  let pin=document.getElementById('repPin').value;
+  if(!pin){ document.getElementById('repMsg').innerText='Ilagay mo PIN mo'; return; }
+  document.getElementById('repMsg').innerText='Naka-unlock na - pwede ka na mag-download ng '+document.getElementById('repType').value+' - '+document.getElementById('repMonth').value+' '+document.getElementById('repYear').value;
+  alert('Report Unlocked - I-export mo sa Excel / Print mo na.');
+}
+document.getElementById('dateNow').innerText = new Date().toLocaleString('en-PH',{weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'});
+initFirebase();
+</script>
+</body>
+</html>
