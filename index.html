@@ -263,5 +263,86 @@ function toggleDark(){ document.body.classList.toggle('bg-[#1a1a1a]'); }
     padding: 6px !important;
   }
     </style>
+<!-- FIX - IBALIK EDIT/DELETE NI ADMIN -->
+<script>
+// 1. AYUSIN PAGKUHA NG EMAIL - HANAPIN KAHIT SAAN SA PAGE
+function getMyEmailFixed(){
+  const bodyText = document.body.innerText || "";
+  const m = bodyText.match(/[a-z0-9._%+-]+@stonino\.com/i);
+  if(m) return m[0].toLowerCase();
+  return "";
+}
+
+// 2. PAG ADMIN - PAKITA LAHAT - ENABLE LAHAT - WAG ITAGO
+function fixAdminAccess(){
+  const email = getMyEmailFixed();
+  if(email !== 'admin@stonino.com') return;
+  // Ibalik lahat ng tinago
+  document.querySelectorAll('button, a, input, select, textarea').forEach(el=>{
+    if(el.style.display === 'none' && el.id !== 'loginPage'){
+      // wag ibalik yung login page
+      if(el.closest('#loginPage')) return;
+      el.style.display = '';
+    }
+    el.disabled = false;
+  });
+  // Tanggalin yung roleBadge na mali kung meron
+  const badge = document.getElementById('roleBadge');
+  if(badge) badge.textContent = 'ADMIN@STONINO.COM • ADMIN';
+}
+
+// 3. LAGYAN NG EDIT / DELETE YUNG RECENT LIST
+function addEditDeleteButtons(){
+  const email = getMyEmailFixed();
+  if(email !== 'admin@stonino.com') return; // Admin lang makakita
+
+  // Hanapin yung Recent list
+  const recentBox = document.querySelectorAll('div');
+  recentBox.forEach(box=>{
+    // yung row na may "Donate by"
+    if(box.textContent && box.textContent.includes('Donate by') && box.children.length < 5){
+      if(box.querySelector('.admin-edit-btn')) return; // wag ulitin
+      // Hanapin yung amount at name para ma-identify
+      const text = box.innerText.trim();
+      
+      // Gumawa ng buttons container
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
+      wrap.innerHTML = `
+        <button class="admin-edit-btn" style="background:#FFD700;color:#2E1A5E;border:none;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">✏️ Edit</button>
+        <button class="admin-del-btn" style="background:#ff4444;color:white;border:none;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">🗑️ Delete</button>
+      `;
+      box.appendChild(wrap);
+      box.style.cssText += 'border-bottom:1px solid #eee;padding-bottom:8px;margin-bottom:8px;';
+
+      // EDIT - click
+      wrap.querySelector('.admin-edit-btn').onclick = function(){
+        const newDesc = prompt('Bagong description:', text);
+        if(!newDesc) return;
+        const newAmt = prompt('Bagong amount:', '1500');
+        if(!newAmt) return;
+        alert('Edit saved: ' + newDesc + ' - P' + newAmt + '\n\nDEN - pag naka-connect na sa Firebase, dito mag-uupdate. Sabihin mo kung gusto mo i-connect ko na sa totoong ID.');
+      };
+      // DELETE - click
+      wrap.querySelector('.admin-del-btn').onclick = function(){
+        if(!confirm('DEN - Sigurado ka burahin mo to?\n\n' + text + '\n\nHindi na maibabalik!')) return;
+        // Subukan burahin sa Firebase kung may ID
+        try{
+          if(typeof firebase !== 'undefined' && firebase.database){
+            // hahanapin sa transactions
+            alert('DEN - Delete pinindot. Pag may ID na yung transaction, buburahin na ni Firebase. Sa ngayon, tatanggalin ko muna sa screen.');
+          }
+        }catch(e){}
+        box.remove();
+      };
+    }
+  });
+}
+
+setInterval(()=>{
+  fixAdminAccess();
+  addEditDeleteButtons();
+}, 1000);
+</script>
 </body>
   </html>
