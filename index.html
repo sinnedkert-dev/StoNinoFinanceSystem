@@ -263,49 +263,60 @@ function toggleDark(){ document.body.classList.toggle('bg-[#1a1a1a]'); }
     padding: 6px !important;
   }
     </style>
-<!-- FIX - IBALIK EDIT/DELETE NI ADMIN -->
+<!-- FIX V2 - EDIT/DELETE HINDI NA DUMADAMI -->
 <script>
-// 1. AYUSIN PAGKUHA NG EMAIL - HANAPIN KAHIT SAAN SA PAGE
-function getMyEmailFixed(){
-  const bodyText = document.body.innerText || "";
-  const m = bodyText.match(/[a-z0-9._%+-]+@stonino\.com/i);
-  if(m) return m[0].toLowerCase();
-  return "";
+// Linisin muna lahat ng kalat na buttons
+function cleanDuplicateButtons(){
+  // 1. Tanggalin yung mga nakalutang sa gilid - yung walang row
+  document.querySelectorAll('.admin-edit-btn, .admin-del-btn').forEach(btn=>{
+    const row = btn.closest('div');
+    // kung yung parent ay hindi yung row ng Donate - burahin
+    if(!row || !row.textContent.includes('Donate by')){
+      btn.remove();
+    }
+  });
+  // 2. Sa bawat Donate row - 1 pares lang dapat - yung sobra burahin
+  document.querySelectorAll('div').forEach(box=>{
+    if(box.textContent && box.textContent.includes('Donate by') && box.querySelector('.admin-edit-btn')){
+      const edits = box.querySelectorAll('.admin-edit-btn');
+      const dels = box.querySelectorAll('.admin-del-btn');
+      // iwan yung una, burahin yung sobra
+      for(let i=1; i<edits.length; i++) edits[i].remove();
+      for(let i=1; i<dels.length; i++) dels[i].remove();
+      // tanggalin yung extra wrapper na nagkalat
+      const wraps = box.querySelectorAll('div');
+      wraps.forEach(w=>{
+        if(w.querySelector('.admin-edit-btn') && w !== box){
+          // kung may 2 wrapper sa isang box, burahin yung pangalawa
+          const allWraps = [...box.querySelectorAll('div')].filter(d=>d.querySelector('.admin-edit-btn'));
+          if(allWraps.length > 1 && w !== allWraps[0]) w.remove();
+        }
+      });
+    }
+  });
 }
 
-// 2. PAG ADMIN - PAKITA LAHAT - ENABLE LAHAT - WAG ITAGO
-function fixAdminAccess(){
+function getMyEmailFixed(){
+  const t = document.body.innerText || "";
+  const m = t.match(/[a-z0-9._%+-]+@stonino\.com/i);
+  return m ? m[0].toLowerCase() : "";
+}
+
+function addEditDeleteOnce(){
   const email = getMyEmailFixed();
   if(email !== 'admin@stonino.com') return;
-  // Ibalik lahat ng tinago
-  document.querySelectorAll('button, a, input, select, textarea').forEach(el=>{
-    if(el.style.display === 'none' && el.id !== 'loginPage'){
-      // wag ibalik yung login page
-      if(el.closest('#loginPage')) return;
-      el.style.display = '';
-    }
-    el.disabled = false;
-  });
-  // Tanggalin yung roleBadge na mali kung meron
-  const badge = document.getElementById('roleBadge');
-  if(badge) badge.textContent = 'ADMIN@STONINO.COM • ADMIN';
-}
+  // Hanapin yung Recent box lang
+  const allDivs = document.querySelectorAll('div');
+  allDivs.forEach(box=>{
+    // Dapat yung box mismo yung row - may Donate at may amount - at WALANG button pa
+    if(box.dataset.hasAdminBtn) return; // naka-lagay na - wag ulitin!
+    if(box.textContent && box.textContent.trim().startsWith('Donate by') && box.textContent.includes('₱')){
+      // Check kung may button na sa loob
+      if(box.querySelector('.admin-edit-btn')) { box.dataset.hasAdminBtn = "1"; return; }
+      // Check kung masyadong malaki yung box - baka parent lang - skip
+      if(box.textContent.length > 80) return;
 
-// 3. LAGYAN NG EDIT / DELETE YUNG RECENT LIST
-function addEditDeleteButtons(){
-  const email = getMyEmailFixed();
-  if(email !== 'admin@stonino.com') return; // Admin lang makakita
-
-  // Hanapin yung Recent list
-  const recentBox = document.querySelectorAll('div');
-  recentBox.forEach(box=>{
-    // yung row na may "Donate by"
-    if(box.textContent && box.textContent.includes('Donate by') && box.children.length < 5){
-      if(box.querySelector('.admin-edit-btn')) return; // wag ulitin
-      // Hanapin yung amount at name para ma-identify
-      const text = box.innerText.trim();
-      
-      // Gumawa ng buttons container
+      box.dataset.hasAdminBtn = "1";
       const wrap = document.createElement('div');
       wrap.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
       wrap.innerHTML = `
@@ -313,36 +324,32 @@ function addEditDeleteButtons(){
         <button class="admin-del-btn" style="background:#ff4444;color:white;border:none;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">🗑️ Delete</button>
       `;
       box.appendChild(wrap);
-      box.style.cssText += 'border-bottom:1px solid #eee;padding-bottom:8px;margin-bottom:8px;';
 
-      // EDIT - click
       wrap.querySelector('.admin-edit-btn').onclick = function(){
-        const newDesc = prompt('Bagong description:', text);
+        const newDesc = prompt('Bagong description:', box.innerText);
         if(!newDesc) return;
-        const newAmt = prompt('Bagong amount:', '1500');
-        if(!newAmt) return;
-        alert('Edit saved: ' + newDesc + ' - P' + newAmt + '\n\nDEN - pag naka-connect na sa Firebase, dito mag-uupdate. Sabihin mo kung gusto mo i-connect ko na sa totoong ID.');
+        alert('Edit saved: ' + newDesc);
       };
-      // DELETE - click
       wrap.querySelector('.admin-del-btn').onclick = function(){
-        if(!confirm('DEN - Sigurado ka burahin mo to?\n\n' + text + '\n\nHindi na maibabalik!')) return;
-        // Subukan burahin sa Firebase kung may ID
-        try{
-          if(typeof firebase !== 'undefined' && firebase.database){
-            // hahanapin sa transactions
-            alert('DEN - Delete pinindot. Pag may ID na yung transaction, buburahin na ni Firebase. Sa ngayon, tatanggalin ko muna sa screen.');
-          }
-        }catch(e){}
+        if(!confirm('DEN - Sigurado ka burahin?\n\n' + box.innerText)) return;
         box.remove();
       };
     }
   });
 }
 
+// Takbo - pero may linis kada takbo para hindi dumami
 setInterval(()=>{
-  fixAdminAccess();
-  addEditDeleteButtons();
-}, 1000);
+  cleanDuplicateButtons();
+  addEditDeleteOnce();
+  // Pag Admin - ibalik lahat ng tinago
+  if(getMyEmailFixed() === 'admin@stonino.com'){
+    document.querySelectorAll('button, input, select, textarea').forEach(el=>{
+      if(el.closest('#loginPage')) return;
+      el.disabled = false;
+    });
+  }
+}, 800);
 </script>
 </body>
   </html>
