@@ -202,5 +202,52 @@ function showPage(name, btn){
 }
 function toggleDark(){ document.body.classList.toggle('bg-[#1a1a1a]'); }
 </script>
+<!-- STO NINO PICTURE - stonino.jpg - I-ADD MO LANG TO -->
+<style>
+  .stonino-login-img{ width:110px; height:110px; object-fit:cover; border-radius:50%; border:3px solid #FFD700; display:block; margin:0 auto 10px; box-shadow:0 4px 15px rgba(0,0,0,.3); background:white; }
+  .stonino-sidebar-img{ width:42px; height:42px; object-fit:cover; border-radius:50%; border:2px solid #FFD700; }
+  .stonino-banner{ width:100%; height:140px; object-fit:cover; object-position:top; border-radius:16px; border:2px solid #FFD700; }
+</style>
+
+<script>
+  // 1. LOGIN PAGE - LAGAY PICTURE SA TAAS NG STO NINO CHAPEL
+  const loginTitle = document.querySelector('#loginPage h1');
+  if(loginTitle){
+    const img = document.createElement('img');
+    img.src = 'stonino.jpg';
+    img.alt = 'Sto Nino';
+    img.className = 'stonino-login-img';
+    img.onerror = () => { img.style.display='none'; console.log('Hindi makita stonino.jpg - check mo kung na-upload'); };
+    loginTitle.parentNode.insertBefore(img, loginTitle);
+  }
+
+  // 2. SIDEBAR - MALIIT NA BILOG SA TAAS
+  const sidebarTitle = document.querySelector('#sidebar h1');
+  if(sidebarTitle){
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.gap = '10px';
+    wrap.style.marginBottom = '4px';
+    const img2 = document.createElement('img');
+    img2.src = 'stonino.jpg';
+    img2.alt = 'Sto Nino';
+    img2.className = 'stonino-sidebar-img';
+    sidebarTitle.parentNode.insertBefore(wrap, sidebarTitle);
+    wrap.appendChild(img2);
+    wrap.appendChild(sidebarTitle);
+  }
+
+  // 3. HOMEPAGE / DASHBOARD - BANNER SA TAAS
+  const dashTitle = document.querySelector('#page-dashboard h2');
+  if(dashTitle){
+    const banner = document.createElement('img');
+    banner.src = 'stonino.jpg';
+    banner.alt = 'Sto Nino Chapel';
+    banner.className = 'stonino-banner';
+    dashTitle.parentNode.insertBefore(banner, dashTitle);
+    banner.style.marginBottom = '12px';
+  }
+    </script>
 </body>
   </html>
