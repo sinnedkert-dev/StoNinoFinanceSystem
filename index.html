@@ -249,27 +249,7 @@ function toggleDark(){ document.body.classList.toggle('bg-[#1a1a1a]'); }
     banner.style.marginBottom = '12px';
   }
     </script>
-<!
-  list.style.cssText = 'background:white;padding:12px;border-radius:12px;margin-top:10px;font-size:13px;color:#333;';
-  list.innerHTML = '<div style="color:#999;">Loading...</div>';
-  box.appendChild(list);
-  try{
-    if(typeof firebase !== 'undefined' && firebase.database){
-      firebase.database().ref('auditTrail').limitToLast(20).on('value', snap=>{
-        const data = snap.val();
-        if(!data){ list.innerHTML = '<div style="color:#999;">Wala pang galaw. Mag-Add / Edit / Delete ka muna.</div>'; return; }
-        const items = Object.values(data).reverse();
-        list.innerHTML = items.map(i=>`<div style="padding:8px 0;border-bottom:1px solid #eee;"><b>${i.user||'admin'}</b> - ${i.action}<br><span style="color:#666;">${i.detail||''}</span><br><span style="color:#999;font-size:11px;">${i.time||''}</span></div>`).join('');
-      });
-    }
-  }catch(e){}
-}
 
-const obsV6 = new MutationObserver(()=> setTimeout(()=>{ fixPictureV6(); fixRecentV6(); showAuditV6(); }, 150));
-obsV6.observe(document.body, { childList:true, subtree:true });
-setInterval(()=>{ fixPictureV6(); fixRecentV6(); showAuditV6(); }, 1500);
-fixPictureV6(); fixRecentV6();
-</script>
 <!-- AYOS PICTURE - TANGGALIN OVAL - GAWING BUO -->
 <style>
   /* LAHAT NG LALAGYAN NG PICTURE - WAG GAWING BILOG */
