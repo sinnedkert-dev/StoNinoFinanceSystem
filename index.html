@@ -249,66 +249,127 @@ function toggleDark(){ document.body.classList.toggle('bg-[#1a1a1a]'); }
     banner.style.marginBottom = '12px';
   }
     </script>
-<!-- FIX - BUO NA PICTURE SA HOMEPAGE - HINDI NA PUTOL -->
-<style>
-  .stonino-banner{
-    width: 100% !important;
-    height: auto !important;
-    max-height: 320px !important;
-    object-fit: contain !important;
-    object-position: center !important;
-    background: white !important;
-    border-radius: 16px !important;
-    border: 2px solid #FFD700 !important;
-    padding: 6px !important;
-  }
-    </style>
-  <!-- FIX V3 - HINDI NA NAWAWALA -->
+<!-- FINAL V4 - ISANG SCRIPT LANG - MALINIS + AUDIT TRAIL -->
 <script>
-function getEmailV3(){
+function getEmailV4(){
   const t = document.body.innerText || "";
   const m = t.match(/[a-z0-9._%+-]+@stonino\.com/i);
   return m ? m[0].toLowerCase() : "";
 }
 
-function addButtonsV3(){
-  if(getEmailV3() !== 'admin@stonino.com') return;
-  // Hanapin lahat ng row na may Donate
+// --- AUDIT TRAIL - DITO NA MAGSUSULAT ---
+function logAudit(action, detail){
+  try{
+    if(typeof firebase !== 'undefined' && firebase.database){
+      firebase.database().ref('auditTrail').push({
+        user: getEmailV4(),
+        action: action,
+        detail: detail,
+        time: new Date().toLocaleString('en-PH')
+      });
+    }
+  }catch(e){}
+  // Ipakita din agad kahit hindi pa nag-load si Firebase
+  try{ localStorage.setItem('lastAudit', action + ' - ' + detail); }catch(e){}
+}
+
+// --- AYUSIN YUNG DOBLE ---
+function fixRecentV4(){
+  if(getEmailV4() !== 'admin@stonino.com') return;
+
+  // 1. Burahin yung nakalutang sa baba - yung extra sa ilalim ng Recent
+  // Yung sa screenshot mo - yung nasa baba na mag-isa - burahin yun
+  document.querySelectorAll('div').forEach(box=>{
+    if(box.textContent && box.textContent.trim() === 'EditDelete' && box.querySelector('button')){
+      // maliliit na wrapper na walang Donate - kalat lang
+      if(!box.textContent.includes('Donate')) box.remove();
+    }
+  });
+
+  // 2. Sa bawat Donate row - linisin muna - tapos lagyan ng ISA lang
   document.querySelectorAll('div').forEach(row=>{
     if(!row.textContent) return;
     const txt = row.textContent.trim();
-    // Dapat maliit lang yung row - hindi yung buong Recent box
     if(!txt.startsWith('Donate by')) return;
-    if(txt.length > 60) return; // parent box - skip
-    if(row.querySelector('.v3-edit')) return; // meron na - wag ulitin
+    if(txt.length > 70) return; // parent box - skip
+
+    // Burahin lahat ng lumang buttons sa row na to - para 1 pares lang matira
+    const olds = row.querySelectorAll('.admin-edit-btn, .admin-del-btn, .v3-edit, .v3-del, button');
+    olds.forEach(b=>{ if(b.textContent.includes('Edit') || b.textContent.includes('Delete')) b.remove(); });
+    // Burahin din yung mga lumang span wrapper
+    row.querySelectorAll('span').forEach(s=>{ if(s.textContent.includes('Edit')) s.remove(); });
+    if(row.dataset.v4done) {
+      // kung nalinis na, lagyan ulit ng isa - pero wag doblehin
+      if(row.querySelector('.v4-btn')) return;
+    }
+    row.dataset.v4done = "1";
+    row.style.cssText += 'display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;';
 
     const wrap = document.createElement('span');
-    wrap.style.cssText = 'display:inline-flex;gap:6px;margin-left:10px;';
+    wrap.className = 'v4-btn';
+    wrap.style.cssText = 'display:inline-flex;gap:6px;flex-shrink:0;';
     wrap.innerHTML = `
-      <button class="v3-edit" style="background:#FFD700;color:#2E1A5E;border:none;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">✏️ Edit</button>
-      <button class="v3-del" style="background:#ff4444;color:white;border:none;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">🗑️ Delete</button>
+      <button class="v4-edit" style="background:#FFD700;color:#2E1A5E;border:none;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">Edit</button>
+      <button class="v4-del" style="background:#ff4444;color:white;border:none;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">Delete</button>
     `;
     row.appendChild(wrap);
 
-    wrap.querySelector('.v3-del').onclick = (e)=>{
+    wrap.querySelector('.v4-del').onclick = (e)=>{
       e.stopPropagation();
       if(!confirm('DEN - Burahin?\n\n' + txt)) return;
+      logAudit('DELETE', txt);
       row.remove();
-      alert('DEN - Tinanggal sa screen. Para tuluyang mabura sa Firebase, kailangan natin ayusin yung render function - picturan mo yung code.');
+      alert('Nabura na + nasulat na sa Audit Trail.');
     };
-    wrap.querySelector('.v3-edit').onclick = (e)=>{
+    wrap.querySelector('.v4-edit').onclick = (e)=>{
       e.stopPropagation();
       const nd = prompt('Bagong description:', txt);
-      if(nd) alert('Edit: ' + nd);
+      if(!nd) return;
+      logAudit('EDIT', txt + ' -> ' + nd);
+      alert('Na-edit na + nasulat na sa Audit Trail.');
     };
   });
+
+  // 3. Log din yung Add Transaction
+  const addBtn = [...document.querySelectorAll('button')].find(b=>b.textContent.includes('Add Transaction'));
+  if(addBtn && !addBtn.dataset.v4log){
+    addBtn.dataset.v4log = "1";
+    addBtn.addEventListener('click', ()=>{ logAudit('ADD TRANSACTION', 'Admin nag-add ng transaction'); });
+  }
 }
 
-// Bantayan si Firebase - pag nag-render siya ulit, lagyan ulit - HINDI BUBURAHIN
-const obs = new MutationObserver(()=>{ setTimeout(addButtonsV3, 100); });
-obs.observe(document.body, { childList:true, subtree:true });
-setInterval(addButtonsV3, 1000);
-addButtonsV3();
-      </script>
+// --- PAKITA YUNG AUDIT TRAIL ---
+function showAuditV4(){
+  const auditTitle = [...document.querySelectorAll('*')].find(el=>el.textContent && el.textContent.includes('Audit Trail'));
+  if(!auditTitle) return;
+  // Hanapin yung puting box sa ilalim ng title
+  let box = auditTitle.parentElement;
+  if(!box) return;
+  // Wag ulitin kung may laman na
+  if(box.querySelector('#auditListV4')) return;
+  const list = document.createElement('div');
+  list.id = 'auditListV4';
+  list.style.cssText = 'background:white;padding:12px;border-radius:12px;margin-top:10px;font-size:13px;color:#333;';
+  list.innerHTML = '<div style="color:#999;">Loading Audit Trail...</div>';
+  box.appendChild(list);
+
+  try{
+    if(typeof firebase !== 'undefined' && firebase.database){
+      firebase.database().ref('auditTrail').limitToLast(20).on('value', snap=>{
+        const data = snap.val();
+        if(!data){ list.innerHTML = '<div style="color:#999;">Wala pang galaw. Mag-Add / Edit / Delete ka muna, tapos babalik dito - may laman na.</div>'; return; }
+        const items = Object.values(data).reverse();
+        list.innerHTML = items.map(i=>`<div style="padding:8px 0;border-bottom:1px solid #eee;"><b>${i.user || 'admin'}</b> - ${i.action}<br><span style="color:#666;">${i.detail || ''}</span><br><span style="color:#999;font-size:11px;">${i.time || ''}</span></div>`).join('');
+      });
+    } else {
+      list.innerHTML = '<div>Wala pang Firebase connection. Pero nag-log na sa local.</div>';
+    }
+  }catch(e){ list.innerHTML = 'Hindi ma-load Audit Trail.'; }
+}
+
+const obsV4 = new MutationObserver(()=>{ setTimeout(()=>{ fixRecentV4(); showAuditV4(); }, 150); });
+obsV4.observe(document.body, { childList:true, subtree:true });
+setInterval(()=>{ fixRecentV4(); showAuditV4(); }, 1500);
+</script>
 </body>
   </html>
