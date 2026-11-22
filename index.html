@@ -370,5 +370,55 @@ obsV6.observe(document.body, { childList:true, subtree:true });
 setInterval(()=>{ fixPictureV6(); fixRecentV6(); showAuditV6(); }, 1500);
 fixPictureV6(); fixRecentV6();
 </script>
+<!-- AYOS PICTURE - TANGGALIN OVAL - GAWING BUO -->
+<style>
+  /* LAHAT NG LALAGYAN NG PICTURE - WAG GAWING BILOG */
+  img {
+    border-radius: 16px !important;
+    object-fit: contain !important;
+  }
+  /* Yung oval sa Login at Dashboard - gawin rectangle */
+  div:has(> img), div:has(img) {
+    border-radius: 16px !important;
+  }
+  /* Yung mismong bilog na may yellow border */
+  [style*="border-radius: 50%"], [style*="border-radius:50%"] {
+    border-radius: 16px !important;
+  }
+  /* Yung banner sa Dashboard - palakihin - buo */
+  .banner img, .hero img, header img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 260px !important;
+    object-fit: contain !important;
+    display: block !important;
+  }
+</style>
+<script>
+function fixOval(){
+  document.querySelectorAll('div').forEach(d=>{
+    const cs = getComputedStyle(d);
+    // Kung bilog yung lalagyan - gawin rectangle
+    if(cs.borderRadius === '50%' || cs.borderRadius.includes('50%')){
+      // Pero wag galawin yung mga bilog na button - yung may img lang
+      if(d.querySelector('img')){
+        d.style.borderRadius = '16px';
+        d.style.overflow = 'visible';
+        d.style.aspectRatio = 'auto';
+        d.style.width = '100%';
+        d.style.height = 'auto';
+      }
+    }
+  });
+  document.querySelectorAll('img').forEach(img=>{
+    img.style.borderRadius = '16px';
+    img.style.objectFit = 'contain';
+    img.style.width = '100%';
+    img.style.height = 'auto';
+  });
+}
+setInterval(fixOval, 1000);
+fixOval();
+      </script>
 </body>
   </html>
