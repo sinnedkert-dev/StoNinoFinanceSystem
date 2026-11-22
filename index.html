@@ -249,86 +249,107 @@ function toggleDark(){ document.body.classList.toggle('bg-[#1a1a1a]'); }
     banner.style.marginBottom = '12px';
   }
     </script>
-<!-- V5 FINAL - MALINIS - HINDI SISIRA NG LAYOUT -->
+<!-- V6 FINAL - RECENT LANG GALAWIN + AYOS PICTURE -->
+<style>
+  /* IBALIK YUNG PICTURE NI STO NINO - WAG PUTULIN */
+  .dashboard-banner img, .hero img, header img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 240px !important;
+    object-fit: contain !important;
+    object-position: center top !important;
+    display: block !important;
+  }
+</style>
 <script>
-function getEmailV5(){
+function getEmailV6(){
   const t = document.body.innerText || "";
   const m = t.match(/[a-z0-9._%+-]+@stonino\.com/i);
   return m ? m[0].toLowerCase() : "";
 }
 
-function logAuditV5(action, detail){
+function logAuditV6(action, detail){
   try{
     if(typeof firebase !== 'undefined' && firebase.database){
       firebase.database().ref('auditTrail').push({
-        user: getEmailV5(), action: action, detail: detail,
+        user: getEmailV6(), action: action, detail: detail,
         time: new Date().toLocaleString('en-PH')
       });
     }
   }catch(e){}
 }
 
-function fixRecentV5(){
-  if(getEmailV5() !== 'admin@stonino.com') return;
-
-  // 1. IBALIK YUNG NASIRANG LAYOUT - tanggalin yung flex na nilagay ng V4
-  document.querySelectorAll('div').forEach(d=>{
-    if(d.dataset.v4done){ d.dataset.v4done = ""; d.style.display = ""; d.style.justifyContent = ""; d.style.alignItems = ""; }
-    // Burahin lahat ng lumang buttons ng V1-V4
-    d.querySelectorAll('.v4-btn, .v4-edit, .v4-del, .v3-edit, .v3-del, .admin-edit-btn, .admin-del-btn').forEach(b=>{
-      // wag burahin yung nasa loob ng v5 - iba yun
-      if(!b.classList.contains('v5-btn')) b.remove();
-    });
+// AYUSIN PICTURE - HANAPIN YUNG IMG NI STO NINO
+function fixPictureV6(){
+  document.querySelectorAll('img').forEach(img=>{
+    // Yung malaking picture sa taas ng Dashboard lang
+    if(img.clientWidth > 200 || img.naturalWidth > 200){
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.style.maxHeight = '240px';
+      img.style.objectFit = 'contain';
+      img.style.objectPosition = 'center top';
+      img.style.display = 'block';
+      // Ayusin din yung parent box niya - wag i-crop
+      if(img.parentElement){
+        img.parentElement.style.overflow = 'visible';
+        img.parentElement.style.height = 'auto';
+        img.parentElement.style.maxHeight = '260px';
+      }
+    }
   });
+}
 
-  // 2. Hanapin yung TUNAY na row - yung pinaka-maliit na box na may 1 Donate lang
-  const all = [...document.querySelectorAll('div')];
-  all.forEach(row=>{
+function fixRecentV6(){
+  if(getEmailV6() !== 'admin@stonino.com') return;
+  // Hanapin lang yung Recent box - hindi buong page!
+  const recentTitle = [...document.querySelectorAll('*')].find(el=>el.textContent && el.textContent.trim() === 'Recent');
+  if(!recentTitle) return;
+  const recentBox = recentTitle.parentElement;
+  if(!recentBox) return;
+
+  // Sa loob lang ng Recent maghanap - hindi sa labas!
+  recentBox.querySelectorAll('div').forEach(row=>{
     const txt = (row.innerText || "").trim();
     if(!txt.startsWith('Donate by')) return;
-    // Dapat 1 Donate lang - pag 2 Donate, parent box yan - skip!
     const count = (txt.match(/Donate by/g) || []).length;
     if(count !== 1) return;
-    // Dapat walang anak na div na may Donate din - leaf lang
     const hasChildDonate = [...row.querySelectorAll('div')].some(c=>c !== row && (c.innerText||"").trim().startsWith('Donate by'));
     if(hasChildDonate) return;
-    if(row.querySelector('.v5-wrap')) return; // meron na - wag ulitin
+    if(row.querySelector('.v6-wrap')) return;
 
-    // 3. Lagyan ng buttons SA ILALIM - hindi sa gilid - para hindi masira layout
     const wrap = document.createElement('div');
-    wrap.className = 'v5-wrap';
+    wrap.className = 'v6-wrap';
     wrap.style.cssText = 'display:flex;gap:6px;margin-top:6px;';
     wrap.innerHTML = `
-      <button class="v5-btn" data-act="edit" style="background:#FFD700;color:#2E1A5E;border:none;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">Edit</button>
-      <button class="v5-btn" data-act="del" style="background:#ff4444;color:white;border:none;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">Delete</button>
+      <button style="background:#FFD700;color:#2E1A5E;border:none;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">Edit</button>
+      <button style="background:#ff4444;color:white;border:none;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:800;cursor:pointer;">Delete</button>
     `;
     row.appendChild(wrap);
-    // Siguraduhin hindi flex yung row mismo - block lang para 1 per line
-    row.style.display = 'block';
 
-    wrap.querySelector('[data-act="del"]').onclick = (e)=>{
+    wrap.children[1].onclick = (e)=>{
       e.stopPropagation();
       if(!confirm('DEN - Burahin?\n\n' + txt)) return;
-      logAuditV5('DELETE', txt);
+      logAuditV6('DELETE', txt);
       row.remove();
     };
-    wrap.querySelector('[data-act="edit"]').onclick = (e)=>{
+    wrap.children[0].onclick = (e)=>{
       e.stopPropagation();
       const nd = prompt('Bagong description:', txt);
       if(!nd) return;
-      logAuditV5('EDIT', txt + ' -> ' + nd);
+      logAuditV6('EDIT', txt + ' -> ' + nd);
       alert('Na-edit na + nasulat sa Audit Trail.');
     };
   });
 }
 
-function showAuditV5(){
+function showAuditV6(){
   const title = [...document.querySelectorAll('*')].find(el=>el.textContent && el.textContent.trim() === 'Audit Trail 🔍 Admin Only');
   if(!title) return;
   const box = title.parentElement;
-  if(!box || box.querySelector('#auditListV5')) return;
+  if(!box || box.querySelector('#auditListV6')) return;
   const list = document.createElement('div');
-  list.id = 'auditListV5';
+  list.id = 'auditListV6';
   list.style.cssText = 'background:white;padding:12px;border-radius:12px;margin-top:10px;font-size:13px;color:#333;';
   list.innerHTML = '<div style="color:#999;">Loading...</div>';
   box.appendChild(list);
@@ -344,10 +365,10 @@ function showAuditV5(){
   }catch(e){}
 }
 
-const obsV5 = new MutationObserver(()=> setTimeout(()=>{ fixRecentV5(); showAuditV5(); }, 150));
-obsV5.observe(document.body, { childList:true, subtree:true });
-setInterval(()=>{ fixRecentV5(); showAuditV5(); }, 1500);
-fixRecentV5();
+const obsV6 = new MutationObserver(()=> setTimeout(()=>{ fixPictureV6(); fixRecentV6(); showAuditV6(); }, 150));
+obsV6.observe(document.body, { childList:true, subtree:true });
+setInterval(()=>{ fixPictureV6(); fixRecentV6(); showAuditV6(); }, 1500);
+fixPictureV6(); fixRecentV6();
 </script>
 </body>
   </html>
