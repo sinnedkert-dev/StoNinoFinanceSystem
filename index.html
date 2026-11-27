@@ -1,280 +1,87 @@
 <!DOCTYPE html>
-<html lang="tl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sto Nino Chapel Finance</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sto. Niño Finance System</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",authDomain:"stoninochapelfinance.firebaseapp.com",databaseURL:"https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"stoninochapelfinance",storageBucket:"stoninochapelfinance.firebasestorage.app",messagingSenderId:"633724409478",appId:"1:633724409478:web:a01f4e934d836ce3c82307",measurementId:"G-7WCS0PJWY6"};
+firebase.initializeApp(firebaseConfig);const db=firebase.database();const cloudRef=db.ref('stonino_v1');let cloudReady=false,cloudSaving=false;
+</script>
 <style>
-  body{font-family:sans-serif; background:#f5f3ff}
-  .sidebar-bg{background:#2E1A5E}
-  .sidebar-active{background:#6D28D9; border-radius:12px}
-  .card{background:white; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.06)}
-  .section-label{font-size:11px; letter-spacing:.1em; color:rgba(255,255,255,.4)}
-</style>
-</head>
-<body>
-
-<!-- LOGIN PAGE - LALABAS MUNA BAGO DASHBOARD -->
-<div id="loginPage" class="min-h-screen flex items-center justify-center p-4 bg-[#2E1A5E]">
-  <div class="card w-full max-w-[400px] p-6">
-    <h1 class="text-2xl font-bold text-center">⛪ Sto Nino Chapel</h1>
-    <p class="text-center text-gray-500 text-sm mb-6">Finance System • Taguig</p>
-    <label class="text-xs font-bold">EMAIL</label>
-    <input id="loginEmail" type="email" placeholder="SECURE LOG IN ONLY" class="w-full border rounded-xl px-3 py-3 mb-3" />
-    <label class="text-xs font-bold">PASSWORD</label>
-    <input id="loginPass" type="password" placeholder="••••••••" class="w-full border rounded-xl px-3 py-3 mb-3" />
-    <button onclick="doLogin()" class="w-full bg-[#2E1A5E] text-white py-3 rounded-xl font-bold">Log In</button>
-    <p id="loginError" class="text-red-500 text-xs text-center mt-3"></p>
-    <p class="text-center text-xs text-gray-400 mt-4">SECURE LOG IN ONLY<br>Firebase Auth • Email / Password</p>
-  </div>
-</div>
-
-<!-- MAIN APP - NAKATAGO HANGGANG MAG-LOGIN -->
-<div id="mainApp" class="hidden flex min-h-screen">
-<aside id="sidebar" class="sidebar-bg text-white w-[270px] min-h-screen p-4 hidden md:block fixed md:static z-50">
-  <h1 class="text-lg font-bold mb-1">⛪ Sto Nino Chapel</h1>
-  <p class="text-xs opacity-50 mb-5">Finance • <span id="userEmailLabel"></span></p>
-  <p class="section-label mb-2">OVERVIEW</p>
-  <button onclick="showPage('dashboard',this)" class="sidebar-active w-full text-left px-3 py-2.5 mb-1">📊 Dashboard</button>
-  <button onclick="showPage('tasks',this)" class="w-full text-left px-3 py-2.5 mb-3">📝 Tasks</button>
-  <p class="section-label mb-2">TRANSACTIONS</p>
-  <button onclick="showPage('income',this)" class="w-full text-left px-3 py-2.5 mb-1">💰 Income</button>
-  <button onclick="showPage('expenses',this)" class="w-full text-left px-3 py-2.5 mb-1">🧾 Expenses</button>
-  <button onclick="showPage('petty',this)" class="w-full text-left px-3 py-2.5 mb-3">💵 Petty Cash</button>
-  <p class="section-label mb-2">ACCOUNTS</p>
-  <button onclick="showPage('funds',this)" class="w-full text-left px-3 py-2.5 mb-1">🏦 Funds</button>
-  <button onclick="showPage('bank',this)" class="w-full text-left px-3 py-2.5 mb-1">🏛️ Bank Accounts</button>
-  <button onclick="showPage('loans',this)" class="w-full text-left px-3 py-2.5 mb-3">💳 Loans</button>
-  <p class="section-label mb-2">PEOPLE</p>
-  <button onclick="showPage('members',this)" class="w-full text-left px-3 py-2.5 mb-1">👥 Members & Donors</button>
-  <button onclick="showPage('beneficiaries',this)" class="w-full text-left px-3 py-2.5 mb-1">💛 Beneficiaries</button>
-  <button onclick="showPage('reports',this)" class="w-full text-left px-3 py-2.5 mb-1">📄 Reports</button>
-  <button onclick="showPage('payroll',this)" class="admin-only w-full text-left px-3 py-2.5 mb-3">👩‍💼 Payroll</button>
-  <p class="section-label mb-2">ADMINISTRATION</p>
-  <button onclick="showPage('users',this)" class="admin-only w-full text-left px-3 py-2.5 mb-1">🔐 Users</button>
-  <button onclick="showPage('settings',this)" class="admin-only w-full text-left px-3 py-2.5 mb-1">⚙️ Settings</button>
-  <button onclick="showPage('audit',this)" class="admin-only w-full text-left px-3 py-2.5 mb-1">🔍 Audit Trail</button>
-  <button onclick="showPage('profile',this)" class="w-full text-left px-3 py-2.5 mb-1">👤 My Profile</button>
-  <div class="mt-6 border-t border-white/20 pt-4">
-    <button onclick="toggleDark()" class="w-full text-left px-3 py-2">🌙 Dark Mode</button>
-    <button onclick="doLogout()" class="w-full text-left px-3 py-2 text-red-300">🚪 Log Out</button>
-  </div>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Arial;background:#f7f2e9;color:#1a1a1a}
+button{cursor:pointer}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #e8ddc8;border-radius:12px;background:#fdfbf7;margin:6px 0;font-size:14px}
+.app{display:flex;min-height:100vh}.side{width:265px;background:#2e1a5e;color:#fff;padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto;flex-shrink:0}
+.side .logo{display:flex;gap:10px;align-items:center;padding:4px 8px}.logoImg{width:38px;height:38px;border-radius:50%;background:#ff9a3d;display:grid;place-items:center;font-weight:800}
+.side h2{font-size:14px;margin:0;line-height:1.2}.side p{font-size:10px;opacity:.6;margin:2px 0 0;letter-spacing:.8px}
+.label{font-size:10px;letter-spacing:1.2px;opacity:.5;margin:18px 8px 6px}.navbtn{display:flex;gap:10px;width:100%;text-align:left;background:transparent;color:#fff;border:0;padding:9px 10px;border-radius:10px;font-size:13.5px;opacity:.9}.navbtn.active{background:#7c4dff;opacity:1}.navbtn span{width:20px;text-align:center}
+.main{flex:1;padding:14px 18px;max-width:900px;margin:0 auto;width:100%}.topHead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}.topHead h1{font-size:17px;margin:0;font-weight:800}.topHead small{color:#8a7a5a;font-size:12px}.topBtns{display:flex;gap:8px;align-items:center}.pill{background:#fff;border:1px solid #eee6d0;padding:7px 12px;border-radius:20px;font-size:12px}.btn{background:#174a3a;color:#fff;border:0;padding:9px 16px;border-radius:20px;font-size:13px;font-weight:700}.btn2{background:#fff;border:1px solid #e8ddc8;padding:9px 12px;border-radius:20px;font-size:13px}
+.monthRow{display:flex;align-items:center;gap:6px;margin:14px 0 10px;color:#666;font-size:13px}.monthRow b{color:#111}
+.cards3{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:12px}.card3{background:#fff;border-radius:18px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.04);min-height:110px}.card3 small{font-size:10px;letter-spacing:.8px;color:#8a7a5a;text-transform:uppercase}.card3 .big{font-size:32px;font-weight:800;line-height:.95;word-break:break-all;margin-top:8px}.card3 .sub{font-size:12px;color:#666;margin-top:8px}.green{color:#1a7a3a}.red{color:#c0392b}
+.toggleRow{display:flex;justify-content:space-between;align-items:center;margin:14px 0}.toggle{display:flex;background:#fff;padding:4px;border-radius:20px;border:1px solid #eee}.toggle button{border:0;padding:7px 16px;border-radius:16px;background:transparent;font-size:13px}.toggle button.on{background:#111;color:#fff}
+.cats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.cat{border-radius:16px;padding:12px;min-height:78px}.cat small{font-size:11px;color:#555}.cat b{font-size:15px;display:block;margin-top:6px}.cat .ic{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.9);display:grid;place-items:center;font-size:11px;margin-bottom:4px}
+.whiteCard{background:#fff;border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 1px 6px rgba(0,0,0,.04)}.whiteCard h3{font-size:15px;margin:0}.whiteCard p{font-size:12px;color:#8a7a5a;margin:4px 0 0}.flex2{display:flex;justify-content:space-between;align-items:center;gap:10px}.row{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid #f5efe0;gap:10px}.row:last-child{border:0}.row b{font-size:13.5px}.row small{color:#999;font-size:11.5px}.row .amt{font-weight:700;font-size:13.5px;white-space:nowrap}.iconSm{width:30px;height:30px;border-radius:50%;background:#f0e8d8;display:grid;place-items:center;font-weight:700;font-size:11px;flex-shrink:0}.flex{display:flex;gap:10px;align-items:center}.badge{font-size:10px;background:#e8e2d0;padding:2px 7px;border-radius:20px;white-space:nowrap}.badge.greenBg{background:#d6f0dd}.badge.pinkBg{background:#fde2e2}.badge.grayBg{background:#eee}.editBtn{border:0;background:transparent;font-size:13px}
+.section{display:none}.section.show{display:block}.adminCard{background:#fff;border-radius:18px;padding:16px;margin:12px 0}.adminCard h3{margin:0;font-size:15px}.adminCard p{font-size:12px;color:#888;margin:4px 0 10px}.budgetRow{display:flex;gap:8px}.budgetRow input{background:#f7f2e9}.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;padding:16px;z-index:99}.modal.open{display:grid}.box{background:#fff;width:100%;max-width:460px;border-radius:18px;padding:18px;max-height:92vh;overflow:auto}
+@media(max-width:820px){.side{display:none}.side.open{display:block;position:fixed;z-index:100;left:0}.cards3{grid-template-columns:1fr 1fr}.cards3 .card3:first-child{grid-column:span 2}.cats{grid-template-columns:1fr 1fr 1fr}.card3 .big{font-size:28px}}
+</style></head><body><div class="app">
+<aside class="side" id="side"><div class="logo"><div class="logoImg">👶</div><div><h2>Sto. Niño</h2><p>FINANCE SYSTEM</p></div></div>
+<div class="label">OVERVIEW</div><button class="navbtn active" onclick="showPage('dashboard',this)"><span>📊</span>Dashboard</button><button class="navbtn" onclick="showPage('tasksPage',this)"><span>✅</span>Tasks</button>
+<div class="label">TRANSACTIONS</div><button class="navbtn" onclick="showPage('incomePage',this)"><span>⬆</span>Income</button><button class="navbtn" onclick="showPage('expensesPage',this)"><span>⬇</span>Expenses</button><button class="navbtn" onclick="showPage('pettyPage',this)"><span>💵</span>Petty Cash</button>
+<div class="label">ACCOUNTS</div><button class="navbtn" onclick="showPage('fundsPage',this)"><span>🏦</span>Funds</button><button class="navbtn" onclick="showPage('bankPage',this)"><span>🏧</span>Bank Accounts</button><button class="navbtn" onclick="showPage('loansPage',this)"><span>📄</span>Loans</button>
+<div class="label">PEOPLE</div><button class="navbtn" onclick="showPage('membersPage',this)"><span>👥</span>Members & Donors</button><button class="navbtn" onclick="showPage('benePage',this)"><span>❤️</span>Beneficiaries</button><button class="navbtn" onclick="showPage('reportsPage',this)"><span>📑</span>Reports</button><button class="navbtn" onclick="showPage('payrollPage',this)"><span>💰</span>Payroll</button>
+<div class="label">ADMINISTRATION</div><button class="navbtn" onclick="showPage('admin',this)"><span>👤</span>Users</button><button class="navbtn" onclick="showPage('settings',this)"><span>⚙️</span>Settings</button><button class="navbtn" onclick="showPage('auditPage',this)"><span>📋</span>Audit Trail</button><button class="navbtn" onclick="showPage('profile',this)"><span>👤</span>My Profile</button>
 </aside>
+<main class="main">
+<div class="topHead"><div><button class="btn2" onclick="document.getElementById('side').classList.toggle('open')">☰</button> <h1 id="pageTitle" style="display:inline">Sto. Niño Finance System</h1><br><small>CHURCH FUND LEDGER • <span id="syncStatus" style="color:#1a7a3a">● Connected to Firebase</span></small></div><div class="topBtns"><span class="pill">📄 Receipts</span><button class="btn" onclick="openModal()">+ Add entry</button></div></div>
+<div class="monthRow"><span>‹</span><b>November 2026</b><span>›</span></div>
 
-<main class="flex-1 p-4 md:p-6 w-full">
-  <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="md:hidden bg-[#2E1A5E] text-white px-4 py-2 rounded-lg mb-4">☰ Menu</button>
-  <div id="adminBadge" class="hidden bg-[#6D28D9] text-white text-xs px-3 py-2 rounded-lg mb-4 inline-block">🔐 ADMIN MODE - admin@stonino.com</div>
+<!-- DASHBOARD - SAME NG PICTURE 1 -->
+<section id="dashboard" class="section show">
+<div class="cards3"><div class="card3"><small>Remaining Funds This Month</small><div class="big" id="dRemain">₱2,389.16</div></div>
+<div class="card3"><small>Income</small><div class="big green" id="dInc">₱4,776.30</div><div class="sub" id="dPct">86% of budget</div></div>
+<div class="card3"><small>Expenses</small><div class="big" id="dExp">₱2,387.14</div><div class="sub" id="dBud">Budget ₱2,800.00</div></div></div>
+<div class="toggleRow"><div class="toggle"><button id="tInc" class="on" onclick="setType('income')">Income</button><button id="tExp" onclick="setType('expense')">Expenses</button></div><span style="font-size:12px;color:#666" id="dMonth">₱4,776.30 this month</span></div>
+<div class="cats" id="cats"></div>
+<div class="whiteCard"><div class="flex2"><h3>Recent</h3><span class="pill" id="recentCount">23 entries</span></div><div id="recent"></div></div>
+</section>
 
-  <div id="page-dashboard" class="page">
-    <h2 class="text-2xl font-bold">Dashboard</h2>
-    <p class="text-gray-500 text-sm mb-4">Sto Nino Chapel • Firestore</p>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-      <div class="card p-4"><p class="text-xs text-gray-500">TOTAL FUNDS</p><p id="totalFunds" class="text-2xl font-bold">₱0.00</p></div>
-      <div class="card p-4"><p class="text-xs text-gray-500">INCOME</p><p id="totalIncome" class="text-2xl font-bold text-green-600">₱0.00</p></div>
-      <div class="card p-4"><p class="text-xs text-gray-500">EXPENSES</p><p id="totalExpenses" class="text-2xl font-bold text-red-500">₱0.00</p></div>
-    </div>
-    <div class="card p-4 mt-4">
-      <h3 class="font-bold mb-2">Quick Add</h3>
-      <input id="descInput" placeholder="Hal. Tithes / Kandila" class="w-full border rounded-xl px-3 py-3 mb-2">
-      <input id="amountInput" type="number" placeholder="Amount - hal. 500" class="w-full border rounded-xl px-3 py-3 mb-2">
-      <select id="typeInput" class="w-full border rounded-xl px-3 py-3 mb-2"><option value="income">Income</option><option value="expense">Expenses</option><option value="petty">Petty Cash</option></select>
-      <button onclick="addTransaction()" class="w-full bg-[#2E1A5E] text-white py-3 rounded-xl font-bold">+ Add Transaction</button>
-    </div>
-    <div class="card p-4 mt-4"><h3 class="font-bold mb-2">Recent</h3><div id="recentList"></div></div>
-  </div>
-    <div id="page-tasks" class="page hidden"><h2 class="text-2xl font-bold">Tasks</h2><div class="card p-4 mt-4"><input id="taskInput" placeholder="Bagong task" class="w-full border rounded-xl px-3 py-3 mb-2"><button onclick="addSimple('tasks','taskInput','taskList')" class="bg-[#2E1A5E] text-white px-4 py-2 rounded-xl">+ Add</button><div id="taskList" class="mt-3"></div></div></div>
-  <div id="page-income" class="page hidden"><h2 class="text-2xl font-bold">Income</h2><div class="card p-4 mt-4"><div id="incomeList"></div></div></div>
-  <div id="page-expenses" class="page hidden"><h2 class="text-2xl font-bold">Expenses</h2><div class="card p-4 mt-4"><div id="expenseList"></div></div></div>
-  <div id="page-petty" class="page hidden"><h2 class="text-2xl font-bold">Petty Cash</h2><div class="card p-4 mt-4"><div id="pettyList"></div></div></div>
-  <div id="page-funds" class="page hidden"><h2 class="text-2xl font-bold">Funds</h2><div class="card p-4 mt-4">Total Funds nasa Dashboard.</div></div>
-  <div id="page-bank" class="page hidden"><h2 class="text-2xl font-bold">Bank Accounts</h2><div class="card p-4 mt-4"><input id="bankInput" placeholder="Bank - hal. BPI" class="w-full border rounded-xl px-3 py-3"><button onclick="addSimple('banks','bankInput','bankList')" class="bg-[#2E1A5E] text-white px-4 py-2 rounded-xl mt-2">+ Add</button><div id="bankList" class="mt-3"></div></div></div>
-  <div id="page-loans" class="page hidden"><h2 class="text-2xl font-bold">Loans</h2><div class="card p-4 mt-4"><input id="loanInput" placeholder="Loan" class="w-full border rounded-xl px-3 py-3"><button onclick="addSimple('loans','loanInput','loanList')" class="bg-[#2E1A5E] text-white px-4 py-2 rounded-xl mt-2">+ Add</button><div id="loanList" class="mt-3"></div></div></div>
-  <div id="page-members" class="page hidden"><h2 class="text-2xl font-bold">Members & Donors</h2><div class="card p-4 mt-4"><input id="memberInput" placeholder="Pangalan" class="w-full border rounded-xl px-3 py-3"><button onclick="addSimple('members','memberInput','memberList')" class="bg-[#2E1A5E] text-white px-4 py-2 rounded-xl mt-2">+ Add</button><div id="memberList" class="mt-3"></div></div></div>
-  <div id="page-beneficiaries" class="page hidden"><h2 class="text-2xl font-bold">Beneficiaries</h2><div class="card p-4 mt-4"><input id="beneInput" placeholder="Beneficiary" class="w-full border rounded-xl px-3 py-3"><button onclick="addSimple('beneficiaries','beneInput','beneList')" class="bg-[#2E1A5E] text-white px-4 py-2 rounded-xl mt-2">+ Add</button><div id="beneList" class="mt-3"></div></div></div>
-  <div id="page-reports" class="page hidden">
-    <h2 class="text-2xl font-bold">Reports</h2>
-    <div class="card p-4 mt-4">
-      <p class="text-sm">Google Drive: <b>sinnedkert@gmail.com</b></p>
-      <p class="text-sm mt-2">Manual: Export PDF ngayon. Automatic: Araw-araw 12:00AM via Apps Script.</p>
-      <div class="flex gap-2 mt-3 flex-wrap">
-        <button onclick="exportPDF()" class="bg-[#2E1A5E] text-white px-4 py-3 rounded-xl font-bold">📄 Export PDF Now</button>
-        <a href="https://drive.google.com/drive/my-drive" target="_blank" class="bg-green-600 text-white px-4 py-3 rounded-xl font-bold">☁️ Open My Google Drive</a>
-      </div>
-    </div>
-  </div>
-  <div id="page-payroll" class="page hidden"><h2 class="text-2xl font-bold">Payroll 🔐 Admin Only</h2><div class="card p-4 mt-4">Admin lang makakakita nito.</div></div>
-  <div id="page-users" class="page hidden"><h2 class="text-2xl font-bold">Users 🔐 Admin Only</h2><div class="card p-4 mt-4">Admin: <b>admin@stonino.com</b> lang. Current: <span id="currentUser2"></span></div></div>
-  <div id="page-settings" class="page hidden"><h2 class="text-2xl font-bold">Settings 🔐 Admin Only</h2><div class="card p-4 mt-4">Drive: sinnedkert@gmail.com • Auto Report: ON - 12:00AM Daily</div></div>
-  <div id="page-audit" class="page hidden"><h2 class="text-2xl font-bold">Audit Trail 🔐 Admin Only</h2><div class="card p-4 mt-4"><div id="auditList"></div></div></div>
-  <div id="page-profile" class="page hidden"><h2 class="text-2xl font-bold">My Profile</h2><div class="card p-4 mt-4"><p>Email: <span id="currentUser"></span></p><p>Role: <span id="roleLabel"></span></p></div></div>
-</main>
-</div>
+<!-- SINGLE PAGES -->
+<section id="incomePage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Income entries</h3><p id="incomeSum"></p></div><button class="btn" onclick="openModal('income')">+ Add</button></div><div id="incomeList"></div></div></section>
+<section id="expensesPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Expense entries</h3><p id="expSum"></p></div><button class="btn" onclick="openModal('expense')">+ Add</button></div><div id="expList"></div></div></section>
+<section id="tasksPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Tasks</h3><p>Finance work the team still has to finish.</p></div><button class="btn" onclick="openModal('tasks')">+ Add</button></div><div id="taskList"></div></div></section>
+<section id="pettyPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Petty Cash</h3><p>Small day-to-day cash the treasurer keeps on hand.</p></div><button class="btn" onclick="openModal('petty')">+ Add</button></div><div id="pettyList"></div></div></section>
+<section id="fundsPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Funds</h3><p>Money the church sets aside for a purpose.</p></div><button class="btn" onclick="openModal('funds')">+ Add</button></div><div id="fundList"></div></div></section>
+<section id="bankPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Bank Accounts</h3><p>The church accounts at the bank.</p></div><button class="btn" onclick="openModal('bank')">+ Add</button></div><div id="bankList"></div></div></section>
+<section id="loansPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Loans</h3><p>Borrowed money and what is still to be repaid.</p></div><button class="btn" onclick="openModal('loans')">+ Add</button></div><div id="loanList"></div></div></section>
+<section id="membersPage" class="section"><div class="whiteCard"><h3>Members & Donors</h3><div id="memberList"></div></div></section>
+<section id="benePage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Beneficiaries</h3><p>People and families the church assists.</p></div><button class="btn" onclick="openModal('beneficiaries')">+ Add</button></div><div id="beneList"></div></div></section>
+<section id="reportsPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Reports</h3><p>Summaries prepared for the church council.</p></div><button class="btn" onclick="openModal('reports')">+ Add</button></div><div id="reportList"></div></div></section>
+<section id="payrollPage" class="section"><div class="whiteCard"><div class="flex2"><div><h3>Payroll</h3><p>Salaries and honoraria for church workers.</p></div><button class="btn" onclick="openModal('payroll')">+ Add</button></div><div id="payList"></div></div></section>
+<section id="auditPage" class="section"><div class="whiteCard"><h3>Audit Trail</h3><p>A log of changes made to the books.</p><div id="auditList"></div></div></section>
+<section id="settings" class="section"><div class="whiteCard"><h3>Settings</h3><label>Church Name</label><input value="Sto. Niño Finance System"><label>Monthly Budget</label><input id="budget2" type="number" value="2800"><button class="btn" onclick="saveBudget()">Save Settings</button><br><br><button class="btn2" onclick="resetData()">Reset to Original Data</button> <button class="btn2" onclick="exportData()">Export Backup</button></div></section>
+<section id="profile" class="section"><div class="whiteCard"><h3>My Profile</h3><div class="flex"><div class="iconSm" style="width:52px;height:52px;font-size:18px">YO</div><div><b>Yoww Denn</b><br><small>dennyoww@gmail.com • Treasurer • Member since Nov 23, 2026</small></div></div><label>Name</label><input value="Yoww Denn"><label>Email</label><input value="dennyoww@gmail.com"><button class="btn">Save Profile</button></div></section>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyD8XqSU5tlx5gVKBNJjIvrkfqwiTbaeSuw",
-  authDomain: "stoninochapelfinance.firebaseapp.com",
-  databaseURL: "https://stoninochapelfinance-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "stoninochapelfinance",
-  storageBucket: "stoninochapelfinance.firebasestorage.app",
-  messagingSenderId: "633724409478",
-  appId: "1:633724409478:web:a01f4e934d836ce3c82307",
-  measurementId: "G-7WCS0PJWY6"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const ADMIN_EMAIL = "admin@stonino.com";
-window.auth = auth; window.db = db;
-window.doLogin = async () => {
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPass').value;
-  try { await signInWithEmailAndPassword(auth, email, pass); }
-  catch(e){ document.getElementById('loginError').innerText = "Mali email o password."; }
-};
-window.doLogout = async () => { await signOut(auth); location.reload(); };
-onAuthStateChanged(auth, (user)=>{
-  if(user){
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('mainApp').classList.remove('hidden');
-    document.getElementById('mainApp').classList.add('flex');
-    document.getElementById('userEmailLabel').innerText = user.email;
-    document.getElementById('currentUser').innerText = user.email;
-    document.getElementById('currentUser2').innerText = user.email;
-    const isAdmin = user.email === ADMIN_EMAIL;
-    document.getElementById('roleLabel').innerText = isAdmin ? "ADMIN" : "VIEWER / MEMBER";
-    if(isAdmin) document.getElementById('adminBadge').classList.remove('hidden');
-    else document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
-    loadData();
-  }
-});
-function loadData(){
-  onSnapshot(query(collection(db, "transactions"), orderBy("createdAt","desc")), (snap)=>{
-    let income=0, expense=0, recent="", inc="", exp="", petty="";
-    snap.forEach(doc=>{ const d=doc.data(); const amt=Number(d.amount||0); const row=`<div class="flex justify-between py-2 border-b"><span>${d.description}</span><span class="${d.type==='income'?'text-green-600':'text-red-500'}">${d.type==='income'?'+':'-'}₱${amt.toLocaleString()}</span></div>`; recent+=row; if(d.type==='income'){income+=amt; inc+=row;} if(d.type==='expense'){expense+=amt; exp+=row;} if(d.type==='petty'){petty+=row;} });
-    document.getElementById('totalIncome').innerText="₱"+income.toLocaleString();
-    document.getElementById('totalExpenses').innerText="₱"+expense.toLocaleString();
-    document.getElementById('totalFunds').innerText="₱"+(income-expense).toLocaleString();
-    document.getElementById('recentList').innerHTML=recent||"Wala pa";
-    document.getElementById('incomeList').innerHTML=inc||"Wala pa";
-    document.getElementById('expenseList').innerHTML=exp||"Wala pa";
-    document.getElementById('pettyList').innerHTML=petty||"Wala pa";
-  });
-  onSnapshot(collection(db, "audit"), (snap)=>{ let h=""; snap.forEach(d=>{ h+=`<div class="py-1 border-b text-sm">${d.data().action} - ${d.data().email}</div>`; }); document.getElementById('auditList').innerHTML=h||"Wala pa"; });
-}
-window.addTransaction = async () => {
-  const desc=document.getElementById('descInput').value; const amt=document.getElementById('amountInput').value; const type=document.getElementById('typeInput').value;
-  if(!desc||!amt) return alert("Lagyan mo description at amount");
-  await addDoc(collection(db,"transactions"),{description:desc, amount:Number(amt), type, createdAt:serverTimestamp(), by:auth.currentUser.email});
-  await addDoc(collection(db,"audit"),{action:"Nag-add "+type+" - "+desc+" - ₱"+amt, email:auth.currentUser.email, createdAt:serverTimestamp()});
-  document.getElementById('descInput').value=""; document.getElementById('amountInput').value=""; alert("Na-save sa Firestore!");
-};
-window.addSimple = async (col, inputId, listId) => {
-  const v=document.getElementById(inputId).value; if(!v) return;
-  await addDoc(collection(db,col),{name:v, createdAt:serverTimestamp()});
-  document.getElementById(listId).innerHTML+=`<div class="py-2 border-b">${v}</div>`;
-  document.getElementById(inputId).value="";
-};
-window.exportPDF = () => {
-  const { jsPDF } = window.jspdf; const doc = new jsPDF();
-  doc.text("Sto Nino Chapel - Daily Report", 10, 15);
-  doc.text("Income: "+document.getElementById('totalIncome').innerText, 10, 25);
-  doc.text("Expenses: "+document.getElementById('totalExpenses').innerText, 10, 35);
-  doc.text("Funds: "+document.getElementById('totalFunds').innerText, 10, 45);
-  doc.text("Drive: sinnedkert@gmail.com", 10, 55);
-  doc.text("Generated: "+new Date().toLocaleString(), 10, 65);
-  doc.save("StoNino-Daily-Report-"+new Date().toISOString().slice(0,10)+".pdf");
-  alert("Na-download na. Upload mo sa Drive mo.");
-};
-</script>
+<!-- ADMIN - SAME NG PICTURE 2-6 - LAHAT NAKASTACK -->
+<section id="admin" class="section">
+<div style="display:flex;justify-content:space-between;align-items:center"><div><h2 style="margin:0;font-size:16px">Admin dashboard</h2><small style="color:#888">STO. NIÑO FINANCE SYSTEM • DENNYOWW@GMAIL.COM</small></div><button class="btn2" onclick="showPage('dashboard')">← Back to ledger</button></div>
+<p style="font-size:12px;color:#666;background:#fff;padding:10px;border-radius:12px">Everything in the admin is managed here: add, edit, or delete a record in any section and the matching page updates right away.</p>
+<div class="adminCard"><h3>Members & access</h3><p>Approve new members and remove access.</p><div class="flex2"><b style="font-size:13px">Waiting for approval</b><span class="badge">0</span></div><p style="text-align:center;padding:10px 0">No one is waiting for approval.</p><div class="flex2"><b style="font-size:13px">Approved members</b><span class="badge">1</span></div><div class="row" style="background:#f7f2e9;border-radius:12px;padding:10px;margin-top:8px"><div class="flex"><div class="iconSm">YO</div><div><b>Yoww Denn</b><br><small>dennyoww@gmail.com • Nov 23, 2026</small></div></div><button class="btn2">🗑 Remove</button></div></div>
+<div class="adminCard"><h3>Monthly budget</h3><p>The expense target the dashboard measures against.</p><label style="font-size:11px;color:#888">MONTHLY EXPENSE BUDGET</label><div class="budgetRow"><input id="budgetInput" type="number" value="2800"><button class="btn" onclick="saveBudget()">Save budget</button></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Income entries</h3><p id="adminIncLabel">12 entries • ₱4,776.30</p></div><button class="btn" onclick="openModal('income')">+ Add</button></div><div id="adminIncome"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Expense entries</h3><p id="adminExpLabel">11 entries • ₱2,387.14</p></div><button class="btn" onclick="openModal('expense')">+ Add</button></div><div id="adminExpense"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Tasks</h3><p>Finance work the team still has to finish.</p></div><button class="btn" onclick="openModal('tasks')">+ Add</button></div><p id="taskCount"></p><div id="adminTasks"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Petty Cash</h3><p>Small day-to-day cash the treasurer keeps on hand.</p></div><button class="btn" onclick="openModal('petty')">+ Add</button></div><p id="pettyCount"></p><div id="adminPetty"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Funds</h3><p>Money the church sets aside for a purpose.</p></div><button class="btn" onclick="openModal('funds')">+ Add</button></div><p id="fundCount"></p><div id="adminFunds"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Bank Accounts</h3><p>The church accounts at the bank.</p></div><button class="btn" onclick="openModal('bank')">+ Add</button></div><p id="bankCount"></p><div id="adminBank"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Loans</h3><p>Borrowed money and what is still to be repaid.</p></div><button class="btn" onclick="openModal('loans')">+ Add</button></div><p id="loanCount"></p><div id="adminLoans"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Beneficiaries</h3><p>People and families the church assists.</p></div><button class="btn" onclick="openModal('beneficiaries')">+ Add</button></div><p id="beneCount"></p><div id="adminBene"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Reports</h3><p>Summaries prepared for the church council.</p></div><button class="btn" onclick="openModal('reports')">+ Add</button></div><p id="reportCount"></p><div id="adminReports"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Payroll</h3><p>Salaries and honoraria for church workers.</p></div><button class="btn" onclick="openModal('payroll')">+ Add</button></div><p id="payCount"></p><div id="adminPay"></div></div>
+<div class="adminCard"><div class="flex2"><div><h3>Audit Trail</h3><p>A log of changes made to the books.</p></div><button class="btn" onclick="openModal('reports')">+ Add</button></div><p id="auditCount"></p><div id="adminAudit"></div></div>
+</section>
+</main></div>
+<div class="modal" id="modal"><div class="box"><h3 id="mTitle">Add entry</h3><label>Title</label><input id="fTitle" placeholder="e.g. Sunday offering"><label>Category</label><select id="fCat"><option>Tithes</option><option>Offerings</option><option>Donations</option><option>Fundraising</option><option>Other</option><option>Outreach</option><option>Maintenance</option><option>Ministry</option><option>Utilities</option><option>Salaries</option></select><label>Date</label><input id="fDate" type="date" value="2026-11-27"><label>Amount (₱)</label><input id="fAmount" type="number" placeholder="0.00"><label>Type</label><select id="fType"><option value="income">Income</option><option value="expense">Expense</option><option value="tasks">Tasks</option><option value="petty">Petty Cash</option><option value="funds">Funds</option><option value="bank">Bank</option><option value="loans">Loans</option><option value="beneficiaries">Beneficiaries</option><option value="reports">Reports</option><option value="payroll">Payroll</option></select><label>Notes</label><textarea id="fNotes" placeholder="Notes..."></textarea><div class="flex"><button class="btn" onclick="saveEntry()">Save</button><button class="btn2" onclick="closeModal()">Cancel</button></div></div></div>
 <script>
-function showPage(name, btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
-  document.getElementById('page-'+name).classList.remove('hidden');
-  document.querySelectorAll('#sidebar button').forEach(b=>b.classList.remove('sidebar-active'));
-  if(btn) btn.classList.add('sidebar-active');
-  if(window.innerWidth<768) document.getElementById('sidebar').classList.add('hidden');
-}
-function toggleDark(){ document.body.classList.toggle('bg-[#1a1a1a]'); }
-</script>
-<!-- STO NINO PICTURE - stonino.jpg - I-ADD MO LANG TO -->
-<style>
-  .stonino-login-img{ width:110px; height:110px; object-fit:cover; border-radius:50%; border:3px solid #FFD700; display:block; margin:0 auto 10px; box-shadow:0 4px 15px rgba(0,0,0,.3); background:white; }
-  .stonino-sidebar-img{ width:42px; height:42px; object-fit:cover; border-radius:50%; border:2px solid #FFD700; }
-  .stonino-banner{ width:100%; height:140px; object-fit:cover; object-position:top; border-radius:16px; border:2px solid #FFD700; }
-</style>
-
-<script>
-  // 1. LOGIN PAGE - LAGAY PICTURE SA TAAS NG STO NINO CHAPEL
-  const loginTitle = document.querySelector('#loginPage h1');
-  if(loginTitle){
-    const img = document.createElement('img');
-    img.src = 'stonino.jpg';
-    img.alt = 'Sto Nino';
-    img.className = 'stonino-login-img';
-    img.onerror = () => { img.style.display='none'; console.log('Hindi makita stonino.jpg - check mo kung na-upload'); };
-    loginTitle.parentNode.insertBefore(img, loginTitle);
-  }
-
-  // 2. SIDEBAR - MALIIT NA BILOG SA TAAS
-  const sidebarTitle = document.querySelector('#sidebar h1');
-  if(sidebarTitle){
-    const wrap = document.createElement('div');
-    wrap.style.display = 'flex';
-    wrap.style.alignItems = 'center';
-    wrap.style.gap = '10px';
-    wrap.style.marginBottom = '4px';
-    const img2 = document.createElement('img');
-    img2.src = 'stonino.jpg';
-    img2.alt = 'Sto Nino';
-    img2.className = 'stonino-sidebar-img';
-    sidebarTitle.parentNode.insertBefore(wrap, sidebarTitle);
-    wrap.appendChild(img2);
-    wrap.appendChild(sidebarTitle);
-  }
-
-  // 3. HOMEPAGE / DASHBOARD - BANNER SA TAAS
-  const dashTitle = document.querySelector('#page-dashboard h2');
-  if(dashTitle){
-    const banner = document.createElement('img');
-    banner.src = 'stonino.jpg';
-    banner.alt = 'Sto Nino Chapel';
-    banner.className = 'stonino-banner';
-    dashTitle.parentNode.insertBefore(banner, dashTitle);
-    banner.style.marginBottom = '12px';
-  }
-    </script>
-
-<!-- AYOS PICTURE - TANGGALIN OVAL - GAWING BUO -->
-<style>
-  /* LAHAT NG LALAGYAN NG PICTURE - WAG GAWING BILOG */
-  img {
-    border-radius: 16px !important;
-    object-fit: contain !important;
-  }
-  /* Yung oval sa Login at Dashboard - gawin rectangle */
-  div:has(> img), div:has(img) {
-    border-radius: 16px !important;
-  }
-  /* Yung mismong bilog na may yellow border */
-  [style*="border-radius: 50%"], [style*="border-radius:50%"] {
-    border-radius: 16px !important;
-  }
-  /* Yung banner sa Dashboard - palakihin - buo */
-  .banner img, .hero img, header img {
-    width: 100% !important;
-    height: auto !important;
-    max-height: 260px !important;
-    object-fit: contain !important;
-    display: block !important;
-  }
-</style>
-<script>
-
-</body>
-  </html>
+const KEY='stonino_v1';let curType='income',editId=null;
+const def={budget:2800,entries:[
+{id:1,title:'Online offering',cat:'Donations',date:'2026-11-20',amt:185.5,type:'income',notes:''},{id:2,title:'Midweek tithes',cat:'Tithes',date:'2026-11-19',amt:318.6,type:'income'},{id:3,title:'Harvest dinner',cat:'Fundraising',date:'2026-11-17',amt:264,type:'income'},{id:4,title:'Sunday offering',cat:'Offerings',date:'2026-11-15',amt:421.3,type:'income'},{id:5,title:'Sunday tithes',cat:'Tithes',date:'2026-11-15',amt:610.4,type:'income'},{id:6,title:'Building fund pledge',cat:'Donations',date:'2026-11-10',amt:300,type:'income'},{id:7,title:'Sunday offering',cat:'Offerings',date:'2026-11-08',amt:386.75,type:'income'},{id:8,title:'Sunday tithes',cat:'Tithes',date:'2026-11-08',amt:585.25,type:'income'},{id:9,title:'Youth car wash',cat:'Fundraising',date:'2026-11-05',amt:380,type:'income'},{id:10,title:'Memorial donation',cat:'Donations',date:'2026-11-03',amt:260,type:'income'},{id:11,title:'Sunday offering',cat:'Offerings',date:'2026-11-01',amt:412.5,type:'income'},{id:12,title:'Sunday tithes',cat:'Tithes',date:'2026-11-01',amt:640,type:'income'},
+{id:13,title:'Community aid',cat:'Outreach',date:'2026-11-12',amt:160,type:'expense'},{id:14,title:'Gutter cleaning',cat:'Maintenance',date:'2026-11-11',amt:145,type:'expense'},{id:15,title:'Youth ministry books',cat:'Ministry',date:'2026-11-09',amt:118.3,type:'expense'},{id:16,title:'Internet',cat:'Utilities',date:'2026-11-08',amt:64.99,type:'expense'}
